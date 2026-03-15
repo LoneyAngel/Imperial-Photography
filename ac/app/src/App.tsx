@@ -20,6 +20,7 @@ function App() {
     currentMember,
     registerPhotographer,
     loginMemberWithEmail,
+    loginMemberWithPassword,
     logoutMember,
     updateMemberProfile,
     uploadPhoto,
@@ -75,8 +76,8 @@ function App() {
                 <MemberAuth
                   currentMember={currentMember}
                   onLogin={loginMemberWithEmail}
+                  onPasswordLogin={loginMemberWithPassword}
                   onLogout={logoutMember}
-                  onDone={() => window.location.href = '/'}
                 />
               }
             />

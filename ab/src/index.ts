@@ -8,8 +8,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from './prisma.js';
 import { putImage } from './storage.js';
 import { generateVerificationCode, hashVerificationCode, sendVerificationEmail } from './email.js';
-import { ApiResponse, asyncHandler, validateRequest } from './utils/api.js';
-import { validation, validateEmail, validatePassword, validateVerificationCode } from './utils/validation.js';
+import { ApiResponse, validateRequest } from './utils/api.js';
 
 const PORT = Number(process.env.PORT ?? '4001');
 const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
@@ -41,10 +40,11 @@ const asyncHandler =
     void Promise.resolve(fn(req, res, next)).catch(next);
   };
 
+// 健康检查路由
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
 });
-
+// 获取摄影师列表路由
 app.get('/api/photographers', asyncHandler(async (_req, res) => {
   const photographers = await prisma.photographer.findMany({ orderBy: { createdAt: 'desc' } });
   res.json(
@@ -56,7 +56,7 @@ app.get('/api/photographers', asyncHandler(async (_req, res) => {
     }))
   );
 }));
-
+// 创建摄影师路由
 app.post('/api/photographers', asyncHandler(async (req, res) => {
   const body = z
     .object({
@@ -80,12 +80,23 @@ app.post('/api/photographers', asyncHandler(async (req, res) => {
   });
 }));
 
-app.post('/api/members/login', asyncHandler(async (req, res) => {
-  res.status(410).json({ error: 'deprecated' });
-}));
-
+// app.post('/api/members/login', asyncHandler(async (req, res) => {
+//   res.status(410).json({ error: 'deprecated' });
+// }));
+// 请求验证码路由
 app.post('/api/auth/request-code', asyncHandler(async (req, res) => {
   const body = z.object({ email: z.string().trim().toLowerCase().email() }).parse(req.body);
+
+  // 检查邮箱是否已存在且已完成密码设置
+  const existingMember = await prisma.member.findUnique({
+    where: { email: body.email },
+    select: { password: true }
+  });
+
+  if (existingMember && existingMember.password) {
+    res.status(400).json({ error: 'member_already_registered' });
+    return;
+  }
 
   const code = generateVerificationCode();
   const expiresMinutes = 10;
@@ -102,6 +113,7 @@ app.post('/api/auth/request-code', asyncHandler(async (req, res) => {
   ApiResponse.ok(res, '验证码发送成功');
 }));
 
+// 验证验证码路由
 app.post('/api/auth/verify-code', asyncHandler(async (req, res) => {
   const body = z
     .object({
@@ -155,6 +167,7 @@ app.post('/api/auth/verify-code', asyncHandler(async (req, res) => {
   });
 }));
 
+// 更新会员路由
 app.put('/api/members/:id', asyncHandler(async (req, res) => {
   const params = z.object({ id: z.string().min(1) }).parse(req.params);
   const body = z
@@ -182,6 +195,7 @@ app.put('/api/members/:id', asyncHandler(async (req, res) => {
   });
 }));
 
+// 获取摄影师本人照片路由
 app.get('/api/photos', asyncHandler(async (req, res) => {
   const query = z
     .object({
@@ -213,7 +227,8 @@ app.get('/api/photos', asyncHandler(async (req, res) => {
   );
 }));
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
+// 上传照片
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 app.post('/api/photos', upload.single('file'), asyncHandler(async (req, res) => {
   const file = req.file;
   if (!file) {
@@ -264,6 +279,7 @@ app.post('/api/photos', upload.single('file'), asyncHandler(async (req, res) => 
   });
 }));
 
+// 全局错误处理中间件
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err instanceof z.ZodError) {
     res.status(400).json({ error: 'invalid_request', details: err.flatten() });
@@ -337,24 +353,26 @@ app.post('/api/auth/set-password', asyncHandler(async (req, res) => {
     })
     .parse(req.body);
 
-  const member = await prisma.member.findUnique({ where: { email: body.email } });
-
-  if (!member) {
-    res.status(404).json({ error: 'member_not_found' });
-    return;
-  }
-
   const hashedPassword = await bcrypt.hash(body.password, 10);
+  const now = new Date();
+  const displayName = body.email.split('@')[0] ?? body.email;
 
-  const updatedMember = await prisma.member.update({
+  // 使用 upsert 确保会员存在并更新密码
+  await prisma.member.upsert({
     where: { email: body.email },
-    data: { password: hashedPassword },
+    update: { password: hashedPassword },
+    create: {
+      email: body.email,
+      password: hashedPassword,
+      displayName,
+      verifiedAt: now
+    },
   });
 
   res.json({ success: true });
 }));
 
-// 请求重置密码验证码
+// 重置密码的验证码
 app.post('/api/auth/request-reset-code', asyncHandler(async (req, res) => {
   const body = z.object({ email: z.string().trim().toLowerCase().email() }).parse(req.body);
 
@@ -380,7 +398,7 @@ app.post('/api/auth/request-reset-code', asyncHandler(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// 验证重置密码验证码
+// 验证重置密码的验证码
 app.post('/api/auth/verify-reset-code', asyncHandler(async (req, res) => {
   const body = z
     .object({

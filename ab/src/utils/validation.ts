@@ -1,10 +1,12 @@
 // 后端验证工具
 export const validation = {
+  // 验证邮箱格式
   email: (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return typeof email === 'string' && emailRegex.test(email.trim().toLowerCase());
   },
 
+  // 验证密码格式
   password: (password: string): { valid: boolean; error?: string } => {
     if (!password || typeof password !== 'string') {
       return { valid: false, error: '密码不能为空' };
@@ -14,7 +16,7 @@ export const validation = {
     }
     return { valid: true };
   },
-
+  // 验证验证码格式
   verificationCode: (code: string): { valid: boolean; error?: string } => {
     if (!code || typeof code !== 'string') {
       return { valid: false, error: '验证码不能为空' };
@@ -25,13 +27,14 @@ export const validation = {
     return { valid: true };
   },
 
+  // 验证必填字段
   required: (value: any, fieldName: string): { valid: boolean; error?: string } => {
     if (value === null || value === undefined || (typeof value === 'string' && !value.trim())) {
       return { valid: false, error: `${fieldName}不能为空` };
     }
     return { valid: true };
   },
-
+  // 验证文件大小
   fileSize: (file: any, maxSizeMB: number): { valid: boolean; error?: string } => {
     if (!file || !file.size) {
       return { valid: false, error: '文件无效' };
@@ -43,6 +46,7 @@ export const validation = {
     return { valid: true };
   },
 
+  // 验证文件类型
   fileType: (file: any, allowedTypes: string[]): { valid: boolean; error?: string } => {
     if (!file || !file.mimetype) {
       return { valid: false, error: '文件类型无效' };
@@ -61,6 +65,7 @@ export const validateEmail = (email: string): void => {
   }
 };
 
+// 验证密码
 export const validatePassword = (password: string): void => {
   const result = validation.password(password);
   if (!result.valid) {
@@ -68,6 +73,7 @@ export const validatePassword = (password: string): void => {
   }
 };
 
+// 验证验证码
 export const validateVerificationCode = (code: string): void => {
   const result = validation.verificationCode(code);
   if (!result.valid) {

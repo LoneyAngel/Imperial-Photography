@@ -25,7 +25,11 @@
       "Bash(curl -X POST http://localhost:4001/api/auth/request-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"newuser@example.com\"\"}')",
       "Bash(curl -X POST http://localhost:4001/api/auth/verify-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"newuser@example.com\"\", \"\"code\"\": \"\"000000\"\"}')",
       "Bash(xargs grep:*)",
-      "Bash(git clean:*)"
+      "Bash(git clean:*)",
+      "Bash(curl -X POST http://localhost:5174/api/auth/request-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"test@example.com\"\"}')",
+      "Bash(curl -X POST http://localhost:5174/api/auth/request-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"testuser@example.com\"\"}')",
+      "Bash(curl -X POST http://localhost:5174/api/auth/verify-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"testuser@example.com\"\", \"\"code\"\": \"\"123456\"\"}')",
+      "Bash(curl -X POST http://localhost:5174/api/auth/request-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"verifytest@example.com\"\"}')"
     ]
   }
 }

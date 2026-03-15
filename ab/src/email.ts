@@ -1,10 +1,12 @@
 import crypto from 'node:crypto';
 import nodemailer from 'nodemailer';
 
+// 标准化邮箱地址
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+// 获取验证码密钥
 function getVerificationSecret() {
   const secret = process.env.VERIFICATION_CODE_SECRET;
   if (secret && secret.trim()) return secret;
@@ -14,16 +16,19 @@ function getVerificationSecret() {
   return 'dev-secret';
 }
 
+// 哈希验证码
 export function hashVerificationCode(email: string, code: string) {
   const secret = getVerificationSecret();
   const input = `${normalizeEmail(email)}:${code}:${secret}`;
   return crypto.createHash('sha256').update(input).digest('hex');
 }
 
+// 生成验证码
 export function generateVerificationCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// 发送验证码邮件
 export async function sendVerificationEmail(params: {
   to: string;
   code: string;
