@@ -7,8 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff } from 'lucide-react';
 import { Member } from '@/types';
-import { useAuthApi } from '@/hooks/useApi';
-import { validation } from '@/lib/validation';
 
 interface MemberAuthProps {
   currentMember: Member | null;

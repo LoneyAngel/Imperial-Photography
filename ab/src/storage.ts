@@ -5,6 +5,7 @@ import OSS from 'ali-oss';
 
 type PutResult = { url: string; key: string };
 
+// 检查是否配置了 OSS 存储
 function hasOssConfig() {
   return Boolean(
     (process.env.OSS_REGION || process.env.OSS_ENDPOINT) &&
@@ -14,6 +15,7 @@ function hasOssConfig() {
   );
 }
 
+// 标准化 OSS 区域名称
 function normalizeRegion(value: string) {
   const trimmed = value.trim();
   const withoutProtocol = trimmed.replace(/^https?:\/\//, '');
@@ -21,6 +23,7 @@ function normalizeRegion(value: string) {
   return withoutSuffix;
 }
 
+// 获取 OSS 公共基础 URL
 function getPublicBaseUrl() {
   if (process.env.OSS_PUBLIC_BASE_URL) return process.env.OSS_PUBLIC_BASE_URL.replace(/\/+$/, '');
   const rawRegion = process.env.OSS_REGION;
@@ -30,6 +33,7 @@ function getPublicBaseUrl() {
   return `https://${bucket}.${region}.aliyuncs.com`;
 }
 
+// 从 MIME 类型获取文件扩展名
 function extFromMime(mime: string) {
   const lower = mime.toLowerCase();
   if (lower === 'image/jpeg') return 'jpg';
@@ -39,6 +43,7 @@ function extFromMime(mime: string) {
   return 'bin';
 }
 
+// 上传图片到 OSS 或本地文件系统
 export async function putImage(params: {
   buffer: Buffer;
   mime: string;
@@ -49,6 +54,7 @@ export async function putImage(params: {
   const random = crypto.randomBytes(12).toString('hex');
   const key = `photos/${Date.now()}-${random}.${fileExt}`;
 
+  // 上传到 OSS
   if (hasOssConfig()) {
     const rawRegion = process.env.OSS_REGION;
     const endpoint = process.env.OSS_ENDPOINT;
@@ -72,6 +78,7 @@ export async function putImage(params: {
     return { key, url: `${baseUrl}/${key}` };
   }
 
+  // 上传到本地文件系统
   const uploadsDir = path.resolve(process.cwd(), 'uploads');
   await fs.mkdir(uploadsDir, { recursive: true });
   const fileName = key.replace('photos/', '');

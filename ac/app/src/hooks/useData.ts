@@ -93,6 +93,25 @@ export function useData() {
     }
   }, [apiFetch]);
 
+  const loginMemberWithPassword = useCallback(async (email: string, password: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) return false;
+
+    try {
+      const res = await apiFetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalizedEmail, password }),
+      });
+      const member = (await res.json()) as Member;
+      setCurrentMember(member);
+      localStorage.setItem('currentMember', JSON.stringify(member));
+      return true;
+    } catch {
+      return false;
+    }
+  }, [apiFetch]);
+
   const logoutMember = () => {
     setCurrentMember(null);
     localStorage.removeItem('currentMember');
@@ -149,6 +168,7 @@ export function useData() {
     currentMember,
     registerPhotographer,
     loginMemberWithEmail,
+    loginMemberWithPassword,
     logoutMember,
     updateMemberProfile,
     uploadPhoto,

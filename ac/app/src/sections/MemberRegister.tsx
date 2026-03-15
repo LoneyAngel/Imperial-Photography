@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff } from 'lucide-react';
-import { Member } from '@/types';
 
 interface MemberRegisterProps {
   onRegister: (email: string, code: string, password: string) => Promise<boolean>;
@@ -299,9 +297,6 @@ export default function MemberRegister({ onRegister }: MemberRegisterProps) {
             </div>
           </CardContent>
         </Card>
-        <p className="text-xs text-muted-foreground text-center mt-6">
-          注册信息将保存在本地浏览器（localStorage）
-        </p>
       </div>
     </div>
   );
