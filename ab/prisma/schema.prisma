@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PhotoStatus {
+  pending
+  approved
+  rejected
+}
+
+model Photographer {
+  id        String   @id @default(cuid())
+  name      String
+  bio       String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Member {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String?
+  createdAt  DateTime @default(now())
+  verifiedAt DateTime @default(now())
+  displayName String?
+  bio        String?
+
+  @@index([createdAt])
+}
+
+model EmailVerificationCode {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Photo {
+  id               String      @id @default(cuid())
+  photographerId   String
+  photographerName String
+  title            String
+  description      String?
+  url              String
+  status           PhotoStatus @default(pending)
+  createdAt        DateTime    @default(now())
+  ownerMemberId    String?
+
+  @@index([status, createdAt])
+  @@index([ownerMemberId, createdAt])
+}
