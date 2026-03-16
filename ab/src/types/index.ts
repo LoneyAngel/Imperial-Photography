@@ -11,14 +11,12 @@ export interface Member {
 
 export interface Photo {
   id: string;
-  photographerId: string;
-  photographerName: string;
   title: string;
   description?: string;
   url: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Date;
-  updatedAt: Date;
+  ownerMemberId: string;
 }
 
 export interface EmailVerificationCode {
@@ -40,7 +38,7 @@ export interface AuthRequest {
 export interface UploadRequest {
   title: string;
   description?: string;
-  photographerName: string;
+  memberId: string;
   file: Express.Multer.File;
 }
 
@@ -71,8 +69,3 @@ export interface FileUploadResult {
   mimetype: string;
 }
 
-// 错误类型
-export interface AppError extends Error {
-  statusCode: number;
-  code?: string;
-}

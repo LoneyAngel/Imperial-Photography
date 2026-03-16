@@ -57,13 +57,6 @@ export const ApiResponse = {
   },
 };
 
-// 通用的异步处理包装器
-export const asyncHandler = (fn: Function) => {
-  return (req: any, res: any, next: any) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-};
-
 // 请求参数验证中间件
 export const validateRequest = (validations: Record<string, Function>) => {
   return (req: any, res: any, next: any) => {

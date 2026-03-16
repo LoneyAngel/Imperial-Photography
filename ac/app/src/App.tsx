@@ -3,7 +3,6 @@ import { useData } from './hooks/useData';
 import Navbar from './components/Navbar';
 import Home from './sections/Home';
 import Gallery from './sections/Gallery';
-import Register from './sections/Register';
 import Upload from './sections/Upload';
 import MemberAuth from './sections/MemberAuth';
 import MemberRegister from './sections/MemberRegister';
@@ -16,9 +15,7 @@ import ResetPassword from './sections/ResetPassword';
 function App() {
   const {
     photos,
-    currentPhotographer,
     currentMember,
-    registerPhotographer,
     loginMemberWithEmail,
     loginMemberWithPassword,
     logoutMember,
@@ -26,12 +23,8 @@ function App() {
     uploadPhoto,
   } = useData();
 
-  const handleRegister = (name: string, bio: string) => {
-    registerPhotographer(name, bio);
-  };
-
-  const handleUpload = (title: string, description: string, file: File, photographerName: string) => {
-    uploadPhoto(title, description, file, photographerName);
+  const handleUpload = (title: string, description: string, file: File) => {
+    uploadPhoto(title, description, file);
   };
 
   return (
@@ -43,7 +36,6 @@ function App() {
           </p>
         </div>
         <Navbar
-          currentPhotographer={currentPhotographer}
           currentMember={currentMember}
           onMemberLogout={logoutMember}
         />
@@ -51,12 +43,12 @@ function App() {
           <Routes>
             <Route path="/" element={<Home onBrowse={() => window.location.href = '/register'} />} />
             <Route path="/gallery" element={<Gallery photos={photos} />} />
-            <Route path="/register" element={<Register onRegister={handleRegister} />} />
+            <Route path="/register" element={<MemberRegister onRegister={loginMemberWithEmail} />} />
             <Route
               path="/upload"
               element={
                 currentMember ? (
-                  <Upload onUpload={handleUpload} />
+                  <Upload onUpload={handleUpload} currentMember={currentMember} />
                 ) : (
                   <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10">
                     <div className="text-center space-y-4">

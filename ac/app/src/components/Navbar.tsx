@@ -12,13 +12,11 @@ import {
 import { Member } from '@/types';
 
 interface NavbarProps {
-  currentPhotographer: { id: string; name: string } | null;
   currentMember: Member | null;
   onMemberLogout: () => void;
 }
 
 export default function Navbar({
-  currentPhotographer,
   currentMember,
   onMemberLogout,
 }: NavbarProps) {
@@ -43,7 +41,7 @@ export default function Navbar({
               浏览作品
             </Button>
           </Link>
-          {currentPhotographer ? (
+          {currentMember ? (
             <Link to="/upload">
               <Button
                 variant={isActive('/upload') ? 'default' : 'ghost'}

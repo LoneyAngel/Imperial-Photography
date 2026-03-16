@@ -7,18 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 interface UploadProps {
-  onUpload: (title: string, description: string, file: File, photographerName: string) => void;
+  onUpload: (title: string, description: string, file: File) => void;
+  currentMember?: { displayName?: string } | null;
 }
 
-const generateRandomPhotographerName = () => `作者${Math.floor(1000 + Math.random() * 9000)}`;
-
-export default function Upload({ onUpload }: UploadProps) {
-  const [photographerName, setPhotographerName] = useState(generateRandomPhotographerName());
+export default function Upload({ onUpload, currentMember }: UploadProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [uploadedPhoto, setUploadedPhoto] = useState<{ url: string; title: string; description: string; photographerName: string } | null>(null);
+  const [uploadedPhoto, setUploadedPhoto] = useState<{ url: string; title: string; description: string; authorName: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,11 +33,11 @@ export default function Upload({ onUpload }: UploadProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (photographerName.trim() && file) {
+    if (file) {
       setIsUploading(true);
 
-      // 调用上传函数
-      onUpload(title.trim(), description.trim(), file, photographerName.trim());
+      // 调用上传函数（不再需要摄影师名字）
+      onUpload(title.trim(), description.trim(), file);
 
       // 模拟上传过程，然后显示上传成功的作品
       setTimeout(() => {
@@ -47,7 +45,7 @@ export default function Upload({ onUpload }: UploadProps) {
           url: preview || '',
           title: title.trim() || '未命名作品',
           description: description.trim() || '',
-          photographerName: photographerName.trim()
+          authorName: currentMember?.displayName || '匿名用户'
         });
         setIsUploading(false);
       }, 1500);
@@ -56,7 +54,6 @@ export default function Upload({ onUpload }: UploadProps) {
 
   const resetToUploadForm = () => {
     setUploadedPhoto(null);
-    setPhotographerName(generateRandomPhotographerName());
     setTitle('');
     setDescription('');
     setFile(null);
@@ -73,17 +70,6 @@ export default function Upload({ onUpload }: UploadProps) {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="photographerName">作者名称 *</Label>
-                  <Input
-                    id="photographerName"
-                    placeholder="默认随机生成，可修改"
-                    value={photographerName}
-                    onChange={(e) => setPhotographerName(e.target.value)}
-                    required
-                  />
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="title">作品名字</Label>
                   <Input
@@ -164,7 +150,9 @@ export default function Upload({ onUpload }: UploadProps) {
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-xl font-semibold mb-2">{uploadedPhoto.title}</h3>
-                    <p className="text-sm text-muted-foreground">摄影师: {uploadedPhoto.photographerName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      作者: {uploadedPhoto.authorName}
+                    </p>
                   </div>
 
                   {uploadedPhoto.description && (

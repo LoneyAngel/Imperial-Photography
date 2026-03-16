@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Member, Photographer, Photo } from '@/types';
+import { Member, Photo } from '@/types';
 
 export function useData() {
-  const [photographers, setPhotographers] = useState<Photographer[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [currentPhotographer, setCurrentPhotographer] = useState<{ id: string; name: string } | null>(null);
   const [currentMember, setCurrentMember] = useState<Member | null>(null);
 
   const apiFetch = useCallback(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -14,16 +12,6 @@ export function useData() {
     }
     return res;
   }, []);
-
-  const refreshPhotographers = useCallback(async () => {
-    try {
-      const res = await apiFetch('/api/photographers');
-      const data = (await res.json()) as Photographer[];
-      setPhotographers(data);
-    } catch {
-      setPhotographers([]);
-    }
-  }, [apiFetch]);
 
   const refreshPhotos = useCallback(async () => {
     try {
@@ -36,42 +24,14 @@ export function useData() {
   }, [apiFetch]);
 
   useEffect(() => {
-    const savedCurrentPhotographer = localStorage.getItem('currentPhotographer');
     const savedCurrentMember = localStorage.getItem('currentMember');
 
-    if (savedCurrentPhotographer) {
-      setCurrentPhotographer(JSON.parse(savedCurrentPhotographer));
-    }
     if (savedCurrentMember) {
       setCurrentMember(JSON.parse(savedCurrentMember));
     }
 
-    void refreshPhotographers();
     void refreshPhotos();
-  }, [refreshPhotographers, refreshPhotos]);
-
-  // 注册摄影师
-  const registerPhotographer = useCallback((name: string, bio: string) => {
-    void (async () => {
-      try {
-        const res = await apiFetch('/api/photographers', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, bio }),
-        });
-        const newPhotographer = (await res.json()) as Photographer;
-        await refreshPhotographers();
-
-        const currentUser = { id: newPhotographer.id, name: newPhotographer.name };
-        setCurrentPhotographer(currentUser);
-        localStorage.setItem('currentPhotographer', JSON.stringify(currentUser));
-      } catch {
-        return;
-      }
-    })();
-
-    return true;
-  }, [apiFetch, refreshPhotographers]);
+  }, [refreshPhotos]);
 
   const loginMemberWithEmail = useCallback(async (email: string, code: string) => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -139,16 +99,19 @@ export function useData() {
   }, [apiFetch, currentMember]);
 
   // 上传照片
-  const uploadPhoto = useCallback((title: string, description: string, file: File, photographerName: string) => {
+  const uploadPhoto = useCallback((title: string, description: string, file: File) => {
     void (async () => {
       try {
+        if (!currentMember?.id) {
+          console.error('用户未登录，无法上传照片');
+          return;
+        }
+
         const form = new FormData();
         form.append('file', file);
         form.append('title', title);
         form.append('description', description);
-        form.append('photographerName', photographerName);
-        if (currentPhotographer?.id) form.append('photographerId', currentPhotographer.id);
-        if (currentMember?.id) form.append('ownerMemberId', currentMember.id);
+        form.append('memberId', currentMember.id);
 
         await apiFetch('/api/photos', { method: 'POST', body: form });
         await refreshPhotos();
@@ -158,15 +121,11 @@ export function useData() {
     })();
 
     return true;
-  }, [apiFetch, currentMember?.id, currentPhotographer?.id, refreshPhotos]);
+  }, [apiFetch, currentMember?.id, refreshPhotos]);
 
-  // 审核通过
   return {
-    photographers,
     photos,
-    currentPhotographer,
     currentMember,
-    registerPhotographer,
     loginMemberWithEmail,
     loginMemberWithPassword,
     logoutMember,

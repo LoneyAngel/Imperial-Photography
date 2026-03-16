@@ -38,7 +38,6 @@ export default function Gallery({ photos }: GalleryProps) {
               <img src={photo.url} alt={photo.title || '未命名作品'} />
               <div className="image-info">
                 <h3 className="font-semibold mb-1">{photo.title || '未命名作品'}</h3>
-                <p className="text-sm text-muted-foreground">摄影师: {photo.photographerName}</p>
                 {photo.description && (
                   <p className="text-sm text-muted-foreground mt-1">{photo.description}</p>
                 )}
@@ -81,10 +80,6 @@ export default function Gallery({ photos }: GalleryProps) {
                 </div>
 
                 <div className="mt-4 space-y-3 overflow-hidden">
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">作者名字</p>
-                    <p className="text-sm break-words">{selectedPhoto.photographerName || '—'}</p>
-                  </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">作品名字</p>
                     <p className="text-sm break-words">{selectedPhoto.title || '—'}</p>

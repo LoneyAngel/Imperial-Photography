@@ -96,9 +96,8 @@ export function cached<T>(ttl?: number) {
 // 常用的缓存键生成器
 export const CacheKeys = {
   photos: () => 'photos:all',
-  photosByPhotographer: (photographerId: string) => `photos:photographer:${photographerId}`,
+  photosByMember: (memberId: string) => `photos:member:${memberId}`,
   member: (email: string) => `member:${email}`,
-  photographer: (id: string) => `photographer:${id}`,
 };
 
 // 缓存辅助函数

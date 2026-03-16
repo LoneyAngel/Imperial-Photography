@@ -5,16 +5,24 @@ import cors from 'cors';
 import multer from 'multer';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { prisma } from './prisma.js';
+import { prisma } from './utils/prisma.js';
 import { putImage } from './storage.js';
-import { generateVerificationCode, hashVerificationCode, sendVerificationEmail } from './email.js';
-import { ApiResponse, validateRequest } from './utils/api.js';
+import { generateVerificationCode, hashVerificationCode, sendVerificationEmail } from './utils/email.js';
+import { ApiResponse } from './utils/api.js';
+import { errorHandler } from './utils/errors.js';
 
 const PORT = Number(process.env.PORT ?? '4001');
 const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
+const asyncHandler =
+  <TReq extends express.Request, TRes extends express.Response>(
+    fn: (req: TReq, res: TRes, next: express.NextFunction) => Promise<void>
+  ) =>
+  (req: TReq, res: TRes, next: express.NextFunction) => {
+    void Promise.resolve(fn(req, res, next)).catch(next);
+  };
 
 const app = express();
 app.use(
@@ -31,58 +39,14 @@ app.use(
 );
 app.use(express.json({ limit: '2mb' }));
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
-
-const asyncHandler =
-  <TReq extends express.Request, TRes extends express.Response>(
-    fn: (req: TReq, res: TRes, next: express.NextFunction) => Promise<void>
-  ) =>
-  (req: TReq, res: TRes, next: express.NextFunction) => {
-    void Promise.resolve(fn(req, res, next)).catch(next);
-  };
+// 全局错误处理中间件
+app.use(errorHandler);
 
 // 健康检查路由
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
 });
-// 获取摄影师列表路由
-app.get('/api/photographers', asyncHandler(async (_req, res) => {
-  const photographers = await prisma.photographer.findMany({ orderBy: { createdAt: 'desc' } });
-  res.json(
-    photographers.map((p) => ({
-      id: p.id,
-      name: p.name,
-      bio: p.bio,
-      createdAt: p.createdAt.toISOString(),
-    }))
-  );
-}));
-// 创建摄影师路由
-app.post('/api/photographers', asyncHandler(async (req, res) => {
-  const body = z
-    .object({
-      name: z.string().trim().min(1).max(120),
-      bio: z.string().trim().max(2000).default(''),
-    })
-    .parse(req.body);
 
-  const photographer = await prisma.photographer.create({
-    data: {
-      name: body.name,
-      bio: body.bio,
-    },
-  });
-
-  res.json({
-    id: photographer.id,
-    name: photographer.name,
-    bio: photographer.bio,
-    createdAt: photographer.createdAt.toISOString(),
-  });
-}));
-
-// app.post('/api/members/login', asyncHandler(async (req, res) => {
-//   res.status(410).json({ error: 'deprecated' });
-// }));
 // 请求验证码路由
 app.post('/api/auth/request-code', asyncHandler(async (req, res) => {
   const body = z.object({ email: z.string().trim().toLowerCase().email() }).parse(req.body);
@@ -173,7 +137,7 @@ app.put('/api/members/:id', asyncHandler(async (req, res) => {
   const body = z
     .object({
       displayName: z.string().trim().max(120).optional(),
-      bio: z.string().trim().max(2000).optional(),
+      bio: z.string().trim().max(500).optional(),
     })
     .parse(req.body);
 
@@ -215,14 +179,12 @@ app.get('/api/photos', asyncHandler(async (req, res) => {
   res.json(
     photos.map((p) => ({
       id: p.id,
-      photographerId: p.photographerId,
-      photographerName: p.photographerName,
       title: p.title,
       url: p.url,
       status: p.status,
       createdAt: p.createdAt.toISOString(),
       description: p.description ?? undefined,
-      ownerMemberId: p.ownerMemberId ?? undefined,
+      ownerMemberId: p.ownerMemberId,
     }))
   );
 }));
@@ -239,12 +201,20 @@ app.post('/api/photos', upload.single('file'), asyncHandler(async (req, res) => 
   const body = z
     .object({
       title: z.string().trim().max(200).default(''),
-      description: z.string().trim().max(2000).optional(),
-      photographerName: z.string().trim().min(1).max(120),
-      photographerId: z.string().trim().min(1).optional(),
-      ownerMemberId: z.string().trim().min(1).optional(),
+      description: z.string().trim().max(500).optional(),
+      memberId: z.string().trim().min(1, '必须提供会员ID'), // 从前端传递会员ID
     })
     .parse(req.body);
+
+  // 验证会员是否存在
+  const member = await prisma.member.findUnique({
+    where: { id: body.memberId }
+  });
+
+  if (!member) {
+    res.status(400).json({ error: 'invalid_member' });
+    return;
+  }
 
   const baseForLocal = `http://localhost:${PORT}`;
   const uploaded = await putImage({
@@ -256,57 +226,24 @@ app.post('/api/photos', upload.single('file'), asyncHandler(async (req, res) => 
 
   const photo = await prisma.photo.create({
     data: {
-      photographerId: body.photographerId ?? `anon-${Date.now()}`,
-      photographerName: body.photographerName,
       title: body.title,
       description: body.description,
       url: uploaded.url,
       status: 'approved',
-      ownerMemberId: body.ownerMemberId,
+      ownerMemberId: body.memberId, // 使用前端传递的会员ID
     },
   });
 
   res.json({
     id: photo.id,
-    photographerId: photo.photographerId,
-    photographerName: photo.photographerName,
     title: photo.title,
     url: photo.url,
     status: photo.status,
     createdAt: photo.createdAt.toISOString(),
     description: photo.description ?? undefined,
-    ownerMemberId: photo.ownerMemberId ?? undefined,
+    ownerMemberId: photo.ownerMemberId,
   });
 }));
-
-// 全局错误处理中间件
-app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  if (err instanceof z.ZodError) {
-    res.status(400).json({ error: 'invalid_request', details: err.flatten() });
-    return;
-  }
-  if (err instanceof Error) {
-    const anyErr = err as unknown as { code?: string; name?: string };
-    if (
-      anyErr.code === 'P1000' ||
-      anyErr.code === 'P1001' ||
-      anyErr.code === 'P1002' ||
-      anyErr.code === 'P1017' ||
-      anyErr.name === 'PrismaClientInitializationError' ||
-      anyErr.name === 'PrismaClientKnownRequestError' ||
-      err.message.includes('P1000') ||
-      err.message.includes('P1001') ||
-      err.message.includes('P1002') ||
-      err.message.includes('P1017') ||
-      err.message.includes('PrismaClientInitializationError') ||
-      err.message.includes('PrismaClientKnownRequestError')
-    ) {
-      res.status(503).json({ error: 'db_unavailable' });
-      return;
-    }
-  }
-  res.status(500).json({ error: 'server_error' });
-});
 
 // 密码认证相关API
 
