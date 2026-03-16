@@ -1,20 +1,11 @@
-export interface Photographer {
-  id: string;
-  name: string;
-  bio: string;
-  createdAt: string;
-}
-
 export interface Photo {
   id: string;
-  photographerId: string;
-  photographerName: string;
   title: string;
   url: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   description?: string;
-  ownerMemberId?: string;
+  ownerMemberId: string;
 }
 
 export interface Member {

@@ -13,15 +13,6 @@ enum PhotoStatus {
   rejected
 }
 
-model Photographer {
-  id        String   @id @default(cuid())
-  name      String
-  bio       String
-  createdAt DateTime @default(now())
-
-  @@index([createdAt])
-}
-
 model Member {
   id         String   @id @default(cuid())
   email      String   @unique
@@ -30,6 +21,9 @@ model Member {
   verifiedAt DateTime @default(now())
   displayName String?
   bio        String?
+
+  // 关联到照片表
+  photos     Photo[]
 
   @@index([createdAt])
 }
@@ -45,14 +39,15 @@ model EmailVerificationCode {
 
 model Photo {
   id               String      @id @default(cuid())
-  photographerId   String
-  photographerName String
   title            String
   description      String?
   url              String
   status           PhotoStatus @default(pending)
   createdAt        DateTime    @default(now())
-  ownerMemberId    String?
+  ownerMemberId    String      // 改为必填，会员上传照片时必须关联
+
+  // 关联到会员表
+  member           Member      @relation(fields: [ownerMemberId], references: [id])
 
   @@index([status, createdAt])
   @@index([ownerMemberId, createdAt])

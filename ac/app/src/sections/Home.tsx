@@ -18,7 +18,7 @@ export default function Home() {
             一个面向摄影创作者的国际摄影组织
           </p>
           <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed">
-            从独特的视野出发，讲述故事
+            换一个角度，记录这些故事
           </p>
           <div className="mt-8 flex items-center gap-3 justify-center">
             <Button onClick={handleBrowse}>join us</Button>

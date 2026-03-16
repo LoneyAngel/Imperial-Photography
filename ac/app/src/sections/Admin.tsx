@@ -37,9 +37,6 @@ export default function Admin({ photos, onApprove, onReject }: AdminProps) {
                   className="w-full h-48 object-cover rounded-lg mb-4"
                 />
                 <h3 className="font-semibold mb-2">{photo.title}</h3>
-                <p className="text-sm text-muted-foreground mb-1">
-                  摄影师: {photo.photographerName}
-                </p>
                 {photo.description && (
                   <p className="text-sm text-muted-foreground mb-4">
                     {photo.description}
