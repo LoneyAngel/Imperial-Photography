@@ -1,3 +1,4 @@
+// 该文件暂时未使用，后续可能会添加认证相关的hooks
 import { useState, useCallback } from 'react';
 
 interface ApiState<T> {

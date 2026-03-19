@@ -41,7 +41,7 @@ export default function Navbar({
               浏览作品
             </Button>
           </Link>
-          {currentMember ? (
+          {currentMember && (
             <Link to="/upload">
               <Button
                 variant={isActive('/upload') ? 'default' : 'ghost'}
@@ -50,17 +50,6 @@ export default function Navbar({
               >
                 <Upload className="h-4 w-4 mr-2" />
                 上传作品
-              </Button>
-            </Link>
-          ) : (
-            <Link to="/register">
-              <Button
-                variant={isActive('/register') ? 'default' : 'ghost'}
-                size="sm"
-                className="nav-link"
-              >
-                <UserCheck className="h-4 w-4 mr-2" />
-                摄影师注册
               </Button>
             </Link>
           )}

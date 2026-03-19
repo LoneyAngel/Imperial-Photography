@@ -20,7 +20,7 @@ export default function MemberAuth({ currentMember, onLogin, onPasswordLogin, on
   const [searchParams] = useSearchParams();
   const successMessage = searchParams.get('success');
 
-  const handleDone = () => {
+  const goHome = () => {
     navigate('/');
   };
 
@@ -35,7 +35,7 @@ export default function MemberAuth({ currentMember, onLogin, onPasswordLogin, on
                 <p className="text-sm font-medium break-words">{currentMember.email}</p>
               </div>
               <div className="flex gap-2">
-                <Button className="flex-1" onClick={handleDone}>
+                <Button className="flex-1" onClick={goHome}>
                   返回网站
                 </Button>
                 <Button className="flex-1" variant="outline" onClick={onLogout}>
@@ -57,7 +57,7 @@ export default function MemberAuth({ currentMember, onLogin, onPasswordLogin, on
             <div className="flex items-center">
               <button
                 type="button"
-                onClick={handleDone}
+                onClick={goHome}
                 className="text-sm text-blue-600 hover:underline mr-2"
               >
                 ← 返回
@@ -96,11 +96,11 @@ export default function MemberAuth({ currentMember, onLogin, onPasswordLogin, on
               </TabsList>
 
               <TabsContent value="code">
-                <CodeLoginForm onLogin={onLogin} onDone={handleDone} />
+                <CodeLoginForm onLogin={onLogin} onDone={goHome} />
               </TabsContent>
 
               <TabsContent value="password">
-                <PasswordLoginForm onDone={handleDone} onPasswordLogin={onPasswordLogin} />
+                <PasswordLoginForm onDone={goHome} onPasswordLogin={onPasswordLogin} />
               </TabsContent>
             </Tabs>
 
@@ -112,6 +112,7 @@ export default function MemberAuth({ currentMember, onLogin, onPasswordLogin, on
   );
 }
 
+// 验证码登录表单
 function CodeLoginForm({ onLogin, onDone }: { onLogin: (email: string, code: string) => Promise<boolean>; onDone: () => void }) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -141,7 +142,7 @@ function CodeLoginForm({ onLogin, onDone }: { onLogin: (email: string, code: str
       setSending(true);
       setError(null);
       setCode('');
-      const res = await fetch('/api/auth/request-code', {
+      const res = await fetch('/api/auth/request-login-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: normalizedEmail }),
@@ -173,18 +174,6 @@ function CodeLoginForm({ onLogin, onDone }: { onLogin: (email: string, code: str
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail, code: code.trim() }),
-      });
-
-      if (!res.ok) {
-        setError('验证码不正确或已过期');
-        return;
-      }
-
-      // 验证码正确，直接登录
       const ok = await onLogin(normalizedEmail, code.trim());
       if (ok) {
         reset();
@@ -224,7 +213,7 @@ function CodeLoginForm({ onLogin, onDone }: { onLogin: (email: string, code: str
             onChange={(e) => setCode(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            验证码已发送至 {normalizedEmail}，请查收
+            验证码已发送，请查收
           </p>
         </div>
       )}
@@ -260,6 +249,7 @@ function CodeLoginForm({ onLogin, onDone }: { onLogin: (email: string, code: str
   );
 }
 
+// 密码登录表单
 function PasswordLoginForm({ onDone, onPasswordLogin }: { onDone: () => void; onPasswordLogin: (email: string, password: string) => Promise<boolean> }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -280,18 +270,6 @@ function PasswordLoginForm({ onDone, onPasswordLogin }: { onDone: () => void; on
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error === 'invalid_credentials' ? '邮箱或密码错误' : '登录失败');
-        return;
-      }
-
       const success = await onPasswordLogin(email.trim().toLowerCase(), password);
       if (success) {
         onDone();

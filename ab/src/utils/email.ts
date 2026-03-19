@@ -29,12 +29,15 @@ export function generateVerificationCode() {
 }
 
 // 发送验证码邮件
-export async function sendVerificationEmail(params: {
+export async function sendVerificationEmail({
+  to,
+  code,
+  expiresMinutes = 5
+}: {
   to: string;
   code: string;
-  expiresMinutes: number;
-}) {
-  const to = normalizeEmail(params.to);
+  expiresMinutes?: number;
+}){
 
   const host = process.env.SMTP_HOST;
   const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
@@ -48,7 +51,7 @@ export async function sendVerificationEmail(params: {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('smtp_not_configured');
     }
-    console.log(`[verification-code] ${to} ${params.code}`);
+    console.log(`[verification-code] ${to} ${code}`);
     return;
   }
 
@@ -70,6 +73,7 @@ export async function sendVerificationEmail(params: {
     from: fromValue,
     to,
     subject: '【Imperial摄影】邮箱验证码',
-    text: `尊敬的Imperial摄影会员：\n\n感谢您使用Imperial摄影平台！\n\n您的邮箱验证码为：${params.code}\n\n验证码有效期为 ${params.expiresMinutes} 分钟，请及时完成验证。\n\n如非本人操作，请忽略此邮件。\n\n此致\nImperial摄影团队\n\n---\n此为系统邮件，请勿回复`,
+    text: `尊敬的Imperial摄影会员：\n\n感谢您使用Imperial摄影平台！\n\n您的邮箱验证码为：${code}\n\n验证码有效期为 ${expiresMinutes} 分钟，请及时完成验证。\n\n如非本人操作，请忽略此邮件。\n\n此致\nImperial摄影团队\n\n---\n此为系统邮件，请勿回复`,
   });
 }
+
