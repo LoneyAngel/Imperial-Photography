@@ -1,4 +1,12 @@
 import { Response } from 'express';
+import express from 'express';
+export const asyncHandler =
+  <TReq extends express.Request, TRes extends express.Response>(
+    fn: (req: TReq, res: TRes, next: express.NextFunction) => Promise<void>
+  ) =>
+  (req: TReq, res: TRes, next: express.NextFunction) => {
+    void Promise.resolve(fn(req, res, next)).catch(next);
+  };
 
 // 通用的API响应工具
 export const ApiResponse = {

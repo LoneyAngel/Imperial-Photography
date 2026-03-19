@@ -40,7 +40,7 @@ export default function MemberRegister({ onRegister }: MemberRegisterProps) {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await fetch('/api/auth/request-code', {
+      const res = await fetch('/api/auth/request-register-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: normalizedEmail }),
@@ -113,14 +113,6 @@ export default function MemberRegister({ onRegister }: MemberRegisterProps) {
         setError('密码设置失败');
         return;
       }
-
-      // 完成注册
-      const success = await onRegister(normalizedEmail, code.trim(), password);
-      if (success) {
-        navigate('/member-auth?success=password_set');
-      } else {
-        setError('注册失败');
-      }
     } catch {
       setError('注册失败，请重试');
     } finally {
@@ -191,7 +183,7 @@ export default function MemberRegister({ onRegister }: MemberRegisterProps) {
                     onChange={(e) => setCode(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    验证码已发送至 {normalizedEmail}，请查收
+                    验证码已发送，请查收
                   </p>
                 </div>
 
