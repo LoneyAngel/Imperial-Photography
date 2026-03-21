@@ -1,3 +1,5 @@
+// 暂时没有用到
+
 // 简单的内存缓存工具
 interface CacheItem<T> {
   value: T;
