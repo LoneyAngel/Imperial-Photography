@@ -4,9 +4,9 @@ import cors from 'cors';
 import { errorHandler } from './utils/errors.js';
 
 // 导入路由
-import authRoutes from './routes/auth.js';
-import photoRoutes from './routes/photos.js';
-import memberRoutes from './routes/members.js';
+import authRoutes from './router/auth.js';
+import photoRoutes from './router/photos.js';
+import memberRoutes from './router/members.js';
 
 const PORT = Number(process.env.PORT ?? '4001');
 const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
