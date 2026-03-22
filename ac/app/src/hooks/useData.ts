@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Member, Photo } from '@/types';
+import { Photo } from '@/types';
+import { useAuth } from './useAuth';
 
 export function useData() {
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [currentMember, setCurrentMember] = useState<Member | null>(null);
+  const { user, token, isAuthenticated, login, logout: authLogout, updateUser } = useAuth();
 
+  // API Fetch with token
   const apiFetch = useCallback(async (input: RequestInfo | URL, init?: RequestInit) => {
-    // ✅ 添加JWT Token到请求头
-    const token = currentMember?.token;
     const headers = {
       ...init?.headers,
-      // 只有当token存在且没有手动设置Authorization时才添加
       ...(token && !(init?.headers as any)?.Authorization && {
         Authorization: `Bearer ${token}`
       }),
@@ -22,49 +21,37 @@ export function useData() {
     });
 
     if (!res.ok) {
-      // ✅ 更详细的错误处理
       let errorMessage = `API ${res.status}`;
       try {
         const errorData = await res.json();
         errorMessage = errorData.error || errorMessage;
       } catch {
-        // 如果无法解析JSON，使用默认错误信息
+        errorMessage = '无法解析错误信息';
       }
       throw new Error(errorMessage);
     }
 
     return res;
-  }, [currentMember?.token, currentMember]); // ✅ 更精确的依赖
+  }, [token]);
 
+  // 刷新照片列表
   const refreshPhotos = useCallback(async () => {
     try {
-      const token = currentMember?.token;
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-
-      const res = await fetch('/api/photos', { headers });
-      if (!res.ok) throw new Error('Failed to fetch photos');
-
+      const res = await apiFetch('/api/photos');
       const data = (await res.json()) as Photo[];
       setPhotos(data);
     } catch {
       setPhotos([]);
     }
-  }, [currentMember?.token]);
+  }, [apiFetch]);
 
+  // 初始化时刷新照片
   useEffect(() => {
-    const savedCurrentMember = localStorage.getItem('currentMember');
-
-    if (savedCurrentMember) {
-      setCurrentMember(JSON.parse(savedCurrentMember));
-    }
-
-    // ✅ 只在组件挂载时刷新一次照片，避免循环依赖
     void refreshPhotos();
-  }, []); // ✅ 空依赖数组，只执行一次
+  }, [refreshPhotos]);
 
+  // 邮箱验证码认证
+  // 用于登录或注册
   const loginMemberWithEmail = useCallback(async (email: string, code: string) => {
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedCode = code.trim();
@@ -76,15 +63,17 @@ export function useData() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: normalizedEmail, code: normalizedCode }),
       });
-      const member = (await res.json()) as Member;
-      setCurrentMember(member);
-      localStorage.setItem('currentMember', JSON.stringify(member));
+
+      // ✅ 使用新的响应格式 { user, token }
+      const { user, token: authToken } = await res.json();
+      login(user, authToken); // 使用useAuth的login方法
       return true;
     } catch {
       return false;
     }
-  }, [apiFetch]);
+  }, [apiFetch, login]);
 
+  // 密码登录
   const loginMemberWithPassword = useCallback(async (email: string, password: string) => {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) return false;
@@ -95,46 +84,46 @@ export function useData() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: normalizedEmail, password }),
       });
-      const member = (await res.json()) as Member;
-      setCurrentMember(member);
-      localStorage.setItem('currentMember', JSON.stringify(member));
+
+      // ✅ 使用新的响应格式 { user, token }
+      const { user, token: authToken } = await res.json();
+      login(user, authToken); // 使用useAuth的login方法
       return true;
     } catch {
       return false;
     }
-  }, [apiFetch]);
+  }, [apiFetch, login]);
 
-  const logoutMember = () => {
-    setCurrentMember(null);
-    localStorage.removeItem('currentMember');
-  };
+  // 登出
+  const logoutMember = useCallback(() => {
+    authLogout(); // 使用useAuth的logout方法
+    setPhotos([]); // 清除照片数据
+  }, [authLogout]);
 
-  const updateMemberProfile = useCallback((displayName: string, bio: string) => {
-    if (!currentMember) return false;
+  // 更新用户资料
+  const updateMemberProfile = useCallback(async (name: string, bio: string) => {
+    if (!user) return false;
 
-    void (async () => {
-      try {
-        const res = await apiFetch(`/api/members/${currentMember.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ displayName: displayName.trim(), bio: bio.trim() }),
-        });
-        const updated = (await res.json()) as Member;
-        setCurrentMember(updated);
-        localStorage.setItem('currentMember', JSON.stringify(updated));
-      } catch {
-        return;
-      }
-    })();
+    try {
+      const res = await apiFetch(`/api/members/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), bio: bio.trim() }),
+      });
 
-    return true;
-  }, [apiFetch, currentMember]);
+      const updatedUser = await res.json();
+      updateUser(updatedUser); // 使用useAuth的updateUser方法
+      return true;
+    } catch {
+      return false;
+    }
+  }, [apiFetch, user, updateUser]);
 
   // 上传照片
   const uploadPhoto = useCallback((title: string, description: string, file: File) => {
     void (async () => {
       try {
-        if (!currentMember?.id) {
+        if (!user?.id) {
           console.error('用户未登录，无法上传照片');
           return;
         }
@@ -153,11 +142,12 @@ export function useData() {
     })();
 
     return true;
-  }, [apiFetch, currentMember?.id]);
+  }, [apiFetch, user?.id, refreshPhotos]);
 
   return {
     photos,
-    currentMember,
+    user,
+    isAuthenticated,
     loginMemberWithEmail,
     loginMemberWithPassword,
     logoutMember,

@@ -8,10 +8,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 interface UploadProps {
   onUpload: (title: string, description: string, file: File) => void;
-  currentMember?: { displayName?: string } | null;
+  user?: { name?: string } | null;
 }
 
-export default function Upload({ onUpload, currentMember }: UploadProps) {
+export default function Upload({ onUpload, user }: UploadProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -45,7 +45,7 @@ export default function Upload({ onUpload, currentMember }: UploadProps) {
           url: preview || '',
           title: title.trim() || '未命名作品',
           description: description.trim() || '',
-          authorName: currentMember?.displayName || '匿名用户'
+          authorName: user?.name || '匿名用户'
         });
         setIsUploading(false);
       }, 1500);

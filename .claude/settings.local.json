@@ -29,7 +29,9 @@
       "Bash(curl -X POST http://localhost:5174/api/auth/request-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"test@example.com\"\"}')",
       "Bash(curl -X POST http://localhost:5174/api/auth/request-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"testuser@example.com\"\"}')",
       "Bash(curl -X POST http://localhost:5174/api/auth/verify-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"testuser@example.com\"\", \"\"code\"\": \"\"123456\"\"}')",
-      "Bash(curl -X POST http://localhost:5174/api/auth/request-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"verifytest@example.com\"\"}')"
+      "Bash(curl -X POST http://localhost:5174/api/auth/request-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"verifytest@example.com\"\"}')",
+      "Bash(node check_data.js)",
+      "Bash(node check_data.mjs)"
     ]
   }
 }

@@ -2,7 +2,7 @@
 export interface Member {
   id: string;
   email: string;
-  displayName?: string;
+  name?: string;
   password?: string;
   bio?: string;
   createdAt: Date;
@@ -35,37 +35,11 @@ export interface AuthRequest {
   code?: string;
 }
 
-export interface UploadRequest {
-  title: string;
-  description?: string;
-  memberId: string;
-  file: Express.Multer.File;
-}
-
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;
   code?: string;
   message?: string;
-}
-
-export interface ValidationResult {
-  valid: boolean;
-  error?: string;
-}
-
-// 请求上下文类型
-export interface RequestContext {
-  member?: Member;
-  isAuthenticated: boolean;
-}
-
-// 文件上传相关类型
-export interface FileUploadResult {
-  url: string;
-  filename: string;
-  size: number;
-  mimetype: string;
 }
 

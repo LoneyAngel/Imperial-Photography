@@ -11,7 +11,7 @@ router.put('/:id', authMiddleware, requireOwnership('member'), asyncHandler(asyn
   // ✅ 从JWT token获取用户ID，不再需要params验证
   const body = z
     .object({
-      displayName: z.string().trim().max(120).optional(),
+      name: z.string().trim().max(120).optional(),
       bio: z.string().trim().max(500).optional(),
     })
     .parse(req.body);
@@ -20,7 +20,7 @@ router.put('/:id', authMiddleware, requireOwnership('member'), asyncHandler(asyn
   const member = await prisma.member.update({
     where: { id: req.userId }, // 从JWT token获取用户ID
     data: {
-      displayName: body.displayName === undefined ? undefined : body.displayName,
+      name: body.name === undefined ? undefined : body.name,
       bio: body.bio === undefined ? undefined : body.bio,
     },
   });
@@ -28,11 +28,8 @@ router.put('/:id', authMiddleware, requireOwnership('member'), asyncHandler(asyn
   res.json({
     id: member.id,
     email: member.email,
-    createdAt: member.createdAt.toISOString(),
-    verifiedAt: member.verifiedAt.toISOString(),
-    displayName: member.displayName ?? undefined,
+    name: member.name ?? undefined,
     bio: member.bio ?? undefined,
-    hasPassword: !!member.password,
   });
 }));
 

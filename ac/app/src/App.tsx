@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useData } from './hooks/useData';
+import { ToastProvider } from './context';
 import Navbar from './components/Navbar';
 import Home from './sections/Home';
 import Gallery from './sections/Gallery';
@@ -15,7 +16,8 @@ import ResetPassword from './sections/ResetPassword';
 function App() {
   const {
     photos,
-    currentMember,
+    user,
+    isAuthenticated,
     loginMemberWithEmail,
     loginMemberWithPassword,
     logoutMember,
@@ -23,32 +25,35 @@ function App() {
     uploadPhoto,
   } = useData();
 
+  // ToastContainer 现在在 ToastProvider 中全局渲染
+
   const handleUpload = (title: string, description: string, file: File) => {
     uploadPhoto(title, description, file);
   };
 
   return (
-    <Router>
-      <div className="app-container">
+    <ToastProvider>
+      <Router>
+        <div className="app-container">
         <div className="h-[50px] flex items-center justify-center bg-slate-300">
           <p className="text-center text-sm">
             Welcome to join us and become our exclusive photographer！
           </p>
         </div>
         <Navbar
-          currentMember={currentMember}
+          user={user}
           onMemberLogout={logoutMember}
         />
         <main className="flex-1">
           <Routes>
-            <Route path="/" element={<Home onBrowse={() => window.location.href = '/register'} />} />
+            <Route path="/" element={<Home />} />
             <Route path="/gallery" element={<Gallery photos={photos} />} />
             <Route path="/register" element={<MemberRegister onRegister={loginMemberWithEmail} />} />
             <Route
               path="/upload"
               element={
-                currentMember ? (
-                  <Upload onUpload={handleUpload} currentMember={currentMember} />
+                user ? (
+                  <Upload onUpload={handleUpload} user={user} />
                 ) : (
                   <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10">
                     <div className="text-center space-y-4">
@@ -66,7 +71,7 @@ function App() {
               path="/member-auth"
               element={
                 <MemberAuth
-                  currentMember={currentMember}
+                  user={user}
                   onLogin={loginMemberWithEmail}
                   onPasswordLogin={loginMemberWithPassword}
                   onLogout={logoutMember}
@@ -74,19 +79,11 @@ function App() {
               }
             />
             <Route
-              path="/member-register"
-              element={
-                <MemberRegister
-                  onRegister={loginMemberWithEmail}
-                />
-              }
-            />
-            <Route
               path="/member-profile"
               element={
-                currentMember ? (
+                user ? (
                   <MemberProfile
-                    currentMember={currentMember}
+                    user={user}
                     photos={photos}
                     onSave={(n, b) => updateMemberProfile(n, b)}
                   />
@@ -107,7 +104,8 @@ function App() {
           </div>
         </footer>
       </div>
-    </Router>
+      </Router>
+    </ToastProvider>
   );
 }
 
