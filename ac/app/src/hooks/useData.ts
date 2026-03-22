@@ -6,22 +6,53 @@ export function useData() {
   const [currentMember, setCurrentMember] = useState<Member | null>(null);
 
   const apiFetch = useCallback(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const res = await fetch(input, init);
+    // ✅ 添加JWT Token到请求头
+    const token = currentMember?.token;
+    const headers = {
+      ...init?.headers,
+      // 只有当token存在且没有手动设置Authorization时才添加
+      ...(token && !(init?.headers as any)?.Authorization && {
+        Authorization: `Bearer ${token}`
+      }),
+    };
+
+    const res = await fetch(input, {
+      ...init,
+      headers,
+    });
+
     if (!res.ok) {
-      throw new Error(`API ${res.status}`);
+      // ✅ 更详细的错误处理
+      let errorMessage = `API ${res.status}`;
+      try {
+        const errorData = await res.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch {
+        // 如果无法解析JSON，使用默认错误信息
+      }
+      throw new Error(errorMessage);
     }
+
     return res;
-  }, []);
+  }, [currentMember?.token, currentMember]); // ✅ 更精确的依赖
 
   const refreshPhotos = useCallback(async () => {
     try {
-      const res = await apiFetch('/api/photos');
+      const token = currentMember?.token;
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const res = await fetch('/api/photos', { headers });
+      if (!res.ok) throw new Error('Failed to fetch photos');
+
       const data = (await res.json()) as Photo[];
       setPhotos(data);
     } catch {
       setPhotos([]);
     }
-  }, [apiFetch]);
+  }, [currentMember?.token]);
 
   useEffect(() => {
     const savedCurrentMember = localStorage.getItem('currentMember');
@@ -30,8 +61,9 @@ export function useData() {
       setCurrentMember(JSON.parse(savedCurrentMember));
     }
 
+    // ✅ 只在组件挂载时刷新一次照片，避免循环依赖
     void refreshPhotos();
-  }, [refreshPhotos]);
+  }, []); // ✅ 空依赖数组，只执行一次
 
   const loginMemberWithEmail = useCallback(async (email: string, code: string) => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -111,7 +143,7 @@ export function useData() {
         form.append('file', file);
         form.append('title', title);
         form.append('description', description);
-        form.append('memberId', currentMember.id);
+        // ✅ memberId已从JWT Token获取，无需从前端发送
 
         await apiFetch('/api/photos', { method: 'POST', body: form });
         await refreshPhotos();
@@ -121,7 +153,7 @@ export function useData() {
     })();
 
     return true;
-  }, [apiFetch, currentMember?.id, refreshPhotos]);
+  }, [apiFetch, currentMember?.id]);
 
   return {
     photos,
