@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '../context';
 
 interface MemberRegisterProps {
   onRegister: (email: string, code: string, password: string) => Promise<boolean>;
@@ -11,6 +12,7 @@ interface MemberRegisterProps {
 
 export default function MemberRegister({ onRegister }: MemberRegisterProps) {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [step, setStep] = useState<'email' | 'code' | 'password'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -113,6 +115,15 @@ export default function MemberRegister({ onRegister }: MemberRegisterProps) {
         setError('密码设置失败');
         return;
       }
+
+      // 密码设置成功，显示提示并延迟跳转
+      showToast('密码设置成功！', 'success');
+
+      // 延迟2秒后跳转到登录页
+      setTimeout(() => {
+        navigate('/member-auth?success=password_set');
+      }, 2000);
+
     } catch {
       setError('注册失败，请重试');
     } finally {
@@ -263,6 +274,13 @@ export default function MemberRegister({ onRegister }: MemberRegisterProps) {
                     {isLoading ? '注册中...' : '完成注册'}
                   </Button>
                 </div>
+
+                {/* 注册成功提示 */}
+                {isLoading && (
+                  <div className="text-center text-sm text-muted-foreground mt-2">
+                    注册成功，即将跳转到登录页面...
+                  </div>
+                )}
               </>
             )}
 

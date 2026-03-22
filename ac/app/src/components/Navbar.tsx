@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Upload, UserCheck, LayoutGrid, UserCircle2 } from 'lucide-react';
+import { Upload, LayoutGrid, UserCircle2 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -9,15 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { Member } from '@/types';
+import { User } from '@/types';
 
 interface NavbarProps {
-  currentMember: Member | null;
+  user: User | null;
   onMemberLogout: () => void;
 }
 
 export default function Navbar({
-  currentMember,
+  user,
   onMemberLogout,
 }: NavbarProps) {
   const location = useLocation();
@@ -41,7 +41,7 @@ export default function Navbar({
               浏览作品
             </Button>
           </Link>
-          {currentMember && (
+          {user && (
             <Link to="/upload">
               <Button
                 variant={isActive('/upload') ? 'default' : 'ghost'}
@@ -53,7 +53,7 @@ export default function Navbar({
               </Button>
             </Link>
           )}
-          {currentMember ? (
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -67,7 +67,7 @@ export default function Navbar({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel className="max-w-[220px]">
-                  {currentMember.displayName || currentMember.email.split('@')[0] || currentMember.email}
+                  {user.name || user.email.split('@')[0] || user.email}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>

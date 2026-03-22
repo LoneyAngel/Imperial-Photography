@@ -6,25 +6,29 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff } from 'lucide-react';
-import { Member } from '@/types';
+import { User } from '@/types';
+import { useToast } from '../context';
 
 interface MemberAuthProps {
-  currentMember: Member | null;
+  user: User | null;
   onLogin: (email: string, code: string) => Promise<boolean>;
   onPasswordLogin: (email: string, password: string) => Promise<boolean>;
   onLogout: () => void;
 }
 
-export default function MemberAuth({ currentMember, onLogin, onPasswordLogin, onLogout }: MemberAuthProps) {
+export default function MemberAuth({ user, onLogin, onPasswordLogin, onLogout }: MemberAuthProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const successMessage = searchParams.get('success');
+
+  // 使用全局的Toast系统
+  const { showToast } = useToast();
 
   const goHome = () => {
     navigate('/');
   };
 
-  if (currentMember) {
+  if (user) {
     return (
       <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10 bg-slate-50">
         <div className="w-full max-w-md">
@@ -32,7 +36,7 @@ export default function MemberAuth({ currentMember, onLogin, onPasswordLogin, on
             <CardContent className="space-y-4 pt-6">
               <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
                 <p className="text-sm text-muted-foreground">当前已登录</p>
-                <p className="text-sm font-medium break-words">{currentMember.email}</p>
+                <p className="text-sm font-medium break-words">{user.email}</p>
               </div>
               <div className="flex gap-2">
                 <Button className="flex-1" onClick={goHome}>
@@ -96,11 +100,11 @@ export default function MemberAuth({ currentMember, onLogin, onPasswordLogin, on
               </TabsList>
 
               <TabsContent value="code">
-                <CodeLoginForm onLogin={onLogin} onDone={goHome} />
+                <CodeLoginForm onLogin={onLogin} onDone={goHome} showToast={showToast} />
               </TabsContent>
 
               <TabsContent value="password">
-                <PasswordLoginForm onDone={goHome} onPasswordLogin={onPasswordLogin} />
+                <PasswordLoginForm onDone={goHome} onPasswordLogin={onPasswordLogin} showToast={showToast} />
               </TabsContent>
             </Tabs>
 
@@ -113,7 +117,11 @@ export default function MemberAuth({ currentMember, onLogin, onPasswordLogin, on
 }
 
 // 验证码登录表单
-function CodeLoginForm({ onLogin, onDone }: { onLogin: (email: string, code: string) => Promise<boolean>; onDone: () => void }) {
+function CodeLoginForm({ onLogin, onDone, showToast }: {
+  onLogin: (email: string, code: string) => Promise<boolean>;
+  onDone: () => void;
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+}) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
@@ -149,8 +157,9 @@ function CodeLoginForm({ onLogin, onDone }: { onLogin: (email: string, code: str
       });
       if (!res.ok) throw new Error('send_failed');
       setSent(true);
+      showToast('验证码已发送，请查收', 'success');
     } catch {
-      setError('验证码发送失败，请稍后重试');
+      showToast('验证码发送失败，请稍后重试', 'error');
     } finally {
       setSending(false);
     }
@@ -178,11 +187,12 @@ function CodeLoginForm({ onLogin, onDone }: { onLogin: (email: string, code: str
       if (ok) {
         reset();
         onDone();
+        showToast('登录成功', 'success');
       } else {
-        setError('登录失败');
+        showToast('登录失败', 'error');
       }
     } catch {
-      setError('验证失败，请重试');
+      showToast('验证失败，请重试', 'error');
     } finally {
       setVerifying(false);
     }
@@ -240,7 +250,7 @@ function CodeLoginForm({ onLogin, onDone }: { onLogin: (email: string, code: str
         </Button>
       </div>
 
-      <Link to="/member-register" className='block w-full text-center text-[12px] text-gray-500 '>
+      <Link to="/register" className='block w-full text-center text-[12px] text-gray-500 '>
         <span className='border-b-[1px] hover:border-gray-500'>
           没有账号？注册
         </span>
@@ -250,7 +260,11 @@ function CodeLoginForm({ onLogin, onDone }: { onLogin: (email: string, code: str
 }
 
 // 密码登录表单
-function PasswordLoginForm({ onDone, onPasswordLogin }: { onDone: () => void; onPasswordLogin: (email: string, password: string) => Promise<boolean> }) {
+function PasswordLoginForm({ onDone, onPasswordLogin, showToast }: {
+  onDone: () => void;
+  onPasswordLogin: (email: string, password: string) => Promise<boolean>;
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+}) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -272,10 +286,11 @@ function PasswordLoginForm({ onDone, onPasswordLogin }: { onDone: () => void; on
     try {
       const success = await onPasswordLogin(email.trim().toLowerCase(), password);
       if (success) {
+        showToast('登录成功', 'success');
         onDone();
       }
     } catch (err) {
-      setError('登录失败，请重试');
+      showToast('登录失败，请重试', 'error');
     } finally {
       setIsLoading(false);
     }

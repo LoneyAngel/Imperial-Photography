@@ -35,7 +35,6 @@ router.get('/', asyncHandler(async (req, res) => {
       title: p.title,
       url: p.url,
       status: p.status,
-      createdAt: p.createdAt.toISOString(),
       description: p.description ?? undefined,
       ownerMemberId: p.ownerMemberId,
     }))
@@ -86,7 +85,6 @@ router.post('/', authMiddleware, upload.single('file'), asyncHandler(async (req,
     title: photo.title,
     url: photo.url,
     status: photo.status,
-    createdAt: photo.createdAt.toISOString(),
     description: photo.description ?? undefined,
     ownerMemberId: photo.ownerMemberId,
   });

@@ -19,7 +19,7 @@ model Member {
   password   String?
   createdAt  DateTime @default(now())
   verifiedAt DateTime @default(now())
-  displayName String?
+  name       String?
   bio        String?
 
   // 关联到照片表

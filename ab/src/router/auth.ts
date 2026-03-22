@@ -117,7 +117,7 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
     update: {},
     create: {
       email: body.email,
-      displayName: body.email.split('@')[0],
+      name: body.email.split('@')[0],
       verifiedAt: new Date()
     },
   });
@@ -125,14 +125,12 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
   const token = generateToken(member);
 
   res.json({
-    id: member.id,
-    email: member.email,
-    createdAt: member.createdAt.toISOString(),
-    verifiedAt: member.verifiedAt.toISOString(),
-    displayName: member.displayName ?? undefined,
-    bio: member.bio ?? undefined,
-    hasPassword: !!member.password,
-    token, // ✅ 添加JWT Token
+    user:{
+      id: member.id,
+      email: member.email,
+      name: member.name,
+    },
+    token,
   });
 }));
 
@@ -160,14 +158,12 @@ router.post('/login', asyncHandler(async (req, res) => {
   const token = generateToken(member);
 
   res.json({
-    id: member.id,
-    email: member.email,
-    createdAt: member.createdAt.toISOString(),
-    verifiedAt: member.verifiedAt.toISOString(),
-    displayName: member.displayName ?? undefined,
-    bio: member.bio ?? undefined,
-    hasPassword: !!member.password,
-    token, // ✅ 添加JWT Token
+    user:{
+      id: member.id,
+      email: member.email,
+      name: member.name,
+    },
+    token,
   });
 }));
 
@@ -186,14 +182,14 @@ router.post('/set-password', asyncHandler(async (req, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(body.password, 10);
-  const displayName = body.email.split('@')[0];
+  const name = body.email.split('@')[0];
   const now = new Date();
 
   const updatedMember = await prisma.member.update({
     where: { email: body.email },
     data: {
       password: hashedPassword,
-      displayName,
+      name,
       verifiedAt: now
     },
   });
@@ -201,14 +197,12 @@ router.post('/set-password', asyncHandler(async (req, res) => {
   const token = generateToken(updatedMember);
 
   res.json({
-    id: updatedMember.id,
-    email: updatedMember.email,
-    createdAt: updatedMember.createdAt.toISOString(),
-    verifiedAt: updatedMember.verifiedAt.toISOString(),
-    displayName: updatedMember.displayName ?? undefined,
-    bio: updatedMember.bio ?? undefined,
-    hasPassword: !!updatedMember.password,
-    token, // ✅ 添加JWT Token
+    user:{
+      id: member.id,
+      email: member.email,
+      name: member.name,
+    },
+    token,
   });
 }));
 
