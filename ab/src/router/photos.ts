@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { asyncHandler } from '../utils/api.js';
 import { prisma } from '../utils/prisma.js';
 import { putImage } from '../storage.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -42,7 +43,7 @@ router.get('/', asyncHandler(async (req, res) => {
 }));
 
 // 上传照片
-router.post('/', upload.single('file'), asyncHandler(async (req, res) => {
+router.post('/', authMiddleware, upload.single('file'), asyncHandler(async (req, res) => {
   const file = req.file;
   if (!file) {
     res.status(400).json({ error: 'missing_file' });
@@ -52,16 +53,13 @@ router.post('/', upload.single('file'), asyncHandler(async (req, res) => {
   const body = z.object({
     title: z.string().trim().max(200).default(''),
     description: z.string().trim().max(2000).optional(),
-    memberId: z.string().trim().min(1, '必须提供会员ID'),
+    // ✅ 移除memberId，从JWT token中获取
   }).parse(req.body);
 
-  // 验证会员是否存在
-  const member = await prisma.member.findUnique({
-    where: { id: body.memberId }
-  });
-
-  if (!member) {
-    res.status(400).json({ error: 'invalid_member' });
+  // ✅ 从JWT token中获取用户ID
+  const memberId = req.userId!;
+  if (!memberId) {
+    res.status(401).json({ error: 'unauthorized' });
     return;
   }
 
@@ -79,7 +77,7 @@ router.post('/', upload.single('file'), asyncHandler(async (req, res) => {
       description: body.description,
       url: uploaded.url,
       status: 'approved',
-      ownerMemberId: body.memberId,
+      ownerMemberId: memberId, // ✅ 从JWT token获取
     },
   });
 

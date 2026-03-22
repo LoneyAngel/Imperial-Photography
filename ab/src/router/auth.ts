@@ -4,6 +4,7 @@ import { asyncHandler } from '../utils/api.js';
 import { prisma } from '../utils/prisma.js';
 import { generateVerificationCode, hashVerificationCode, sendVerificationEmail } from '../utils/email.js';
 import bcrypt from 'bcryptjs';
+import { generateToken } from '../utils/jwt.js';
 
 const router = Router();
 async function createVerificationCodeRecord(email: string, code: string) {
@@ -121,6 +122,8 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
     },
   });
 
+  const token = generateToken(member);
+
   res.json({
     id: member.id,
     email: member.email,
@@ -129,6 +132,7 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
     displayName: member.displayName ?? undefined,
     bio: member.bio ?? undefined,
     hasPassword: !!member.password,
+    token, // ✅ 添加JWT Token
   });
 }));
 
@@ -153,6 +157,8 @@ router.post('/login', asyncHandler(async (req, res) => {
     return;
   }
 
+  const token = generateToken(member);
+
   res.json({
     id: member.id,
     email: member.email,
@@ -161,6 +167,7 @@ router.post('/login', asyncHandler(async (req, res) => {
     displayName: member.displayName ?? undefined,
     bio: member.bio ?? undefined,
     hasPassword: !!member.password,
+    token, // ✅ 添加JWT Token
   });
 }));
 
@@ -191,6 +198,8 @@ router.post('/set-password', asyncHandler(async (req, res) => {
     },
   });
 
+  const token = generateToken(updatedMember);
+
   res.json({
     id: updatedMember.id,
     email: updatedMember.email,
@@ -199,6 +208,7 @@ router.post('/set-password', asyncHandler(async (req, res) => {
     displayName: updatedMember.displayName ?? undefined,
     bio: updatedMember.bio ?? undefined,
     hasPassword: !!updatedMember.password,
+    token, // ✅ 添加JWT Token
   });
 }));
 

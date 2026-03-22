@@ -1,7 +1,7 @@
 import './env.js';
 import express from 'express';
 import cors from 'cors';
-import { errorHandler } from './utils/errors.js';
+import { errorHandler } from './middleware/errors.js';
 
 // 导入路由
 import authRoutes from './router/auth.js';

@@ -16,6 +16,7 @@ export interface Member {
   displayName?: string;
   bio?: string;
   hasPassword?: boolean;
+  token?: string; // ✅ 添加JWT Token
 }
 
 export type ViewMode = 'home' | 'gallery' | 'upload' | 'register' | 'member-auth' | 'member-profile';
