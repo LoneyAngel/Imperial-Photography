@@ -25,8 +25,6 @@ function App() {
     uploadPhoto,
   } = useData();
 
-  // ToastContainer 现在在 ToastProvider 中全局渲染
-
   const handleUpload = (title: string, description: string, file: File) => {
     uploadPhoto(title, description, file);
   };

@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '../context';
+import { useData } from '@/hooks/useData';
 
 interface MemberRegisterProps {
   onRegister: (email: string, code: string, password: string) => Promise<boolean>;
@@ -20,7 +21,7 @@ export default function MemberRegister({ onRegister }: MemberRegisterProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  const { user } = useData();
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
 
@@ -33,7 +34,13 @@ export default function MemberRegister({ onRegister }: MemberRegisterProps) {
     setIsLoading(false);
     setStep('email');
   };
-
+  useEffect(() => {
+    if (user) {
+      // 如果用户已登录，直接送回首页
+      // 使用 replace: true 是为了防止用户点击浏览器返回键又回到登录页，形成死循环
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
   const sendCode = async () => {
     if (!emailValid) {
       setError('请输入有效的邮箱地址');
