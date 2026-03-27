@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Home() {
   const navigate = useNavigate();
-
+  const {user} = useAuth();
   const handleBrowse = () => {
-    navigate('/register');
+    navigate(user ? '/' : '/register');
   };
   return (
     <div className="flex-1 bg-gradient-to-b from-slate-50 to-background">

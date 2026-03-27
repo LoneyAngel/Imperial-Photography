@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -27,31 +27,36 @@ export default function MemberAuth({ user, onLogin, onPasswordLogin, onLogout }:
   const goHome = () => {
     navigate('/');
   };
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
-  if (user) {
-    return (
-      <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10 bg-slate-50">
-        <div className="w-full max-w-md">
-          <Card className="shadow-sm border border-slate-200">
-            <CardContent className="space-y-4 pt-6">
-              <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
-                <p className="text-sm text-muted-foreground">当前已登录</p>
-                <p className="text-sm font-medium break-words">{user.email}</p>
-              </div>
-              <div className="flex gap-2">
-                <Button className="flex-1" onClick={goHome}>
-                  返回网站
-                </Button>
-                <Button className="flex-1" variant="outline" onClick={onLogout}>
-                  退出登录
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  // if (user) {
+  //   return (
+  //     <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10 bg-slate-50">
+  //       <div className="w-full max-w-md">
+  //         <Card className="shadow-sm border border-slate-200">
+  //           <CardContent className="space-y-4 pt-6">
+  //             <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
+  //               <p className="text-sm text-muted-foreground">当前已登录</p>
+  //               <p className="text-sm font-medium break-words">{user.email}</p>
+  //             </div>
+  //             <div className="flex gap-2">
+  //               <Button className="flex-1" onClick={goHome}>
+  //                 返回网站
+  //               </Button>
+  //               <Button className="flex-1" variant="outline" onClick={onLogout}>
+  //                 退出登录
+  //               </Button>
+  //             </div>
+  //           </CardContent>
+  //         </Card>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10 bg-slate-50">
