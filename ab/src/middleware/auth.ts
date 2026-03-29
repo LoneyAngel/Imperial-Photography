@@ -72,12 +72,6 @@ export const requireOwnership = (resourceType: 'member' | 'photo') => {
     const resourceId = req.params.id;
     const userId = req.user.userId;
 
-    // 对于会员资源，检查是否是自己的账户
-    if (resourceType === 'member' && resourceId !== userId) {
-      res.status(403).json({ error: 'forbidden' });
-      return;
-    }
-
     // 对于照片资源，需要查询数据库验证所有权
     if (resourceType === 'photo') {
       const { prisma } = await import('../utils/prisma.js');

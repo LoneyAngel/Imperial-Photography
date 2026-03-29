@@ -20,7 +20,6 @@ function App() {
     loginMemberWithEmail,
     loginMemberWithPassword,
     logoutMember,
-    updateMemberProfile,
     uploadPhoto,
   } = useData();
 
@@ -83,7 +82,6 @@ function App() {
                   user ? (
                     <MemberProfile
                       user={user}
-                      onSave={(n, b) => updateMemberProfile(n, b)}
                     />
                   ) : (
                     <Navigate to="/member-auth" replace />

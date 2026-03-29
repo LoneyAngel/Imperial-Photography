@@ -9,16 +9,15 @@ import { useData } from '@/hooks/useData';
 
 interface MemberProfileProps {
   user: User;
-  onSave: (name: string, bio: string) => void;
 }
 
-export default function MemberProfile({ user, onSave }: MemberProfileProps) {
+export default function MemberProfile({ user }: MemberProfileProps) {
   const [name, setname] = useState(user.name ?? '');
-  const [bio, setBio] = useState('');
+  const [bio, setBio] = useState(user.bio ?? '');
   const [editing, setEditing] = useState(false);
   const { fetchOwnerPhotos } = useData();
   const queryClient = useQueryClient();
-
+  const { getMemberBio,updateMemberProfile } = useData();
   const { data } = useQuery({
     // 1. 设置唯一的 Key
     queryKey: ['photos', 'owner', user.id],
@@ -47,43 +46,21 @@ export default function MemberProfile({ user, onSave }: MemberProfileProps) {
   useEffect(() => {
     const fetchBio = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        const res = await fetch(`/api/members/${user.id}/bio`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setBio(data.bio ?? '');
-        }
+        await getMemberBio();
+        setBio(user.bio ?? '');
       } catch (error) {
         console.error('获取bio失败:', error);
       }
     };
 
     fetchBio();
-  }, [user.id]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('authToken');
-      const res = await fetch(`/api/members/${user.id}/bio`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ bio: bio.trim() })
-      });
-
-      if (res.ok) {
-        onSave(name, bio); // 同时更新name
-        setEditing(false);
-      } else {
-        console.error('保存bio失败');
-      }
+      await updateMemberProfile(name.trim(), bio.trim());
+      setEditing(false);
     } catch (error) {
       console.error('保存bio失败:', error);
     }
@@ -125,16 +102,7 @@ export default function MemberProfile({ user, onSave }: MemberProfileProps) {
                         // 取消时重新获取bio
                         const fetchBio = async () => {
                           try {
-                            const token = localStorage.getItem('authToken');
-                            const res = await fetch(`/api/members/${user.id}/bio`, {
-                              headers: {
-                                'Authorization': `Bearer ${token}`
-                              }
-                            });
-                            if (res.ok) {
-                              const data = await res.json();
-                              setBio(data.bio ?? '');
-                            }
+                            await getMemberBio();
                           } catch (error) {
                             console.error('获取bio失败:', error);
                           }
@@ -175,7 +143,7 @@ export default function MemberProfile({ user, onSave }: MemberProfileProps) {
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {data.map((p: Photo) => (
+              {data?.map((p: Photo) => (
                 <Card key={p.id}>
                   <CardContent className="pt-4">
                     <img src={p.url} alt={p.title || '未命名作品'} className="w-full h-40 object-cover rounded-md mb-3" />
