@@ -152,23 +152,6 @@ export function useData() {
     return true;
   }, [apiFetch, user?.id]);
 
-  async function getMemberBio() {
-    if (!user?.id) return '';
-    try {
-      const res = await apiFetch(`/api/members/bio`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await res.json();
-      if (user && data.bio !== user.bio) {
-        updateUser({ ...user, bio: data.bio ?? '' });
-      }
-      return data.bio ?? '';
-    } catch {
-      return '';
-    }
-  }
-
   return {
     user,
     isAuthenticated,
@@ -179,6 +162,5 @@ export function useData() {
     uploadPhoto,
     fetchPhotos,
     fetchOwnerPhotos,
-    getMemberBio,
   };
 }

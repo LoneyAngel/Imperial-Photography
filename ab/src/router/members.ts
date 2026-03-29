@@ -33,18 +33,5 @@ router.put('/update', authMiddleware, asyncHandler(async (req, res) => {
   });
 }));
 
-router.get('/bio', authMiddleware, asyncHandler(async (req, res) => {
-  const member = await prisma.member.findUnique({
-    where: { id: req.userId }, // 从JWT token获取用户ID
-    select: {
-      bio: true 
-    },
-  });
-  res.json({
-    id: req.userId,
-    bio: member?.bio ?? undefined,
-  });
-}));
-
 
 export default router;

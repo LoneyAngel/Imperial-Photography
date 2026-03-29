@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useData } from '@/hooks/useData';
 
@@ -12,12 +12,12 @@ interface MemberProfileProps {
 }
 
 export default function MemberProfile({ user }: MemberProfileProps) {
-  const [name, setname] = useState(user.name ?? '');
+  const [name, setName] = useState(user.name ?? '');
   const [bio, setBio] = useState(user.bio ?? '');
   const [editing, setEditing] = useState(false);
   const { fetchOwnerPhotos } = useData();
   const queryClient = useQueryClient();
-  const { getMemberBio,updateMemberProfile } = useData();
+  const { updateMemberProfile } = useData();
   const { data } = useQuery({
     // 1. 设置唯一的 Key
     queryKey: ['photos', 'owner', user.id],
@@ -41,20 +41,6 @@ export default function MemberProfile({ user }: MemberProfileProps) {
       
     staleTime: 1000 * 60, // 详情数据 1 分钟内不重复请求
   });
-
-  // 独立获取bio数据
-  useEffect(() => {
-    const fetchBio = async () => {
-      try {
-        await getMemberBio();
-        setBio(user.bio ?? '');
-      } catch (error) {
-        console.error('获取bio失败:', error);
-      }
-    };
-
-    fetchBio();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +71,7 @@ export default function MemberProfile({ user }: MemberProfileProps) {
                 <form onSubmit={handleSubmit} className="space-y-3">
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">个人名称</p>
-                    <Input value={name} onChange={(e) => setname(e.target.value)} />
+                    <Input value={name} onChange={(e) => setName(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">个人简介</p>
@@ -98,16 +84,8 @@ export default function MemberProfile({ user }: MemberProfileProps) {
                       variant="outline"
                       className="flex-1"
                       onClick={() => {
-                        setname(user.name ?? '');
-                        // 取消时重新获取bio
-                        const fetchBio = async () => {
-                          try {
-                            await getMemberBio();
-                          } catch (error) {
-                            console.error('获取bio失败:', error);
-                          }
-                        };
-                        fetchBio();
+                        setName(user.name ?? '');
+                        setBio(user.bio ?? '');  
                         setEditing(false);
                       }}
                     >
@@ -119,7 +97,7 @@ export default function MemberProfile({ user }: MemberProfileProps) {
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">个人名称</p>
-                    <p className="text-sm font-medium break-words">{user.name || '—'}</p>
+                    <p className="text-sm font-medium break-words">{name || '—'}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">个人简介</p>

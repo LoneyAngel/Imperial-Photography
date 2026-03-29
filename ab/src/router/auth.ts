@@ -129,6 +129,7 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
       id: member.id,
       email: member.email,
       name: member.name,
+      bio: member.bio,
     },
     token,
   });
@@ -162,6 +163,7 @@ router.post('/login', asyncHandler(async (req, res) => {
       id: member.id,
       email: member.email,
       name: member.name,
+      bio: member.bio,
     },
     token,
   });
@@ -201,6 +203,7 @@ router.post('/set-password', asyncHandler(async (req, res) => {
       id: member.id,
       email: member.email,
       name: member.name,
+      bio: member.bio,
     },
     token,
   });
