@@ -169,7 +169,7 @@ export default function MemberProfile({ user, onSave }: MemberProfileProps) {
           <div className="mb-4">
             <h2 className="text-xl font-semibold">我的作品</h2>
           </div>
-          {data.length === 0 ? (
+          {data?.length === 0 ? (
             <div className="text-sm text-muted-foreground border rounded-lg p-6">
               暂无作品
             </div>

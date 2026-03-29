@@ -3,7 +3,7 @@ import { Photo } from '@/types';
 import { useAuth } from './useAuth';
 
 export function useData() {
-  const { user, token, isAuthenticated, login, logout: authLogout, updateUser } = useAuth();
+  const { user, token, isAuthenticated, login, logout, updateUser } = useAuth();
 
   // API Fetch with token
   const apiFetch = useCallback(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -21,7 +21,12 @@ export function useData() {
 
     if (!res.ok) {
       let errorMessage = `API ${res.status}`;
-      try {
+      if (res.status === 401) {
+        // token过期或无效，自动登出
+        logout();
+        errorMessage = 'token过期或无效';
+      }
+      else try {
         const errorData = await res.json();
         errorMessage = errorData.error || errorMessage;
       } catch {
@@ -29,7 +34,6 @@ export function useData() {
       }
       throw new Error(errorMessage);
     }
-
     return res;
   }, [token]);
   async function fetchPhotos() {
@@ -102,8 +106,8 @@ export function useData() {
 
   // 登出
   const logoutMember = useCallback(() => {
-    authLogout(); // 使用useAuth的logout方法
-  }, [authLogout]);
+    logout(); // 使用useAuth的logout方法
+  }, [logout]);
 
   // 更新用户资料
   const updateMemberProfile = useCallback(async (name: string, bio: string) => {
