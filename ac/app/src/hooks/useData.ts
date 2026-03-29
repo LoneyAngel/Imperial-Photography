@@ -47,7 +47,7 @@ export function useData() {
   }
 
   async function fetchOwnerPhotos(id: string) {
-    const res = await apiFetch(`/api/photos/${id}`, {
+    const res = await apiFetch(`/api/photos?ownerMemberId=${id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -112,16 +112,15 @@ export function useData() {
   // 更新用户资料
   const updateMemberProfile = useCallback(async (name: string, bio: string) => {
     if (!user) return false;
-
     try {
-      const res = await apiFetch(`/api/members/${user.id}`, {
+      const res = await apiFetch(`/api/members/update`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name.trim(), bio: bio.trim() }),
       });
 
-      const updatedUser = await res.json();
-      updateUser(updatedUser); // 使用useAuth的updateUser方法
+      const newUser = await res.json();
+      updateUser(newUser); // 使用useAuth的updateUser方法
       return true;
     } catch {
       return false;
@@ -153,6 +152,23 @@ export function useData() {
     return true;
   }, [apiFetch, user?.id]);
 
+  async function getMemberBio() {
+    if (!user?.id) return '';
+    try {
+      const res = await apiFetch(`/api/members/bio`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (user && data.bio !== user.bio) {
+        updateUser({ ...user, bio: data.bio ?? '' });
+      }
+      return data.bio ?? '';
+    } catch {
+      return '';
+    }
+  }
+
   return {
     user,
     isAuthenticated,
@@ -163,5 +179,6 @@ export function useData() {
     uploadPhoto,
     fetchPhotos,
     fetchOwnerPhotos,
+    getMemberBio,
   };
 }

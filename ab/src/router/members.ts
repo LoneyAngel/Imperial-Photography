@@ -2,12 +2,12 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../utils/api.js';
 import { prisma } from '../utils/prisma.js';
-import { authMiddleware, requireOwnership } from '../middleware/auth.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
 // 更新会员信息
-router.put('/:id', authMiddleware, requireOwnership('member'), asyncHandler(async (req, res) => {
+router.put('/update', authMiddleware, asyncHandler(async (req, res) => {
   // ✅ 从JWT token获取用户ID，不再需要params验证
   const body = z
     .object({
@@ -32,5 +32,19 @@ router.put('/:id', authMiddleware, requireOwnership('member'), asyncHandler(asyn
     bio: member.bio ?? undefined,
   });
 }));
+
+router.get('/bio', authMiddleware, asyncHandler(async (req, res) => {
+  const member = await prisma.member.findUnique({
+    where: { id: req.userId }, // 从JWT token获取用户ID
+    select: {
+      bio: true 
+    },
+  });
+  res.json({
+    id: req.userId,
+    bio: member?.bio ?? undefined,
+  });
+}));
+
 
 export default router;
