@@ -5,38 +5,19 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  // Token过期检查
-  const isTokenExpired = useCallback((token: string): boolean => {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return Date.now() >= payload.exp * 1000;
-    } catch {
-      return true;
-    }
-  }, []);
-
   // 初始化时从localStorage恢复状态
   useEffect(() => {
     const initializeAuth = () => {
       const savedUser = localStorage.getItem('user');
       const savedToken = localStorage.getItem('authToken');
 
-      if (savedUser && savedToken) {
-        if (isTokenExpired(savedToken)) {
-          // Token过期，清除认证状态但保留用户信息用于快速重新登录
-          setUser(JSON.parse(savedUser));
-          setToken(null);
-          localStorage.removeItem('authToken');
-        } else {
-          // Token有效，恢复完整认证状态
-          setUser(JSON.parse(savedUser));
-          setToken(savedToken);
-        }
-      }
+      // 初始默认Token有效，恢复完整认证状态
+      setUser(JSON.parse(savedUser || '{}'));
+      setToken(savedToken || '');
     };
 
     initializeAuth();
-  }, [isTokenExpired]);
+  }, []);
 
   // 登录数据缓存
   const login = useCallback((userData: User, authToken: string) => {
