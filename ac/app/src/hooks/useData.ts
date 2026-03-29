@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { Photo } from '@/types';
 import { useAuth } from './useAuth';
 
 export function useData() {
-  const [photos, setPhotos] = useState<Photo[]>([]);
   const { user, token, isAuthenticated, login, logout: authLogout, updateUser } = useAuth();
 
   // API Fetch with token
@@ -33,22 +32,29 @@ export function useData() {
 
     return res;
   }, [token]);
-
-  // 刷新照片列表
-  const refreshPhotos = useCallback(async () => {
+  async function fetchPhotos() {
     try {
       const res = await apiFetch('/api/photos');
       const data = (await res.json()) as Photo[];
-      setPhotos(data);
+      return data;
     } catch {
-      setPhotos([]);
+      return [];
     }
-  }, [apiFetch]);
+  }
 
-  // 初始化时刷新照片
-  useEffect(() => {
-    void refreshPhotos();
-  }, [refreshPhotos]);
+  async function fetchOwnerPhotos(id: string) {
+    const res = await apiFetch(`/api/photos/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (res.ok) {
+      const data = (await res.json()) as Photo[];
+      return data;
+    }
+  }
 
   // 邮箱验证码认证
   // 用于登录或注册
@@ -97,7 +103,6 @@ export function useData() {
   // 登出
   const logoutMember = useCallback(() => {
     authLogout(); // 使用useAuth的logout方法
-    setPhotos([]); // 清除照片数据
   }, [authLogout]);
 
   // 更新用户资料
@@ -135,17 +140,16 @@ export function useData() {
         // ✅ memberId已从JWT Token获取，无需从前端发送
 
         await apiFetch('/api/photos', { method: 'POST', body: form });
-        await refreshPhotos();
+
       } catch {
         return;
       }
     })();
 
     return true;
-  }, [apiFetch, user?.id, refreshPhotos]);
+  }, [apiFetch, user?.id]);
 
   return {
-    photos,
     user,
     isAuthenticated,
     loginMemberWithEmail,
@@ -153,5 +157,7 @@ export function useData() {
     logoutMember,
     updateMemberProfile,
     uploadPhoto,
+    fetchPhotos,
+    fetchOwnerPhotos,
   };
 }

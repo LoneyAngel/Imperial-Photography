@@ -36,6 +36,7 @@ router.get('/', asyncHandler(async (req, res) => {
       url: p.url,
       status: p.status,
       description: p.description ?? undefined,
+      createdAt: p.createdAt.toISOString(),
       ownerMemberId: p.ownerMemberId,
     }))
   );

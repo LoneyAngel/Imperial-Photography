@@ -4,19 +4,44 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useData } from '@/hooks/useData';
 
 interface MemberProfileProps {
   user: User;
-  photos: Photo[];
   onSave: (name: string, bio: string) => void;
 }
 
-export default function MemberProfile({ user, photos, onSave }: MemberProfileProps) {
+export default function MemberProfile({ user, onSave }: MemberProfileProps) {
   const [name, setname] = useState(user.name ?? '');
   const [bio, setBio] = useState('');
   const [editing, setEditing] = useState(false);
+  const { fetchOwnerPhotos } = useData();
+  const queryClient = useQueryClient();
 
-  const myPhotos = photos.filter(p => p.ownerMemberId === user.id);
+  const { data } = useQuery({
+    // 1. 设置唯一的 Key
+    queryKey: ['photos', 'owner', user.id],
+    
+    // 2. 如果缓存没有，去执行这个函数
+    queryFn: () => fetchOwnerPhotos(user.id),
+
+    // 3. 【核心逻辑】尝试从“列表页”的缓存里直接拿数据
+    initialData: () => {
+      // 去缓存池里找 ['photos'] 那个大文件夹
+      const listCache = queryClient.getQueryData(['photos']);
+      console.log(listCache);
+      if (!listCache) return;
+      // 在文件夹里翻找 ID 匹配的那一张照片
+      return listCache?.filter((p: Photo) => p.ownerMemberId === user.id);
+    },
+
+    // 4. 告诉 React Query 列表数据是什么时候存的，防止详情页拿到太旧的数据
+    initialDataUpdatedAt: () => 
+      queryClient.getQueryState(['photos'])?.dataUpdatedAt,
+      
+    staleTime: 1000 * 60, // 详情数据 1 分钟内不重复请求
+  });
 
   // 独立获取bio数据
   useEffect(() => {
@@ -144,13 +169,13 @@ export default function MemberProfile({ user, photos, onSave }: MemberProfilePro
           <div className="mb-4">
             <h2 className="text-xl font-semibold">我的作品</h2>
           </div>
-          {myPhotos.length === 0 ? (
+          {data.length === 0 ? (
             <div className="text-sm text-muted-foreground border rounded-lg p-6">
               暂无作品
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {myPhotos.map(p => (
+              {data.map((p: Photo) => (
                 <Card key={p.id}>
                   <CardContent className="pt-4">
                     <img src={p.url} alt={p.title || '未命名作品'} className="w-full h-40 object-cover rounded-md mb-3" />

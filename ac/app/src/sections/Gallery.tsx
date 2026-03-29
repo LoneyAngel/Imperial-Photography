@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Photo } from '@/types';
+import { useQuery } from '@tanstack/react-query';
+import { useData } from '@/hooks/useData';
 
-interface GalleryProps {
-  photos: Photo[];
-}
-
-export default function Gallery({ photos }: GalleryProps) {
+// 首次加载的时候加上标签缓存，5分钟刷新一次
+export default function Gallery() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-
+  const {fetchPhotos} = useData();
+  const {data:photos} = useQuery({
+    queryKey: ['photos'],
+    queryFn: fetchPhotos,
+    staleTime: 1000 * 60 * 5,
+  }
+  );
   useEffect(() => {
     if (!selectedPhoto) return;
-
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setSelectedPhoto(null);
     };
@@ -22,13 +26,13 @@ export default function Gallery({ photos }: GalleryProps) {
   return (
     <div className="container mx-auto px-4 py-8">
 
-      {photos.length === 0 ? (
+      {!photos || photos.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-muted-foreground">暂无作品</p>
         </div>
       ) : (
         <div className="image-grid">
-          {photos.map((photo) => (
+          {photos.map((photo:any) => (
             <button
               key={photo.id}
               type="button"
@@ -37,10 +41,7 @@ export default function Gallery({ photos }: GalleryProps) {
             >
               <img src={photo.url} alt={photo.title || '未命名作品'} />
               <div className="image-info">
-                <h3 className="font-semibold mb-1">{photo.title || '未命名作品'}</h3>
-                {photo.description && (
-                  <p className="text-sm text-muted-foreground mt-1">{photo.description}</p>
-                )}
+                <h3 className="font-semibold mb-1 text-center">{photo.title || '未命名作品'}</h3>
               </div>
             </button>
           ))}
