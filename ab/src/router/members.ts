@@ -33,5 +33,31 @@ router.put('/update', authMiddleware, asyncHandler(async (req, res) => {
   });
 }));
 
+// 获取会员信息
+router.get('/detail', authMiddleware, asyncHandler(async (req, res) => {
+
+  // ✅ 使用JWT中的用户ID，而不是params.id
+  const member = await prisma.member.findUnique({
+    where: { id: req.userId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      bio: true,
+    },
+  });
+  if (!member) {
+    res.status(404).json({ message: 'Member not found' });
+    return;
+  }
+  res.json({
+    id: member.id,
+    email: member.email,
+    name: member.name ?? undefined,
+    bio: member.bio ?? undefined,
+  });
+}));
+ 
+
 
 export default router;

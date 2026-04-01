@@ -6,17 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, EyeOff } from 'lucide-react';
-import { User } from '@/types';
 import { useToast } from '../context';
+import { useUser } from '../context/user';
+import { useFunction } from '@/context/function';
 
-interface MemberAuthProps {
-  user: User | null;
-  onLogin: (email: string, code: string) => Promise<boolean>;
-  onPasswordLogin: (email: string, password: string) => Promise<boolean>;
-  onLogout: () => void;
-}
-
-export default function MemberAuth({ user, onLogin, onPasswordLogin, onLogout }: MemberAuthProps) {
+export default function MemberAuth() {
+  const { user} = useUser();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const successMessage = searchParams.get('success');
@@ -105,11 +100,11 @@ export default function MemberAuth({ user, onLogin, onPasswordLogin, onLogout }:
               </TabsList>
 
               <TabsContent value="code">
-                <CodeLoginForm onLogin={onLogin} onDone={goHome} showToast={showToast} />
+                <CodeLoginForm onDone={goHome} showToast={showToast} />
               </TabsContent>
 
               <TabsContent value="password">
-                <PasswordLoginForm onDone={goHome} onPasswordLogin={onPasswordLogin} showToast={showToast} />
+                <PasswordLoginForm onDone={goHome} showToast={showToast} />
               </TabsContent>
             </Tabs>
 
@@ -122,8 +117,7 @@ export default function MemberAuth({ user, onLogin, onPasswordLogin, onLogout }:
 }
 
 // 验证码登录表单
-function CodeLoginForm({ onLogin, onDone, showToast }: {
-  onLogin: (email: string, code: string) => Promise<boolean>;
+function CodeLoginForm({ onDone, showToast }: {
   onDone: () => void;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }) {
@@ -136,6 +130,7 @@ function CodeLoginForm({ onLogin, onDone, showToast }: {
 
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
+  const { loginMemberWithEmail } = useFunction();
 
   const reset = () => {
     setEmail('');
@@ -188,7 +183,7 @@ function CodeLoginForm({ onLogin, onDone, showToast }: {
     setError(null);
 
     try {
-      const ok = await onLogin(normalizedEmail, code.trim());
+      const ok = await loginMemberWithEmail(normalizedEmail, code.trim());
       if (ok) {
         reset();
         onDone();
@@ -265,9 +260,8 @@ function CodeLoginForm({ onLogin, onDone, showToast }: {
 }
 
 // 密码登录表单
-function PasswordLoginForm({ onDone, onPasswordLogin, showToast }: {
+function PasswordLoginForm({ onDone, showToast }: {
   onDone: () => void;
-  onPasswordLogin: (email: string, password: string) => Promise<boolean>;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }) {
   const navigate = useNavigate();
@@ -276,6 +270,7 @@ function PasswordLoginForm({ onDone, onPasswordLogin, showToast }: {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const {loginMemberWithPassword} = useFunction();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -289,7 +284,7 @@ function PasswordLoginForm({ onDone, onPasswordLogin, showToast }: {
     setIsLoading(true);
 
     try {
-      const success = await onPasswordLogin(email.trim().toLowerCase(), password);
+      const success = await loginMemberWithPassword(email.trim().toLowerCase(), password);
       if (success) {
         showToast('登录成功', 'success');
         onDone();

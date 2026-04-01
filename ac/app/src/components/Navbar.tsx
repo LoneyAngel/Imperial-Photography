@@ -9,20 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { User } from '@/types';
+import { useUser } from '@/context/user';
 
-interface NavbarProps {
-  user: User | null;
-  onMemberLogout: () => void;
-}
-
-export default function Navbar({
-  user,
-  onMemberLogout,
-}: NavbarProps) {
+export default function Navbar() {
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
+  const { user,logout } = useUser();
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -73,7 +66,7 @@ export default function Navbar({
                 <DropdownMenuItem asChild>
                   <Link to="/member-profile">个人资料</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={onMemberLogout}>退出登录</DropdownMenuItem>
+                <DropdownMenuItem onSelect={logout}>退出登录</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (

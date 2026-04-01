@@ -5,15 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '../context';
-import { useData } from '@/hooks/useData';
+import { useUser } from '../context/user';
 
-interface MemberRegisterProps {
-  onRegister: (email: string, code: string, password: string) => Promise<boolean>;
-}
 
-export default function MemberRegister({ onRegister }: MemberRegisterProps) {
+export default function MemberRegister() {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { user } = useUser();
   const [step, setStep] = useState<'email' | 'code' | 'password'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -21,7 +19,6 @@ export default function MemberRegister({ onRegister }: MemberRegisterProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useData();
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
 
