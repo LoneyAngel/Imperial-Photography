@@ -16,16 +16,7 @@ export default function ForgotPassword() {
 
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
-
-  const reset = () => {
-    setEmail('');
-    setCode('');
-    setSent(false);
-    setError(null);
-    setSending(false);
-    setVerifying(false);
-  };
-
+  
   const sendCode = async () => {
     if (!emailValid) {
       setError('请输入有效的邮箱地址');

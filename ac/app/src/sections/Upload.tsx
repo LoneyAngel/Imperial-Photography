@@ -5,13 +5,30 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useUser } from '@/context/user';
+import { useFunction } from '@/context/function';
 
-interface UploadProps {
-  onUpload: (title: string, description: string, file: File) => void;
-  user?: { name?: string } | null;
-}
+export default function Upload() {
+  const { user } = useUser();
+  const {uploadPhoto} = useFunction();
+  const handleUpload = (title: string, description: string, file: File) => {
+    uploadPhoto(title, description, file);
+  };
 
-export default function Upload({ onUpload, user }: UploadProps) {
+  if (!user) {
+    return (
+      <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold">需要登录</h1>
+          <p className="text-muted-foreground">请先登录后才能上传作品</p>
+          <Button onClick={() => window.location.href = '/member-auth'}>
+            去登录
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -37,7 +54,7 @@ export default function Upload({ onUpload, user }: UploadProps) {
       setIsUploading(true);
 
       // 调用上传函数（不再需要摄影师名字）
-      onUpload(title.trim(), description.trim(), file);
+      handleUpload(title.trim(), description.trim(), file);
 
       // 模拟上传过程，然后显示上传成功的作品
       setTimeout(() => {

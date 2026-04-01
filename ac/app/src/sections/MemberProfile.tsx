@@ -1,23 +1,38 @@
-import { User, Photo } from '@/types';
+import { Photo } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useData } from '@/hooks/useData';
+import { useState, useEffect } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useUser } from '@/context/user';
+import { useFunction } from '@/context/function';
+import { queryClient } from '@/App';
+export default function MemberProfile() {
+  const { fetchOwnerPhotos,updateMemberProfile } = useFunction();
+  const { user } = useUser();
+  
 
-interface MemberProfileProps {
-  user: User;
-}
-
-export default function MemberProfile({ user }: MemberProfileProps) {
-  const [name, setName] = useState(user.name ?? '');
-  const [bio, setBio] = useState(user.bio ?? '');
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
   const [editing, setEditing] = useState(false);
-  const { fetchOwnerPhotos } = useData();
-  const queryClient = useQueryClient();
-  const { updateMemberProfile } = useData();
+
+  // 当user数据更新时，同步更新本地状态
+  if (!user) return null;
+  useEffect(() => {
+    setName(user.name ?? '');
+    setBio(user.bio ?? '');
+  }, [user.name, user.bio]);
+  
+  const mutation = useMutation({
+    mutationFn: ({ name, bio }: { name: string; bio: string }) => 
+      updateMemberProfile(name, bio), // 你的修改接口
+    onSuccess: () => {
+      // 关键：让 queryKey 为 ['userMe'] 的缓存失效
+      // 这会触发 UserProvider 里的 refetch，从而更新全局 user
+      queryClient.invalidateQueries({ queryKey: ['userMe'] });
+    },
+  });
   const { data } = useQuery({
     // 1. 设置唯一的 Key
     queryKey: ['photos', 'owner', user.id],
@@ -28,7 +43,7 @@ export default function MemberProfile({ user }: MemberProfileProps) {
     // 3. 【核心逻辑】尝试从“列表页”的缓存里直接拿数据
     initialData: () => {
       // 去缓存池里找 ['photos'] 那个大文件夹
-      const listCache = queryClient.getQueryData(['photos']);
+      const listCache = queryClient.getQueryData(['photos']) as Photo[] | undefined;
       console.log(listCache);
       if (!listCache) return;
       // 在文件夹里翻找 ID 匹配的那一张照片
@@ -45,10 +60,10 @@ export default function MemberProfile({ user }: MemberProfileProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateMemberProfile(name.trim(), bio.trim());
+      await mutation.mutate({ name: name.trim(), bio: bio.trim() });
       setEditing(false);
     } catch (error) {
-      console.error('保存bio失败:', error);
+      console.error('保存失败:', error);
     }
   };
 
@@ -78,7 +93,9 @@ export default function MemberProfile({ user }: MemberProfileProps) {
                     <Textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} />
                   </div>
                   <div className="flex gap-2">
-                    <Button type="submit" className="flex-1">保存</Button>
+                    <Button type="submit" disabled={mutation.isPending} className="flex-1">
+                      {mutation.isPending ? '保存中...' : '保存'}
+                    </Button>
                     <Button
                       type="button"
                       variant="outline"

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Photo } from '@/types';
 import { useQuery } from '@tanstack/react-query';
-import { useData } from '@/hooks/useData';
+import { useFunction } from '@/context/function';
 
 // 首次加载的时候加上标签缓存，5分钟刷新一次
 export default function Gallery() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-  const {fetchPhotos} = useData();
+  const {fetchPhotos} = useFunction();
   const {data:photos} = useQuery({
     queryKey: ['photos'],
     queryFn: fetchPhotos,

@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/context/user';
 
 export default function Home() {
   const navigate = useNavigate();
-  const {user} = useAuth();
+  const {user} = useUser();
   const handleBrowse = () => {
     navigate(user ? '/' : '/register');
   };

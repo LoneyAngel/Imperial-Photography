@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useData } from './hooks/useData';
 import { ToastProvider } from './context';
 import Navbar from './components/Navbar';
 import Home from './sections/Home';
@@ -8,100 +7,65 @@ import Upload from './sections/Upload';
 import MemberAuth from './sections/MemberAuth';
 import MemberRegister from './sections/MemberRegister';
 import MemberProfile from './sections/MemberProfile';
-import { Button } from './components/ui/button';
 import SetPassword from './sections/SetPassword';
 import ForgotPassword from './sections/ForgotPassword';
 import ResetPassword from './sections/ResetPassword';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import { UserProvider } from './context/user';
+import { TokenProvider } from './context/token';
+import { FunctionProvider } from './context/function';
+export const queryClient = new QueryClient();
 function App() {
-  const {
-    user,
-    isAuthenticated,
-    loginMemberWithEmail,
-    loginMemberWithPassword,
-    logoutMember,
-    uploadPhoto,
-  } = useData();
-
-  const handleUpload = (title: string, description: string, file: File) => {
-    uploadPhoto(title, description, file);
-  };
-  const queryClient = new QueryClient();
-
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <Router>
-          <div className="app-container">
-          <div className="h-[50px] flex items-center justify-center bg-slate-300">
-            <p className="text-center text-sm">
-              Welcome to join us and become our exclusive photographer！
-            </p>
-          </div>
-          <Navbar
-            user={user}
-            onMemberLogout={logoutMember}
-          />
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/gallery" element={<Gallery/>} />
-              <Route path="/register" element={<MemberRegister onRegister={loginMemberWithEmail} />} />
-              <Route
-                path="/upload"
-                element={
-                  user ? (
-                    <Upload onUpload={handleUpload} user={user} />
-                  ) : (
-                    <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10">
-                      <div className="text-center space-y-4">
-                        <h1 className="text-2xl font-bold">需要登录</h1>
-                        <p className="text-muted-foreground">请先登录后才能上传作品</p>
-                        <Button onClick={() => window.location.href = '/member-auth'}>
-                          去登录
-                        </Button>
-                      </div>
-                    </div>
-                  )
-                }
-              />
-              <Route
-                path="/member-auth"
-                element={
-                  <MemberAuth
-                    user={user}
-                    onLogin={loginMemberWithEmail}
-                    onPasswordLogin={loginMemberWithPassword}
-                    onLogout={logoutMember}
-                  />
-                }
-              />
-              <Route
-                path="/member-profile"
-                element={
-                  user ? (
-                    <MemberProfile
-                      user={user}
+      <TokenProvider>
+        <FunctionProvider>
+          <UserProvider queryClient={queryClient}>
+            <ToastProvider>
+              <Router>
+                <div className="app-container">
+                <div className="h-[50px] flex items-center justify-center bg-slate-300">
+                  <p className="text-center text-sm">
+                    Welcome to join us and become our exclusive photographer！
+                  </p>
+                </div>
+                <Navbar/>
+                <main className="flex-1">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/gallery" element={<Gallery/>} />
+                    <Route path="/register" element={<MemberRegister />} />
+                    <Route
+                      path="/upload"
+                      element={<Upload />}
                     />
-                  ) : (
-                    <Navigate to="/member-auth" replace />
-                  )
-                }
-              />
-              <Route path="/set-password" element={<SetPassword />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="*" element={<Navigate to="/gallery" replace />} />
-            </Routes>
-          </main>
-          <footer className="border-t py-6 mt-auto">
-            <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-              <p>Imperial use © 2024 - All rights reserved</p>
-            </div>
-          </footer>
-        </div>
-        </Router>
-      </ToastProvider>
+                    <Route
+                      path="/member-auth"
+                      element={
+                        <MemberAuth/>
+                      }
+                    />
+                    <Route
+                      path="/member-profile"
+                      element={<MemberProfile />}
+                    />
+                    <Route path="/set-password" element={<SetPassword />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="*" element={<Navigate to="/gallery" replace />} />
+                  </Routes>
+                </main>
+                <footer className="border-t py-6 mt-auto">
+                  <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+                    <p>Imperial use © 2024 - All rights reserved</p>
+                  </div>
+                </footer>
+              </div>
+              </Router>
+            </ToastProvider>
+          </UserProvider>
+        </FunctionProvider>
+      </TokenProvider>
     </QueryClientProvider>
   );
 }
