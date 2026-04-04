@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '../context';
 import { useUser } from '../context/user';
+import api from '@/lib/axios';
 
 
 export default function MemberRegister() {
@@ -46,12 +47,11 @@ export default function MemberRegister() {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await fetch('/api/auth/request-register-code', {
-        method: 'POST',
+      const res = await api.post('/api/auth/request-register-code', {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail }),
+        data: { email: normalizedEmail },
       });
-      if (!res.ok) throw new Error('send_failed');
+      if (!res.data) throw new Error('send_failed');
       setStep('code');
     } catch {
       setError('验证码发送失败，请稍后重试');
@@ -70,13 +70,12 @@ export default function MemberRegister() {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/verify-code', {
-        method: 'POST',
+      const res = await api.post('/api/auth/verify-code', {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail, code: code.trim() }),
+        data: { email: normalizedEmail, code: code.trim() },
       });
 
-      if (!res.ok) {
+      if (!res.data) {
         setError('验证码不正确或已过期');
         return;
       }
@@ -109,13 +108,12 @@ export default function MemberRegister() {
 
     try {
       // 设置密码
-      const res = await fetch('/api/auth/set-password', {
-        method: 'POST',
+      const res = await api.post('/api/auth/set-password', {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail, password }),
+        data: { email: normalizedEmail, password },
       });
 
-      if (!res.ok) {
+      if (!res.data) {
         setError('密码设置失败');
         return;
       }

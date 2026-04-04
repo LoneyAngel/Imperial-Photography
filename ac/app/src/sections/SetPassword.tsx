@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff } from 'lucide-react';
+import api from '@/lib/axios';
 
 export default function SetPassword() {
   const [searchParams] = useSearchParams();
@@ -40,13 +41,12 @@ export default function SetPassword() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/auth/set-password', {
-        method: 'POST',
+      const res = await api.post('/api/auth/set-password', {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        data: { email, password },
       });
 
-      if (!res.ok) {
+      if (!res.data) {
         throw new Error('设置密码失败');
       }
 

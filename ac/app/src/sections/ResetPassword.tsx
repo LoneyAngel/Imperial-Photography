@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff } from 'lucide-react';
+import api from '@/lib/axios';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -39,17 +40,16 @@ export default function ResetPassword() {
     }
 
     setIsLoading(true);
-
+    setError(null);
+    
     try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
+      const res = await api.post('/api/auth/reset-password', {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, email, password }),
+        data: { token, email, password },
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || '重置密码失败');
+      if (!res.data) {
+        setError(res.data.error || '重置密码失败');
         return;
       }
 
