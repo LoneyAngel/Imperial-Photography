@@ -1,8 +1,7 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo} from 'react';
 import { Photo, User } from '@/types';
-import { queryClient } from '@/App';
 import { useToken } from './token';
-
+import api from '@/lib/axios';
 // 定义类型
 interface FunctionContextType {
     loginMemberWithEmail: (email: string, code: string) => Promise<boolean>;
@@ -17,68 +16,27 @@ interface FunctionContextType {
 const FunctionContext = createContext<FunctionContextType|null>(null);
 
 export const FunctionProvider = ({ children }: { children: ReactNode }) => {
-    const { auth_token, login} = useToken(); 
-    
-    // 为API Fetch附上token
-    // 需要换成axios
-    const apiFetch = useCallback(async (input: RequestInfo | URL, init?: RequestInit) => {
-        const headers = {
-            ...init?.headers,
-            ...(auth_token && {
-                Authorization: `Bearer ${auth_token}`
-            }),
-        };
-
-        const res = await fetch(input, {
-            ...init,
-            headers,
-        });
-
-        if (!res.ok) {
-            let errorMessage = `API ${res.status}`;
-            if (res.status === 401) {
-                // token过期或无效，自动登出
-                localStorage.removeItem('authToken'); // 或你的清除逻辑
-                window.location.href = '/login'; // 重定向
-                errorMessage = 'token过期或无效';
-            }
-            else try {
-                const errorData = await res.json();
-                errorMessage = errorData.error || errorMessage;
-            } catch {
-                errorMessage = '无法解析错误信息';
-            }
-            throw new Error(errorMessage);
-        }
-        return res;
-    }, [auth_token]);
+    const { login} = useToken(); 
 
     // 获取所有照片
     const fetchPhotos = useCallback(async () => {
         try {
-            const res = await fetch('/api/photos');
-            const data = (await res.json()) as Photo[];
-            return data;
+            const res = await api.get('/api/photos');
+            return res.data as Photo[];
         } catch {
             return [];
         }
-    }, [apiFetch]);
+    }, []);
 
     // 获取用户所有照片
     const fetchOwnerPhotos = useCallback(async (id: string) => {
-        const res = await apiFetch(`/api/photos?ownerMemberId=${id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (res.ok) {
-            const data = (await res.json()) as Photo[];
-            return data;
+        try {
+            const res = await api.get(`/api/photos?ownerMemberId=${id}`);
+            return res.data as Photo[];
+        } catch {
+            return [];
         }
-        return [];
-    }, [apiFetch]);
+    }, []);
 
     // 邮箱验证码认证
     // 用于登录或注册
@@ -88,21 +46,25 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         if (!normalizedEmail || normalizedCode.length !== 6) return false;
 
         try {
-            const res = await apiFetch('/api/auth/verify-code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: normalizedEmail, code: normalizedCode }),
-            });
+            const res = await api.post('/api/auth/verify-code', {
+                    email: normalizedEmail,
+                    code: normalizedCode
+                },
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            );
+            if (!res.data) return false;
 
             // ✅ 使用新的响应格式 { token }
-            const { token } = await res.json();
-            login(token); 
+            const { authToken,refreshToken } = res.data;
+            login(authToken,refreshToken);
 
             return true;
         } catch {
             return false;
         }
-    }, [apiFetch, login, queryClient]);
+    }, [login]);
 
 
 
@@ -112,52 +74,47 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         if (!normalizedEmail || !password) return false;
 
         try {
-            const res = await apiFetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: normalizedEmail, password }),
-            });
+            const res = await api.post('/api/auth/login', {
+                    email: normalizedEmail,
+                    password
+                },
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            );
+            if (!res.data) return false;
 
-            // ✅ 使用新的响应格式 { user, token }
-            const { token } = await res.json();
-            login(token); 
-
-            // 触发用户数据刷新
-            queryClient.invalidateQueries({ queryKey: ['userMe'] });
+            // ✅ 使用新的响应格式 { user, token    }
+            const { authToken,refreshToken } = res.data;
+            login(authToken,refreshToken);
 
             return true;
         } catch {
             return false;
         }
-    }, [apiFetch, login, queryClient]);
+    }, [login]);
 
     // 获取用户信息
     const fetchMemberProfile = useCallback(async () => {
         try {
-            const res = await apiFetch(`/api/members/detail`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-            });
-
-            const member = await res.json();
-            return member;
+            const res = await api.get(`/api/members/detail`);
+            return res.data;
         } catch {
             return null;
         }
-    }, [apiFetch, auth_token]);
+    }, []);
 
     const updateMemberProfile = useCallback(async (name: string, bio: string) => {
         try {
-            await apiFetch(`/api/members/update`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name.trim(), bio: bio.trim() }),
+            await api.put(`/api/members/update`, {
+                name: name.trim(),
+                bio: bio.trim()
             });
             return true;
         } catch {
             return false;
         }
-    }, [apiFetch]);
+    }, []);
 
     // 上传照片
     const uploadPhoto = useCallback((title: string, description: string, file: File) => {
@@ -169,14 +126,14 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
                 form.append('description', description);
                 // ✅ memberId已从JWT Token获取，无需从前端发送
 
-                await apiFetch('/api/photos', { method: 'POST', body: form });
+                await api.post('/api/photos', form);
 
             } catch {
                 return;
             }
         })();
         return true;
-    }, [apiFetch]);
+    }, []);
     
     const value = useMemo(() => ({
         loginMemberWithEmail,

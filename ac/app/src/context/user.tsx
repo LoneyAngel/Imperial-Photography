@@ -1,8 +1,8 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo} from 'react';
-import { QueryClient, QueryObserverResult, RefetchOptions, useQuery } from '@tanstack/react-query';
+import { createContext, ReactNode, useContext, useMemo} from 'react';
 import { User } from '@/types';
 import { useFunction } from './function';
 import { useToken } from './token';
+import { QueryClient, QueryObserverResult, RefetchOptions, useQuery } from '@tanstack/react-query';
 
 // 定义类型
 interface UserContextType {
@@ -10,29 +10,14 @@ interface UserContextType {
   isLoading: boolean;
   error: Error | null;
   // isAdmin: boolean;
-  logout: () => void;
   refresh: (options?: RefetchOptions) => Promise<QueryObserverResult<any, Error>>;
-  auth_token: string | null;
-  setAuthToken: React.Dispatch<React.SetStateAction<string | null>>;
-  login: (authToken: string) => void;
 }
 // 这个泛型定义可以避免一个ts错误，即在使用 useContext 时，如果上下文为空，会报错
 const UserContext = createContext<UserContextType|null>(null);
 
-export const UserProvider = ({ queryClient,children }: { queryClient: QueryClient, children: ReactNode }) => {
-    const {auth_token, setAuthToken}= useToken();
+export const UserProvider = ({ children }: { queryClient: QueryClient, children: ReactNode }) => {
+    const {auth_token}= useToken();
     const { fetchMemberProfile } = useFunction();
-
-    const login = useCallback((authToken: string) => {
-        // 分别保存到localStorage
-        localStorage.setItem('authToken', authToken);
-
-        setAuthToken((pre) => {
-            if (pre === authToken) return pre; // 如果 token 没变，返回 pre，React 不会触发多余的渲染
-            console.log('Token 从', pre, '更新为', authToken);
-            return authToken;
-        });
-    }, []);
 
     // 1. 使用 React Query 获取个人详情
     const { data: user, isLoading, error, refetch } = useQuery({
@@ -47,15 +32,9 @@ export const UserProvider = ({ queryClient,children }: { queryClient: QueryClien
         user,
         isLoading,
         error,
-        auth_token, setAuthToken, login,
         // isAdmin: user?.role === 'admin', // 可以在这里封装便捷的权限判断
-        logout: () => {
-            localStorage.removeItem('authToken'); // 或你的清除逻辑
-            queryClient.clear(); // 清除所有缓存，确保安全
-            window.location.href = '/'; // 重定向
-        },
-        refresh: refetch
-    }), [user, isLoading, error, refetch, auth_token]);
+        refresh: refetch,
+    }), [user, isLoading, error, refetch]);
 
     return (
     <UserContext.Provider value={value}>
