@@ -321,13 +321,6 @@ function PasswordLoginForm({ onDone, showToast }: {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <button
-            type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
         </div>
       </div>
 
@@ -340,17 +333,10 @@ function PasswordLoginForm({ onDone, showToast }: {
       <div className="flex items-center justify-between pt-2">
         <button
           type="button"
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm text-blue-600 hover:underline text-center w-full"
           onClick={() => navigate('/forgot-password')}
         >
           忘记密码？
-        </button>
-        <button
-          type="button"
-          className="text-sm text-blue-600 hover:underline"
-          onClick={() => navigate('/set-password')}
-        >
-          设置密码
         </button>
       </div>
     </form>

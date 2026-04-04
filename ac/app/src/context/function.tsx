@@ -20,6 +20,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     const { auth_token, login} = useToken(); 
     
     // 为API Fetch附上token
+    // 需要换成axios
     const apiFetch = useCallback(async (input: RequestInfo | URL, init?: RequestInit) => {
         const headers = {
             ...init?.headers,
@@ -129,11 +130,6 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
             return false;
         }
     }, [apiFetch, login, queryClient]);
-
-    // // 登出
-    // const logoutMember = useCallback(() => {
-    //   logout(); 
-    // }, [logout]);
 
     // 获取用户信息
     const fetchMemberProfile = useCallback(async () => {

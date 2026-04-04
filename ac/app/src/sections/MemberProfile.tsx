@@ -18,11 +18,13 @@ export default function MemberProfile() {
   const [editing, setEditing] = useState(false);
 
   // 当user数据更新时，同步更新本地状态
-  if (!user) return null;
+  
   useEffect(() => {
-    setName(user.name ?? '');
-    setBio(user.bio ?? '');
-  }, [user.name, user.bio]);
+    if(user){
+      setName(user.name ?? '');
+      setBio(user.bio ?? '');
+    }
+  }, [user]);
   
   const mutation = useMutation({
     mutationFn: ({ name, bio }: { name: string; bio: string }) => 
@@ -35,19 +37,20 @@ export default function MemberProfile() {
   });
   const { data } = useQuery({
     // 1. 设置唯一的 Key
-    queryKey: ['photos', 'owner', user.id],
+    queryKey: ['photos', 'owner', user?.id],
     
     // 2. 如果缓存没有，去执行这个函数
-    queryFn: () => fetchOwnerPhotos(user.id),
+    queryFn: () => fetchOwnerPhotos(user?.id ?? ''),
 
     // 3. 【核心逻辑】尝试从“列表页”的缓存里直接拿数据
     initialData: () => {
+      if (!user) return undefined;
       // 去缓存池里找 ['photos'] 那个大文件夹
       const listCache = queryClient.getQueryData(['photos']) as Photo[] | undefined;
       console.log(listCache);
       if (!listCache) return;
       // 在文件夹里翻找 ID 匹配的那一张照片
-      return listCache?.filter((p: Photo) => p.ownerMemberId === user.id);
+      return listCache?.filter((p: Photo) => p.ownerMemberId === user?.id);
     },
 
     // 4. 告诉 React Query 列表数据是什么时候存的，防止详情页拿到太旧的数据
@@ -56,6 +59,8 @@ export default function MemberProfile() {
       
     staleTime: 1000 * 60, // 详情数据 1 分钟内不重复请求
   });
+
+  if (!user) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
