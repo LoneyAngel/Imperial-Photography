@@ -170,3 +170,5 @@ coverage/
 .netlify/
 dist/
 build/
+
+./node_modules/

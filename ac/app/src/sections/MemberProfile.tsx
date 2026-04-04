@@ -47,7 +47,6 @@ export default function MemberProfile() {
       if (!user) return undefined;
       // 去缓存池里找 ['photos'] 那个大文件夹
       const listCache = queryClient.getQueryData(['photos']) as Photo[] | undefined;
-      console.log(listCache);
       if (!listCache) return;
       // 在文件夹里翻找 ID 匹配的那一张照片
       return listCache?.filter((p: Photo) => p.ownerMemberId === user?.id);

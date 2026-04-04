@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff } from 'lucide-react';
 import { useToast } from '../context';
 import { useUser } from '../context/user';
 import { useFunction } from '@/context/function';
+import api from '@/lib/axios';
 
 export default function MemberAuth() {
   const { user} = useUser();
@@ -27,31 +27,6 @@ export default function MemberAuth() {
       navigate('/', { replace: true });
     }
   }, [user, navigate]);
-
-  // if (user) {
-  //   return (
-  //     <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10 bg-slate-50">
-  //       <div className="w-full max-w-md">
-  //         <Card className="shadow-sm border border-slate-200">
-  //           <CardContent className="space-y-4 pt-6">
-  //             <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
-  //               <p className="text-sm text-muted-foreground">当前已登录</p>
-  //               <p className="text-sm font-medium break-words">{user.email}</p>
-  //             </div>
-  //             <div className="flex gap-2">
-  //               <Button className="flex-1" onClick={goHome}>
-  //                 返回网站
-  //               </Button>
-  //               <Button className="flex-1" variant="outline" onClick={onLogout}>
-  //                 退出登录
-  //               </Button>
-  //             </div>
-  //           </CardContent>
-  //         </Card>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10 bg-slate-50">
@@ -107,8 +82,6 @@ export default function MemberAuth() {
                 <PasswordLoginForm onDone={goHome} showToast={showToast} />
               </TabsContent>
             </Tabs>
-
-
           </CardContent>
         </Card>
       </div>
@@ -150,12 +123,11 @@ function CodeLoginForm({ onDone, showToast }: {
       setSending(true);
       setError(null);
       setCode('');
-      const res = await fetch('/api/auth/request-login-code', {
-        method: 'POST',
+      const res = await api.post('/auth/request-login-code', {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail }),
+        email: normalizedEmail,
       });
-      if (!res.ok) throw new Error('send_failed');
+      if (!res.data) throw new Error('send_failed');
       setSent(true);
       showToast('验证码已发送，请查收', 'success');
     } catch {

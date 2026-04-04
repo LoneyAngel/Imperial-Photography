@@ -2,27 +2,59 @@ import jwt from 'jsonwebtoken';
 import { Member } from '@prisma/client';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_AUTH_EXPIRES_IN = process.env.JWT_AUTH_EXPIRES_IN || '30m';
+const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '15d';
 
 export interface JwtPayload {
   userId: string;
   email: string;
+  type: 'auth' | 'refresh';
 }
 
 /**
- * 生成JWT Token
+ * 生成JWT Auth Token (30分钟过期)
  */
-export function generateToken(member: Member): string {
+export function generateAuthToken(member: Member): string {
   return jwt.sign(
     {
       userId: member.id,
       email: member.email,
+      type: 'auth',
     },
     JWT_SECRET,
     {
-      expiresIn: JWT_EXPIRES_IN,
+      expiresIn: JWT_AUTH_EXPIRES_IN,
     }
   );
+}
+
+/**
+ * 生成JWT Refresh Token (15天过期)
+ */
+export function generateRefreshToken(member: Member): string {
+  return jwt.sign(
+    {
+      userId: member.id,
+      email: member.email,
+      type: 'refresh',
+    },
+    JWT_SECRET,
+    {
+      expiresIn: JWT_REFRESH_EXPIRES_IN,
+    }
+  );
+}
+
+/**
+ * 生成Auth Token和Refresh Token对
+ */
+export function generateTokenPair(member: Member): { authToken: string; refreshToken: string } {
+  const authToken = generateAuthToken(member);
+  const refreshToken = generateRefreshToken(member);
+  return {
+    authToken,
+    refreshToken,
+  };
 }
 
 /**

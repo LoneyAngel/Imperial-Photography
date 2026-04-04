@@ -10,12 +10,14 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { useUser } from '@/context/user';
+import { useToken } from '@/context/token';
 
 export default function Navbar() {
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
-  const { user,logout } = useUser();
+  const { user} = useUser();
+  const { logout } = useToken();
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">

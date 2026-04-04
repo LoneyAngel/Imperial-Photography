@@ -1,3 +1,4 @@
+import { queryClient } from '@/App';
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState} from 'react';
 
 
@@ -5,17 +6,28 @@ import { createContext, ReactNode, useCallback, useContext, useMemo, useState} f
 interface TokenContextType {
     auth_token: string | null;
     setAuthToken: React.Dispatch<React.SetStateAction<string | null>>;
-    login: (authToken: string) => void;
+    login: (authToken: string, refreshToken: string) => void;
+    logout: () => void;
 }
 // 这个泛型定义可以避免一个ts错误，即在使用 useContext 时，如果上下文为空，会报错
 const TokenContext = createContext<TokenContextType|null>(null);
 
 export const TokenProvider = ({ children }: { children: ReactNode }) => {
-    const [auth_token, setAuthToken] = useState<string | null>(() => localStorage.getItem('authToken') || '');
+    const [auth_token, setAuthToken] = useState<string | null>(() => localStorage.getItem('authToken') || null);
+
+    const logout = useCallback(() => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        setAuthToken(null);
+        queryClient.clear(); // 清除所有缓存，确保安全
+        window.location.href = '/'; // 重定向
+    }, []);
+
     // 登录数据缓存
-    const login = useCallback((authToken: string) => {
+    const login = useCallback((authToken: string, refreshToken: string) => {
         // 分别保存到localStorage
         localStorage.setItem('authToken', authToken);
+        localStorage.setItem('refreshToken', refreshToken);
 
         setAuthToken((pre) => {
             if (pre === authToken) return pre; // 如果 token 没变，返回 pre，React 不会触发多余的渲染
@@ -25,8 +37,8 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
     }, []);
     
     const value = useMemo(() => ({
-        auth_token, setAuthToken,login
-    }), [auth_token, setAuthToken,login]);
+        auth_token, setAuthToken, login, logout
+    }), [auth_token, setAuthToken, login, logout]);
     return (
     <TokenContext.Provider value={value}>
         {children}

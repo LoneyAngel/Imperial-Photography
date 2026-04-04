@@ -4,7 +4,7 @@ import { asyncHandler } from '../utils/api.js';
 import { prisma } from '../utils/prisma.js';
 import { generateVerificationCode, hashVerificationCode, sendVerificationEmail } from '../utils/email.js';
 import bcrypt from 'bcryptjs';
-import { generateToken } from '../utils/jwt.js';
+import { generateTokenPair, verifyToken } from '../utils/jwt.js';
 
 const router = Router();
 async function createVerificationCodeRecord(email: string, code: string) {
@@ -122,7 +122,7 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
     },
   });
 
-  const token = generateToken(member);
+  const { authToken, refreshToken } = generateTokenPair(member);
 
   res.json({
     user:{
@@ -131,7 +131,8 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
       name: member.name,
       bio: member.bio,
     },
-    token,
+    authToken,
+    refreshToken,
   });
 }));
 
@@ -141,7 +142,6 @@ router.post('/login', asyncHandler(async (req, res) => {
     email: z.string().trim().toLowerCase().email(),
     password: z.string().min(6),
   }).parse(req.body);
-
   const member = await prisma.member.findUnique({ where: { email: body.email } });
 
   if (!member || !member.password) {
@@ -155,8 +155,8 @@ router.post('/login', asyncHandler(async (req, res) => {
     res.status(401).json({ error: 'invalid_credentials' });
     return;
   }
-
-  const token = generateToken(member);
+  const { authToken, refreshToken } = generateTokenPair(member);
+  
 
   res.json({
     user:{
@@ -165,7 +165,8 @@ router.post('/login', asyncHandler(async (req, res) => {
       name: member.name,
       bio: member.bio,
     },
-    token,
+    authToken,
+    refreshToken,
   });
 }));
 
@@ -196,7 +197,7 @@ router.post('/set-password', asyncHandler(async (req, res) => {
     },
   });
 
-  const token = generateToken(updatedMember);
+  const { authToken, refreshToken } = generateTokenPair(updatedMember);
 
   res.json({
     user:{
@@ -205,7 +206,8 @@ router.post('/set-password', asyncHandler(async (req, res) => {
       name: member.name,
       bio: member.bio,
     },
-    token,
+    authToken,
+    refreshToken,
   });
 }));
 
@@ -292,6 +294,36 @@ router.post('/reset-password', asyncHandler(async (req, res) => {
   });
 
   res.json({ success: true });
+}));
+
+// 刷新token
+router.post('/refresh', asyncHandler(async (req, res) => {
+  const body = z.object({
+    refreshToken: z.string(),
+  }).parse(req.body);
+
+  const payload = verifyToken(body.refreshToken);
+
+  if (!payload || payload.type !== 'refresh') {
+    res.status(401).json({ error: 'invalid_refresh_token' });
+    return;
+  }
+
+  const member = await prisma.member.findUnique({
+    where: { id: payload.userId }
+  });
+
+  if (!member) {
+    res.status(401).json({ error: 'member_not_found' });
+    return;
+  }
+
+  const { authToken, refreshToken: newRefreshToken } = generateTokenPair(member);
+
+  res.json({
+    authToken,
+    refreshToken: newRefreshToken,
+  });
 }));
 
 export default router;
