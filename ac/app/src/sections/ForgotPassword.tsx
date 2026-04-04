@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import api from '@/lib/axios';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -28,15 +29,13 @@ export default function ForgotPassword() {
       setError(null);
       setCode('');
 
-      const res = await fetch('/api/auth/request-reset-code', {
-        method: 'POST',
+      const res = await api.post('/api/auth/request-reset-code', {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail }),
+        data: { email: normalizedEmail },
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        if (data.error === 'no_password') {
+      if (!res.data) {
+        if (res.data.error === 'no_password') {
           setError('该邮箱未设置密码，请使用验证码登录');
         } else {
           throw new Error('send_failed');
@@ -67,20 +66,18 @@ export default function ForgotPassword() {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/verify-reset-code', {
-        method: 'POST',
+      const res = await api.post('/api/auth/verify-reset-code', {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail, code: code.trim() }),
+        data: { email: normalizedEmail, code: code.trim() },
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error === 'invalid_code' ? '验证码不正确或已过期' : '验证失败');
+      if (!res.data) {
+        setError(res.data.error === 'invalid_code' ? '验证码不正确或已过期' : '验证失败');
         return;
       }
 
       // 验证成功，跳转到设置新密码页面
-      const token = await res.text();
+      const token = res.data.token;
       navigate(`/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(normalizedEmail)}`);
     } catch (err) {
       setError('验证失败，请重试');
