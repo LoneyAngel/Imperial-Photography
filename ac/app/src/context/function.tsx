@@ -57,8 +57,8 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
             if (!res.data) return false;
 
             // ✅ 使用新的响应格式 { token }
-            const { authToken,refreshToken } = res.data;
-            login(authToken,refreshToken);
+            const { authToken,refreshToken,userRole} = res.data;
+            login(authToken,refreshToken,userRole);
 
             return true;
         } catch {
