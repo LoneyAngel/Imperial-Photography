@@ -68,7 +68,6 @@ export default function Navbar() {
                 <DropdownMenuItem asChild>
                   <Link to="/member-profile">个人资料</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={logout}>退出登录</DropdownMenuItem>
                 <DropdownMenuItem asChild >
                   <Link to="/notice" className="flex items-center">
                     <svg className="h-4 w-4 mr-2 shrink-0" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
@@ -78,6 +77,7 @@ export default function Navbar() {
                     消息
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem onSelect={logout}>退出登录</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (

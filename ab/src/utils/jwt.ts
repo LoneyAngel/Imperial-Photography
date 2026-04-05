@@ -20,6 +20,7 @@ export function generateAuthToken(member: Member): string {
       userId: member.id,
       email: member.email,
       type: 'auth',
+      role:"member",
     },
     JWT_SECRET,
     {
@@ -37,6 +38,7 @@ export function generateRefreshToken(member: Member): string {
       userId: member.id,
       email: member.email,
       type: 'refresh',
+      role:"member",
     },
     JWT_SECRET,
     {
