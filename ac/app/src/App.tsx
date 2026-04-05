@@ -14,6 +14,7 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { UserProvider } from './context/user';
 import { TokenProvider } from './context/token';
 import { FunctionProvider } from './context/function';
+import Notice from './sections/Notice';
 export const queryClient = new QueryClient();
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="*" element={<Navigate to="/gallery" replace />} />
+                    <Route path='/notice' element={<Notice />} />
                   </Routes>
                 </main>
                 <footer className="border-t py-6 mt-auto">

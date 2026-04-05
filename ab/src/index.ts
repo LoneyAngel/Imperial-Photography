@@ -7,6 +7,7 @@ import { errorHandler } from './middleware/errors.js';
 import authRoutes from './router/auth.js';
 import photoRoutes from './router/photos.js';
 import memberRoutes from './router/members.js';
+import noticeRoutes from './router/notice.js';
 
 const PORT = Number(process.env.PORT ?? '4001');
 const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
@@ -46,6 +47,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/photos', photoRoutes);
 app.use('/api/members', memberRoutes);
+app.use('/api/notice', noticeRoutes);
 
 // 全局错误处理中间件
 app.use(errorHandler);
