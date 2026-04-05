@@ -52,3 +52,12 @@ model Photo {
   @@index([status, createdAt])
   @@index([ownerMemberId, createdAt])
 }
+
+model Notice {
+  id              String   @id @default(cuid())
+  title           String
+  createdAt       DateTime @default(now())
+  createdMemberId String   // 创建公告的管理员ID，不建立外键关联
+
+  @@index([createdAt])
+}

@@ -69,6 +69,15 @@ export default function Navbar() {
                   <Link to="/member-profile">个人资料</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={logout}>退出登录</DropdownMenuItem>
+                <DropdownMenuItem asChild >
+                  <Link to="/notice" className="flex items-center">
+                    <svg className="h-4 w-4 mr-2 shrink-0" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M283.648 369.408h451.2768a32.0512 32.0512 0 1 0 0-64.0512H283.648a32.0512 32.0512 0 1 0 0 64.0512zM654.1312 534.8352a32.0512 32.0512 0 0 0-32.0512-32.0512H283.648a32.0512 32.0512 0 1 0 0 64.0512h338.432a32.0512 32.0512 0 0 0 32.0512-32z" fill="currentColor"/>
+                      <path d="M819.5072 100.864H199.0656A88.576 88.576 0 0 0 110.592 189.44v535.7568a88.576 88.576 0 0 0 88.4736 88.4224h50.688v111.3088l200.448-111.3088h369.3056a88.576 88.576 0 0 0 88.4736-88.4224V189.44a88.576 88.576 0 0 0-88.4736-88.576zM313.856 816.0256v-6.2464a60.3136 60.3136 0 0 0-60.2624-60.2112H199.0656a24.3712 24.3712 0 0 1-24.3712-24.3712V189.44a24.3712 24.3712 0 0 1 24.3712-24.3712h620.4416a24.3712 24.3712 0 0 1 24.3712 24.3712v535.7568a24.3712 24.3712 0 0 1-24.3712 24.3712H449.2288a60.3136 60.3136 0 0 0-29.3888 7.5776z" fill="currentColor"/>
+                    </svg>
+                    消息
+                  </Link>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
