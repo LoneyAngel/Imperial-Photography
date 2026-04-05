@@ -25,6 +25,9 @@ model Member {
   // 关联到照片表
   photos     Photo[]
 
+  // 关联到用户角色表
+  userRole   UserRole?
+
   @@index([createdAt])
 }
 
@@ -60,4 +63,23 @@ model Notice {
   createdMemberId String   // 创建公告的管理员ID，不建立外键关联
 
   @@index([createdAt])
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+
+  // 关联到用户角色表
+  userRoles UserRole[]
+}
+
+model UserRole {
+  userId String @unique
+  roleId Int
+
+  // 关联
+  member Member @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@index([roleId])
 }

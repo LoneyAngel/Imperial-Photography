@@ -122,6 +122,16 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
     },
   });
 
+  // 为用户赋予默认 user 角色（如果还没有角色）
+  const userRole = await prisma.UserRole.upsert({
+    where: { userId: member.id },
+    update: {},
+    create: {
+      userId: member.id,
+      roleId: 2, // user 角色
+    },
+  });
+
   const { authToken, refreshToken } = generateTokenPair(member);
 
   res.json({
@@ -133,6 +143,7 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
     },
     authToken,
     refreshToken,
+    userRole
   });
 }));
 
@@ -156,7 +167,16 @@ router.post('/login', asyncHandler(async (req, res) => {
     return;
   }
   const { authToken, refreshToken } = generateTokenPair(member);
-  
+  // 为用户赋予默认 user 角色（如果还没有角色）
+  const userRole = await prisma.UserRole.upsert({
+    where: { userId: member.id },
+    update: {},
+    create: {
+      userId: member.id,
+      roleId: 2, // user 角色
+    },
+  });
+
 
   res.json({
     user:{
@@ -167,6 +187,7 @@ router.post('/login', asyncHandler(async (req, res) => {
     },
     authToken,
     refreshToken,
+    userRole
   });
 }));
 
@@ -198,6 +219,16 @@ router.post('/set-password', asyncHandler(async (req, res) => {
   });
 
   const { authToken, refreshToken } = generateTokenPair(updatedMember);
+  // 为用户赋予默认 user 角色（如果还没有角色）
+  const userRole = await prisma.UserRole.upsert({
+    where: { userId: member.id },
+    update: {},
+    create: {
+      userId: member.id,
+      roleId: 2, // user 角色
+    },
+  });
+
 
   res.json({
     user:{
@@ -208,6 +239,7 @@ router.post('/set-password', asyncHandler(async (req, res) => {
     },
     authToken,
     refreshToken,
+    userRole
   });
 }));
 
