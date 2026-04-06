@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// 自定义事件：token 刷新成功
+export const TOKEN_REFRESHED_EVENT = 'tokenRefreshed';
+
 const api = axios.create({
   timeout: 10000,
+  withCredentials: true, // 自动发送和接收 Cookie
 });
 
 // --- 1. 请求拦截器：每个请求发起前，自动附带 Token ---
@@ -9,7 +13,6 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      // 这里的逻辑替代了你原先 apiFetch 里的 headers 拼接
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -44,7 +47,7 @@ api.interceptors.response.use(
         })
           .then((token) => {
             originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest); // 使用新 token 重试
+            return api(originalRequest);
           })
           .catch((err) => Promise.reject(err));
       }
@@ -53,30 +56,35 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        const refreshToken = localStorage.getItem('refreshToken');
-        
-        // 注意：刷新接口通常不需要带旧的 Access Token，或者有专门的路由
-        axios.post('/api/auth/refresh', { refreshToken })
+        // refreshToken 在 HttpOnly Cookie 中
+        axios.post('/api/auth/refresh', {}, { withCredentials: true })
           .then(({ data }) => {
-            const { accessToken, newRefreshToken } = data;
-            
-            // 更新本地存储
-            localStorage.setItem('authToken', accessToken);
-            localStorage.setItem('refreshToken', newRefreshToken);
+            const { authToken, roleId } = data;
 
-            // 关键：同步更新当前实例的默认 Header，确保后续新请求直接可用
-            api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            // 临时存储到 localStorage，供后续请求使用
+            // 页面刷新时会通过 TokenProvider 的 initAuth 清除
+            localStorage.setItem('authToken', authToken);
+            if (roleId !== undefined) {
+              localStorage.setItem('userRole', String(roleId));
+            }
 
-            processQueue(null, accessToken);
+            // 触发自定义事件，通知 TokenProvider 更新 state
+            window.dispatchEvent(new CustomEvent(TOKEN_REFRESHED_EVENT, {
+              detail: { authToken }
+            }));
+
+            // 更新 axios 默认 header
+            api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+            originalRequest.headers.Authorization = `Bearer ${authToken}`;
+
+            processQueue(null, authToken);
             resolve(api(originalRequest));
           })
           .catch((err) => {
             processQueue(err, null);
-            // 彻底过期，清理并跳转
             localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
-            window.location.href = '/login';
+            localStorage.removeItem('userRole');
+            window.location.href = '/member-auth';
             reject(err);
           })
           .finally(() => {
@@ -85,7 +93,6 @@ api.interceptors.response.use(
       });
     }
 
-    // 处理非 401 的业务错误（对应你原先 apiFetch 里的 res.json() 解析）
     const errorMessage = response?.data?.error || `API Error ${response?.status || 'Unknown'}`;
     return Promise.reject(new Error(errorMessage));
   }

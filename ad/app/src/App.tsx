@@ -10,9 +10,21 @@ import NoticeManage from './sections/NoticeManage';
 import AdminNavbar from './components/AdminNavbar';
 
 function AppRoutes() {
-  const { auth_token, role } = useToken();
+  const { auth_token, role, isLoading } = useToken();
   const isAuthenticated = auth_token !== null;
   const isSuperAdmin = role === 3;
+
+  // 初始化加载时显示加载指示器
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-500">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>

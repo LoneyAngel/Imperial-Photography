@@ -1,6 +1,7 @@
 import './env.js';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { errorHandler } from './middleware/errors.js';
 
 // 导入路由
@@ -40,6 +41,7 @@ app.use(
 // 基础中间件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // 静态文件服务
 app.use('/uploads', express.static('uploads'));

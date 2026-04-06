@@ -7,6 +7,27 @@ import bcrypt from 'bcryptjs';
 import { generateTokenPair, verifyToken } from '../utils/jwt.js';
 
 const router = Router();
+
+// Cookie 配置
+const COOKIE_NAME = 'refreshToken';
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  maxAge: 15 * 24 * 60 * 60 * 1000, // 15天
+  path: '/',
+};
+
+// 设置 refreshToken 到 cookie
+function setRefreshTokenCookie(res: any, token: string) {
+  res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS);
+}
+
+// 清除 refreshToken cookie
+function clearRefreshTokenCookie(res: any) {
+  res.clearCookie(COOKIE_NAME, { path: '/' });
+}
+
 async function createVerificationCodeRecord(email: string, code: string) {
   const codeHash = hashVerificationCode(email, code);
 
@@ -132,7 +153,10 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
     },
   });
 
-  const { authToken, refreshToken } = await generateTokenPair(member);
+  const { authToken, refreshToken, roleId } = await generateTokenPair(member);
+
+  // 设置 refreshToken 到 HttpOnly Cookie
+  setRefreshTokenCookie(res, refreshToken);
 
   res.json({
     user:{
@@ -142,7 +166,7 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
       bio: member.bio,
     },
     authToken,
-    refreshToken,
+    roleId,
   });
 }));
 
@@ -165,7 +189,7 @@ router.post('/login', asyncHandler(async (req, res) => {
     res.status(401).json({ error: 'invalid_credentials' });
     return;
   }
-  const { authToken, refreshToken } = await generateTokenPair(member);
+  const { authToken, refreshToken, roleId } = await generateTokenPair(member);
   // 为用户赋予默认 user 角色（如果还没有角色）
   await prisma.userRole.upsert({
     where: { userId: member.id },
@@ -176,6 +200,8 @@ router.post('/login', asyncHandler(async (req, res) => {
     },
   });
 
+  // 设置 refreshToken 到 HttpOnly Cookie
+  setRefreshTokenCookie(res, refreshToken);
 
   res.json({
     user:{
@@ -185,7 +211,7 @@ router.post('/login', asyncHandler(async (req, res) => {
       bio: member.bio,
     },
     authToken,
-    refreshToken,
+    roleId,
   });
 }));
 
@@ -216,7 +242,7 @@ router.post('/set-password', asyncHandler(async (req, res) => {
     },
   });
 
-  const { authToken, refreshToken } = await generateTokenPair(updatedMember);
+  const { authToken, refreshToken, roleId } = await generateTokenPair(updatedMember);
   // 为用户赋予默认 user 角色（如果还没有角色）
   await prisma.userRole.upsert({
     where: { userId: member.id },
@@ -227,6 +253,8 @@ router.post('/set-password', asyncHandler(async (req, res) => {
     },
   });
 
+  // 设置 refreshToken 到 HttpOnly Cookie
+  setRefreshTokenCookie(res, refreshToken);
 
   res.json({
     user:{
@@ -236,7 +264,7 @@ router.post('/set-password', asyncHandler(async (req, res) => {
       bio: member.bio,
     },
     authToken,
-    refreshToken,
+    roleId,
   });
 }));
 
@@ -327,13 +355,17 @@ router.post('/reset-password', asyncHandler(async (req, res) => {
 
 // 刷新token
 router.post('/refresh', asyncHandler(async (req, res) => {
-  const body = z.object({
-    refreshToken: z.string(),
-  }).parse(req.body);
+  const refreshToken = req.cookies?.refreshToken;
 
-  const payload = verifyToken(body.refreshToken);
+  if (!refreshToken) {
+    res.status(401).json({ error: 'missing_refresh_token' });
+    return;
+  }
+
+  const payload = verifyToken(refreshToken);
 
   if (!payload || payload.type !== 'refresh') {
+    clearRefreshTokenCookie(res);
     res.status(401).json({ error: 'invalid_refresh_token' });
     return;
   }
@@ -343,16 +375,23 @@ router.post('/refresh', asyncHandler(async (req, res) => {
   });
 
   if (!member) {
+    clearRefreshTokenCookie(res);
     res.status(401).json({ error: 'member_not_found' });
     return;
   }
 
-  const { authToken, refreshToken: newRefreshToken } = await generateTokenPair(member);
+  const { authToken, refreshToken: newRefreshToken, roleId } = await generateTokenPair(member);
 
-  res.json({
-    authToken,
-    refreshToken: newRefreshToken,
-  });
+  // 设置新的 refreshToken 到 Cookie
+  setRefreshTokenCookie(res, newRefreshToken);
+
+  res.json({ authToken, roleId });
+}));
+
+// 登出（清除 cookie）
+router.post('/logout', asyncHandler(async (_req, res) => {
+  clearRefreshTokenCookie(res);
+  res.json({ success: true });
 }));
 
 export default router;

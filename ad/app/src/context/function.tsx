@@ -19,7 +19,7 @@ interface Notice {
 }
 
 interface AdminFunctionContextType {
-  loginAdmin: (email: string, password: string) => Promise<{ authToken: string; refreshToken: string; roleId: number } | null>;
+  loginAdmin: (email: string, password: string) => Promise<{ authToken: string; roleId: number } | null>;
   fetchAllUsers: () => Promise<AdminUser[]>;
   updateUser: (id: string, data: { name?: string; bio?: string }) => Promise<boolean>;
   deleteUser: (id: string) => Promise<boolean>;
@@ -44,9 +44,9 @@ export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => 
         password,
       });
       if (!res.data) return null;
-      const { authToken, refreshToken, userRole } = res.data;
-      const roleId = userRole?.roleId ?? 2;
-      return { authToken, refreshToken, roleId };
+      // refreshToken 通过 HttpOnly Cookie 自动保存
+      const { authToken, roleId } = res.data;
+      return { authToken, roleId };
     } catch {
       return null;
     }

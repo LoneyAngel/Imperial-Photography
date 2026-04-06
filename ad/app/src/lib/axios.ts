@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// 自定义事件：token 刷新成功
+export const TOKEN_REFRESHED_EVENT = 'tokenRefreshed';
+
 const api = axios.create({
   timeout: 10000,
+  withCredentials: true, // 自动发送和接收 Cookie
 });
 
 api.interceptors.request.use(
@@ -48,14 +52,21 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        const refreshToken = localStorage.getItem('refreshToken');
-
-        axios.post('/api/auth/refresh', { refreshToken })
+        // refreshToken 在 HttpOnly Cookie 中
+        axios.post('/api/auth/refresh', {}, { withCredentials: true })
           .then(({ data }) => {
-            const { authToken, refreshToken: newRefreshToken } = data;
+            const { authToken, roleId } = data;
 
+            // 临时存储到 localStorage，供后续请求使用
             localStorage.setItem('authToken', authToken);
-            localStorage.setItem('refreshToken', newRefreshToken);
+            if (roleId !== undefined) {
+              localStorage.setItem('userRole', String(roleId));
+            }
+
+            // 触发自定义事件，通知 TokenProvider 更新 state
+            window.dispatchEvent(new CustomEvent(TOKEN_REFRESHED_EVENT, {
+              detail: { authToken, roleId }
+            }));
 
             api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
             originalRequest.headers.Authorization = `Bearer ${authToken}`;
@@ -66,7 +77,7 @@ api.interceptors.response.use(
           .catch((err) => {
             processQueue(err, null);
             localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userRole');
             window.location.href = '/login';
             reject(err);
           })

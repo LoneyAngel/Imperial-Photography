@@ -28,7 +28,7 @@ export default function AdminLogin() {
     try {
       const result = await loginAdmin(email.trim().toLowerCase(), password);
       if (result) {
-        login(result.authToken, result.refreshToken, result.roleId);
+        login(result.authToken, result.roleId);
         showToast('登录成功', 'success');
         navigate('/users');
       } else {
