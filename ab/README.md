@@ -1,3 +1,1 @@
-目前仅有两种role
-user 和 admin
-这样的话就只用判断是不是admin
+user admin superadmin

@@ -15,6 +15,7 @@ router.get('/', asyncHandler(async (req, res) => {
     notices.map((n) => ({
       id: n.id,
       title: n.title,
+      contentUrl: n.contentUrl,
       createdAt: n.createdAt.toISOString(),
       createdMemberId: n.createdMemberId,
     }))
@@ -39,6 +40,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
   res.json({
     id: notice.id,
     title: notice.title,
+    contentUrl: notice.contentUrl,
     createdAt: notice.createdAt.toISOString(),
     createdMemberId: notice.createdMemberId,
   });

@@ -10,53 +10,60 @@ export interface JwtPayload {
   userId: string;
   email: string;
   type: 'auth' | 'refresh';
-  role: number;
+  roleId: number;
+}
+
+/**
+ * 获取用户角色
+ */
+async function getUserRoleId(userId: string): Promise<number> {
+  const userRole = await prisma.userRole.findUnique({
+    where: { userId },
+    select: { roleId: true }
+  });
+  return userRole?.roleId ?? 2; // 默认 user 角色
 }
 
 /**
  * 生成JWT Auth Token (30分钟过期)
  */
-export function generateAuthToken(member: Member): string {
-  const userRole = getUserRole(member.id);
+export async function generateAuthToken(member: Member): Promise<string> {
+  const roleId = await getUserRoleId(member.id);
   return jwt.sign(
     {
       userId: member.id,
       email: member.email,
       type: 'auth',
-      role:userRole,
+      roleId,
     },
     JWT_SECRET,
-    {
-      expiresIn: JWT_AUTH_EXPIRES_IN,
-    }
+    { expiresIn: JWT_AUTH_EXPIRES_IN } as jwt.SignOptions
   );
 }
 
 /**
  * 生成JWT Refresh Token (15天过期)
  */
-export function generateRefreshToken(member: Member): string {
-  const userRole = getUserRole(member.id);
+export async function generateRefreshToken(member: Member): Promise<string> {
+  const roleId = await getUserRoleId(member.id);
   return jwt.sign(
     {
       userId: member.id,
       email: member.email,
       type: 'refresh',
-      role:userRole,
+      roleId,
     },
     JWT_SECRET,
-    {
-      expiresIn: JWT_REFRESH_EXPIRES_IN,
-    }
+    { expiresIn: JWT_REFRESH_EXPIRES_IN } as jwt.SignOptions
   );
 }
 
 /**
  * 生成Auth Token和Refresh Token对
  */
-export function generateTokenPair(member: Member): { authToken: string; refreshToken: string } {
-  const authToken = generateAuthToken(member);
-  const refreshToken = generateRefreshToken(member);
+export async function generateTokenPair(member: Member): Promise<{ authToken: string; refreshToken: string }> {
+  const authToken = await generateAuthToken(member);
+  const refreshToken = await generateRefreshToken(member);
   return {
     authToken,
     refreshToken,
@@ -82,12 +89,4 @@ export function extractTokenFromHeader(authHeader?: string): string | null {
     return null;
   }
   return authHeader.substring(7); // 移除 'Bearer ' 前缀
-}
-
-export const getUserRole = async (id: string)=>{
-  const userRole = await prisma.UserRole.findUnique({
-    where: { userId: id },
-    select: { roleId: true }
-  });
-  return userRole?.roleId || 2;
 }

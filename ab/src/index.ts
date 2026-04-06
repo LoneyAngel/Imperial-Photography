@@ -8,9 +8,10 @@ import authRoutes from './router/auth.js';
 import photoRoutes from './router/photos.js';
 import memberRoutes from './router/members.js';
 import noticeRoutes from './router/notice.js';
+import adminRoutes from './router/admin.js';
 
 const PORT = Number(process.env.PORT ?? '4001');
-const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? 'http://localhost:5173,http://localhost:5174')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
@@ -21,10 +22,15 @@ const app = express();
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || CORS_ORIGINS.includes(origin)) {
+      // 允许无 origin 的请求（如移动端、服务端请求）
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (CORS_ORIGINS.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(null, false);
       }
     },
     credentials: true,
@@ -48,6 +54,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/photos', photoRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/notice', noticeRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 全局错误处理中间件
 app.use(errorHandler);

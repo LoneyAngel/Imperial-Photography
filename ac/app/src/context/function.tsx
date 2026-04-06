@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo} from 'react';
-import { Photo, User } from '@/types';
+import { Photo, User, Notice } from '@/types';
 import { useToken } from './token';
 import api from '@/lib/axios';
 // 定义类型
@@ -11,6 +11,10 @@ interface FunctionContextType {
     fetchPhotos: () => Promise<Photo[]>;
     fetchOwnerPhotos: (id: string) => Promise<Photo[]>;
     fetchMemberProfile: () => Promise<User | null>;
+    updatePhoto: (id: string, title?: string, description?: string) => Promise<boolean>;
+    deletePhoto: (id: string) => Promise<boolean>;
+    fetchNotices: () => Promise<Notice[]>;
+    fetchNoticeById: (id: string) => Promise<Notice | null>;
 }
 // 这个泛型定义可以避免一个ts错误，即在使用 useContext 时，如果上下文为空，会报错
 const FunctionContext = createContext<FunctionContextType|null>(null);
@@ -57,8 +61,8 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
             if (!res.data) return false;
 
             // ✅ 使用新的响应格式 { token }
-            const { authToken,refreshToken,userRole} = res.data;
-            login(authToken,refreshToken,userRole);
+            const { authToken,refreshToken} = res.data;
+            login(authToken,refreshToken);
 
             return true;
         } catch {
@@ -134,7 +138,50 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         })();
         return true;
     }, []);
-    
+
+    // 修改照片信息
+    const updatePhoto = useCallback(async (id: string, title?: string, description?: string) => {
+        try {
+            await api.put(`/api/photos/${id}`, {
+                title: title?.trim(),
+                description: description?.trim(),
+            });
+            return true;
+        } catch {
+            return false;
+        }
+    }, []);
+
+    // 删除照片
+    const deletePhoto = useCallback(async (id: string) => {
+        try {
+            await api.delete(`/api/photos/${id}`);
+            return true;
+        } catch {
+            return false;
+        }
+    }, []);
+
+    // 获取所有通知
+    const fetchNotices = useCallback(async () => {
+        try {
+            const res = await api.get('/api/notice');
+            return res.data as Notice[];
+        } catch {
+            return [];
+        }
+    }, []);
+
+    // 获取单个通知详情
+    const fetchNoticeById = useCallback(async (id: string) => {
+        try {
+            const res = await api.get(`/api/notice/${id}`);
+            return res.data as Notice;
+        } catch {
+            return null;
+        }
+    }, []);
+
     const value = useMemo(() => ({
         loginMemberWithEmail,
         loginMemberWithPassword,
@@ -142,14 +189,22 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         uploadPhoto,
         fetchPhotos,
         fetchOwnerPhotos,
-        fetchMemberProfile
+        fetchMemberProfile,
+        updatePhoto,
+        deletePhoto,
+        fetchNotices,
+        fetchNoticeById
     }), [loginMemberWithEmail,
         loginMemberWithPassword,
         updateMemberProfile,
         uploadPhoto,
         fetchPhotos,
         fetchOwnerPhotos,
-        fetchMemberProfile]);
+        fetchMemberProfile,
+        updatePhoto,
+        deletePhoto,
+        fetchNotices,
+        fetchNoticeById]);
     return (
     <FunctionContext.Provider value={value}>
         {children}

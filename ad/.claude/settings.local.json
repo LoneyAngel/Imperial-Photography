@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Administrator/Desktop/te/ai+/ab/src/utils/**)",
+      "Read(//c/Users/Administrator/Desktop/te/ai+/ab/prisma/**)",
+      "Read(//c/Users/Administrator/Desktop/te/ai+/ac/app/src/context/**)",
+      "Read(//c/Users/Administrator/Desktop/te/ai+/ab/src/router/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Administrator\\Desktop\\te\\ai+\\ab\\prisma"
+    ]
+  }
+}

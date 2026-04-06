@@ -123,7 +123,7 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
   });
 
   // 为用户赋予默认 user 角色（如果还没有角色）
-  const userRole = await prisma.UserRole.upsert({
+  await prisma.userRole.upsert({
     where: { userId: member.id },
     update: {},
     create: {
@@ -132,7 +132,7 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
     },
   });
 
-  const { authToken, refreshToken } = generateTokenPair(member);
+  const { authToken, refreshToken } = await generateTokenPair(member);
 
   res.json({
     user:{
@@ -143,7 +143,6 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
     },
     authToken,
     refreshToken,
-    userRole
   });
 }));
 
@@ -166,9 +165,9 @@ router.post('/login', asyncHandler(async (req, res) => {
     res.status(401).json({ error: 'invalid_credentials' });
     return;
   }
-  const { authToken, refreshToken } = generateTokenPair(member);
+  const { authToken, refreshToken } = await generateTokenPair(member);
   // 为用户赋予默认 user 角色（如果还没有角色）
-  const userRole = await prisma.UserRole.upsert({
+  await prisma.userRole.upsert({
     where: { userId: member.id },
     update: {},
     create: {
@@ -187,7 +186,6 @@ router.post('/login', asyncHandler(async (req, res) => {
     },
     authToken,
     refreshToken,
-    userRole
   });
 }));
 
@@ -218,9 +216,9 @@ router.post('/set-password', asyncHandler(async (req, res) => {
     },
   });
 
-  const { authToken, refreshToken } = generateTokenPair(updatedMember);
+  const { authToken, refreshToken } = await generateTokenPair(updatedMember);
   // 为用户赋予默认 user 角色（如果还没有角色）
-  const userRole = await prisma.UserRole.upsert({
+  await prisma.userRole.upsert({
     where: { userId: member.id },
     update: {},
     create: {
@@ -239,7 +237,6 @@ router.post('/set-password', asyncHandler(async (req, res) => {
     },
     authToken,
     refreshToken,
-    userRole
   });
 }));
 
@@ -350,7 +347,7 @@ router.post('/refresh', asyncHandler(async (req, res) => {
     return;
   }
 
-  const { authToken, refreshToken: newRefreshToken } = generateTokenPair(member);
+  const { authToken, refreshToken: newRefreshToken } = await generateTokenPair(member);
 
   res.json({
     authToken,
