@@ -1,0 +1,63 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastProvider } from './context';
+import { TokenProvider, useToken } from './context/token';
+import { AdminFunctionProvider } from './context/function';
+import AdminLogin from './sections/AdminLogin';
+import UserManage from './sections/UserManage';
+import PhotoManage from './sections/PhotoManage';
+import AdminManage from './sections/AdminManage';
+import NoticeManage from './sections/NoticeManage';
+import AdminNavbar from './components/AdminNavbar';
+
+function AppRoutes() {
+  const { auth_token, role } = useToken();
+  const isAuthenticated = auth_token !== null;
+  const isSuperAdmin = role === 3;
+
+  return (
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        {isAuthenticated && <AdminNavbar />}
+        <main className="container mx-auto px-4 py-6">
+          <Routes>
+            <Route
+              path="/login"
+              element={isAuthenticated ? <Navigate to="/users" replace /> : <AdminLogin />}
+            />
+            <Route
+              path="/users"
+              element={isAuthenticated ? <UserManage /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/photos"
+              element={isAuthenticated ? <PhotoManage /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/notices"
+              element={isAuthenticated ? <NoticeManage /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/admins"
+              element={isSuperAdmin ? <AdminManage /> : <Navigate to="/users" replace />}
+            />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
+  );
+}
+
+function App() {
+  return (
+    <TokenProvider>
+      <AdminFunctionProvider>
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
+      </AdminFunctionProvider>
+    </TokenProvider>
+  );
+}
+
+export default App;

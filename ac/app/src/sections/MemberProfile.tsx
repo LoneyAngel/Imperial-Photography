@@ -4,59 +4,92 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
-import { queryClient } from '@/App';
+
 export default function MemberProfile() {
-  const { fetchOwnerPhotos,updateMemberProfile } = useFunction();
+  const { fetchOwnerPhotos, updateMemberProfile, updatePhoto, deletePhoto } = useFunction();
   const { user } = useUser();
-  
+  const queryClient = useQueryClient();
 
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [editing, setEditing] = useState(false);
 
+  // 照片查看/编辑状态
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
+  const [photoTitle, setPhotoTitle] = useState('');
+  const [photoDescription, setPhotoDescription] = useState('');
+
   // 当user数据更新时，同步更新本地状态
-  
   useEffect(() => {
-    if(user){
+    if (user) {
       setName(user.name ?? '');
       setBio(user.bio ?? '');
     }
   }, [user]);
-  
-  const mutation = useMutation({
-    mutationFn: ({ name, bio }: { name: string; bio: string }) => 
-      updateMemberProfile(name, bio), // 你的修改接口
+
+  // ESC 关闭弹窗
+  useEffect(() => {
+    if (!selectedPhoto && !editingPhoto) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedPhoto(null);
+        setEditingPhoto(null);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedPhoto, editingPhoto]);
+
+  // 用户信息修改
+  const profileMutation = useMutation({
+    mutationFn: ({ name, bio }: { name: string; bio: string }) =>
+      updateMemberProfile(name, bio),
     onSuccess: () => {
-      // 关键：让 queryKey 为 ['userMe'] 的缓存失效
-      // 这会触发 UserProvider 里的 refetch，从而更新全局 user
       queryClient.invalidateQueries({ queryKey: ['userMe'] });
     },
   });
-  const { data } = useQuery({
-    // 1. 设置唯一的 Key
-    queryKey: ['photos', 'owner', user?.id],
-    
-    // 2. 如果缓存没有，去执行这个函数
-    queryFn: () => fetchOwnerPhotos(user?.id ?? ''),
 
-    // 3. 【核心逻辑】尝试从“列表页”的缓存里直接拿数据
+  // 获取用户照片
+  const { data } = useQuery({
+    queryKey: ['photos', 'owner', user?.id],
+    queryFn: () => fetchOwnerPhotos(user?.id ?? ''),
     initialData: () => {
       if (!user) return undefined;
-      // 去缓存池里找 ['photos'] 那个大文件夹
       const listCache = queryClient.getQueryData(['photos']) as Photo[] | undefined;
       if (!listCache) return;
-      // 在文件夹里翻找 ID 匹配的那一张照片
       return listCache?.filter((p: Photo) => p.ownerMemberId === user?.id);
     },
-
-    // 4. 告诉 React Query 列表数据是什么时候存的，防止详情页拿到太旧的数据
-    initialDataUpdatedAt: () => 
+    initialDataUpdatedAt: () =>
       queryClient.getQueryState(['photos'])?.dataUpdatedAt,
-      
-    staleTime: 1000 * 60, // 详情数据 1 分钟内不重复请求
+    staleTime: 1000 * 60,
+  });
+
+  // 照片修改
+  const updatePhotoMutation = useMutation({
+    mutationFn: ({ id, title, description }: { id: string; title?: string; description?: string }) =>
+      updatePhoto(id, title, description),
+    onSuccess: () => {
+      // 刷新所有相关缓存
+      queryClient.invalidateQueries({ queryKey: ['photos'] });
+      queryClient.invalidateQueries({ queryKey: ['photos', 'owner'] });
+      setEditingPhoto(null);
+    },
+  });
+
+  // 照片删除
+  const deletePhotoMutation = useMutation({
+    mutationFn: (id: string) => deletePhoto(id),
+    onSuccess: () => {
+      // 刷新所有相关缓存
+      queryClient.invalidateQueries({ queryKey: ['photos'] });
+      queryClient.invalidateQueries({ queryKey: ['photos', 'owner'] });
+      setSelectedPhoto(null);
+      setEditingPhoto(null);
+    },
   });
 
   if (!user) return null;
@@ -64,10 +97,33 @@ export default function MemberProfile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await mutation.mutate({ name: name.trim(), bio: bio.trim() });
+      await profileMutation.mutate({ name: name.trim(), bio: bio.trim() });
       setEditing(false);
     } catch (error) {
       console.error('保存失败:', error);
+    }
+  };
+
+  const handleEditPhoto = (photo: Photo) => {
+    setEditingPhoto(photo);
+    setPhotoTitle(photo.title || '');
+    setPhotoDescription(photo.description || '');
+    setSelectedPhoto(null);
+  };
+
+  const handleUpdatePhoto = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPhoto) return;
+    await updatePhotoMutation.mutate({
+      id: editingPhoto.id,
+      title: photoTitle.trim(),
+      description: photoDescription.trim(),
+    });
+  };
+
+  const handleDeletePhoto = async (photo: Photo) => {
+    if (confirm('确定要删除这张照片吗？')) {
+      await deletePhotoMutation.mutate(photo.id);
     }
   };
 
@@ -97,8 +153,8 @@ export default function MemberProfile() {
                     <Textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} />
                   </div>
                   <div className="flex gap-2">
-                    <Button type="submit" disabled={mutation.isPending} className="flex-1">
-                      {mutation.isPending ? '保存中...' : '保存'}
+                    <Button type="submit" disabled={profileMutation.isPending} className="flex-1">
+                      {profileMutation.isPending ? '保存中...' : '保存'}
                     </Button>
                     <Button
                       type="button"
@@ -106,7 +162,7 @@ export default function MemberProfile() {
                       className="flex-1"
                       onClick={() => {
                         setName(user.name ?? '');
-                        setBio(user.bio ?? '');  
+                        setBio(user.bio ?? '');
                         setEditing(false);
                       }}
                     >
@@ -143,9 +199,14 @@ export default function MemberProfile() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {data?.map((p: Photo) => (
-                <Card key={p.id}>
+                <Card key={p.id} className="cursor-pointer hover:shadow-lg transition-shadow">
                   <CardContent className="pt-4">
-                    <img src={p.url} alt={p.title || '未命名作品'} className="w-full h-40 object-cover rounded-md mb-3" />
+                    <img
+                      src={p.url}
+                      alt={p.title || '未命名作品'}
+                      className="w-full h-40 object-cover rounded-md mb-3"
+                      onClick={() => setSelectedPhoto(p)}
+                    />
                     <p className="text-sm font-medium">{p.title || '未命名作品'}</p>
                     {p.description && (
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{p.description}</p>
@@ -157,6 +218,131 @@ export default function MemberProfile() {
           )}
         </div>
       </div>
+
+      {/* 查看照片弹窗 */}
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 p-4 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div
+            className="bg-background rounded-lg shadow-xl w-full max-w-5xl h-[70vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex h-full">
+              <div className="flex-1 bg-black flex items-center justify-center p-2">
+                <img
+                  src={selectedPhoto.url}
+                  alt={selectedPhoto.title || '未命名作品'}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
+              <div className="w-[320px] sm:w-[360px] md:w-[420px] p-6 flex flex-col overflow-hidden">
+                <div className="flex items-start gap-4">
+                  <h2 className="text-xl font-semibold leading-snug flex-1">
+                    {selectedPhoto.title || '未命名作品'}
+                  </h2>
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                    onClick={() => setSelectedPhoto(null)}
+                  >
+                    关闭
+                  </button>
+                </div>
+
+                <div className="mt-4 space-y-3 overflow-hidden">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">作品名字</p>
+                    <p className="text-sm break-words">{selectedPhoto.title || '—'}</p>
+                  </div>
+                  <div className="space-y-1 overflow-hidden">
+                    <p className="text-xs text-muted-foreground">作品介绍</p>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words max-h-40 overflow-hidden">
+                      {selectedPhoto.description || '—'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => handleEditPhoto(selectedPhoto)}
+                  >
+                    修改
+                  </Button>
+                  <Button
+                    className="flex-1 bg-red-600 text-white hover:bg-red-700"
+                    onClick={() => handleDeletePhoto(selectedPhoto)}
+                    disabled={deletePhotoMutation.isPending}
+                  >
+                    {deletePhotoMutation.isPending ? '删除中...' : '删除'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 编辑照片弹窗 */}
+      {editingPhoto && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 p-4 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setEditingPhoto(null)}
+        >
+          <div
+            className="bg-background rounded-lg shadow-xl w-full max-w-md p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-semibold mb-4">修改作品信息</h2>
+            <div className="mb-4">
+              <img
+                src={editingPhoto.url}
+                alt={editingPhoto.title || '未命名作品'}
+                className="w-full h-48 object-cover rounded-md"
+              />
+            </div>
+            <form onSubmit={handleUpdatePhoto} className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">作品名称</p>
+                <Input
+                  value={photoTitle}
+                  onChange={(e) => setPhotoTitle(e.target.value)}
+                  placeholder="输入作品名称"
+                />
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">作品介绍</p>
+                <Textarea
+                  rows={4}
+                  value={photoDescription}
+                  onChange={(e) => setPhotoDescription(e.target.value)}
+                  placeholder="输入作品介绍"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit" disabled={updatePhotoMutation.isPending} className="flex-1">
+                  {updatePhotoMutation.isPending ? '保存中...' : '保存'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setEditingPhoto(null)}
+                >
+                  取消
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

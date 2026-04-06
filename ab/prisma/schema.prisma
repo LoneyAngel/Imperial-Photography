@@ -59,6 +59,7 @@ model Photo {
 model Notice {
   id              String   @id @default(cuid())
   title           String
+  contentUrl      String   // 通知内容文件路径
   createdAt       DateTime @default(now())
   createdMemberId String   // 创建公告的管理员ID，不建立外键关联
 

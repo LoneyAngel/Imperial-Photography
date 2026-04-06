@@ -91,4 +91,74 @@ router.post('/', authMiddleware, upload.single('file'), asyncHandler(async (req,
   });
 }));
 
+// 修改照片信息
+router.put('/:id', authMiddleware, asyncHandler(async (req, res) => {
+  const photoId = req.params.id;
+  const memberId = req.userId!;
+
+  // 检查照片是否属于当前用户
+  const existingPhoto = await prisma.photo.findUnique({
+    where: { id: photoId },
+  });
+
+  if (!existingPhoto) {
+    res.status(404).json({ error: 'photo_not_found' });
+    return;
+  }
+
+  if (existingPhoto.ownerMemberId !== memberId) {
+    res.status(403).json({ error: 'not_owner' });
+    return;
+  }
+
+  const body = z.object({
+    title: z.string().trim().max(200).optional(),
+    description: z.string().trim().max(2000).optional(),
+  }).parse(req.body);
+
+  const updatedPhoto = await prisma.photo.update({
+    where: { id: photoId },
+    data: {
+      title: body.title,
+      description: body.description,
+    },
+  });
+
+  res.json({
+    id: updatedPhoto.id,
+    title: updatedPhoto.title,
+    url: updatedPhoto.url,
+    status: updatedPhoto.status,
+    description: updatedPhoto.description ?? undefined,
+    ownerMemberId: updatedPhoto.ownerMemberId,
+  });
+}));
+
+// 删除照片
+router.delete('/:id', authMiddleware, asyncHandler(async (req, res) => {
+  const photoId = req.params.id;
+  const memberId = req.userId!;
+
+  // 检查照片是否属于当前用户
+  const existingPhoto = await prisma.photo.findUnique({
+    where: { id: photoId },
+  });
+
+  if (!existingPhoto) {
+    res.status(404).json({ error: 'photo_not_found' });
+    return;
+  }
+
+  if (existingPhoto.ownerMemberId !== memberId) {
+    res.status(403).json({ error: 'not_owner' });
+    return;
+  }
+
+  await prisma.photo.delete({
+    where: { id: photoId },
+  });
+
+  res.json({ success: true });
+}));
+
 export default router;

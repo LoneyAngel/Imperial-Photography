@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/context/user';
+import img1 from '@/picture/1.jpg';
+import img2 from '@/picture/2.jpg';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -11,7 +13,7 @@ export default function Home() {
   return (
     <div className="flex-1 bg-gradient-to-b from-slate-50 to-background">
       <div className="container flex flex-col items-center py-16">
-        <div className="w-full max-w-4xl mx-auto text-center px-4">
+        <div className="w-full max-w-4xl mx-auto text-center px-4 mt-6">
           <h1 className="text-4xl md:text-5xl font-semibold tracking-tight leading-tight">
             Imperial use
           </h1>
@@ -26,40 +28,41 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-4 items-center w-[50%]">
+        <div className="mt-20 flex flex-col gap-4 items-center w-[50%]">
           <div className="w-full flex gap-8">
             <div className="flex flex-col gap-2">
               <div className="mt-2 text-sm text-muted-foreground text-start px-2">
-                <h2 className="font-bold">巴黎</h2>
+                <h2 className="font-bold">白色的几何与蔚蓝的留白</h2>
               </div>
-              <img src="dist/images/t1.png" alt="home-1" className="object-cover h-[400px]" />
+              <img src={img1} alt="home-1" className="object-cover h-[400px]" />
             </div>
-            <div className="flex flex-col gap-4 justify-center">
+            <div className="flex flex-col gap-4 justify-center w-[40%]">
               <p className="mt-2 text-sm text-muted-foreground">
-                <span>张三</span>
+                <span>JimboChan</span>
               </p>
               
               <p className="mt-2 text-sm text-muted-foreground">
-                <span>这是我在巴黎的一次照片分享，展示了我的独特视角。</span>
+                <span>有些浪漫是藏在风心里的。坐在杜乐丽花园的摩天轮上，当座舱缓缓升起到最高处，大半个巴黎的屋顶都在脚下。风里带着云朵的味道，秋千旋转出的光影，就像一场永不落幕的流动的盛宴。</span>
               </p>
             </div>
           </div>
           <div className="w-full flex gap-8">
 
-            <div className="flex flex-col gap-4 justify-center">
+            <div className="flex flex-col gap-4 justify-center w-[40%]">
               <p className="mt-2 text-sm text-muted-foreground">
-                <span>张三</span>
+                <span>CrazyJN</span>
               </p>
               
               <p className="mt-2 text-sm text-muted-foreground">
-                <span>这是我在巴黎的一次照片分享，展示了我的独特视角。</span>
+                <span>走入圣母院的那一刻，喧嚣的巴黎街头仿佛被厚重的石墙瞬间隔绝。
+这张照片是我在光影交错的午后偶然捕捉到的。那种美不是夺目，而是一种深沉的静谧。抬头仰望，哥特式的肋架拱顶在上方交汇，像是一双双向上天祈祷的手，把人的视线和心境不由自主地往高处引。</span>
               </p>
             </div>
             <div className="flex flex-col gap-2">
               <div className="mt-2 text-sm text-muted-foreground text-end px-2">
                 <h2 className="font-bold">巴黎</h2>
               </div>
-              <img src="dist/images/t1.png" alt="home-1" className="object-cover h-[400px]" />
+              <img src={img2} alt="home-2" className="object-cover h-[400px]" />
             </div>
           </div>
         </div>

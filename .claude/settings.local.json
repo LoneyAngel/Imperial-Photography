@@ -33,6 +33,9 @@
       "Bash(node check_data.js)",
       "Bash(node check_data.mjs)",
       "Bash(pkill -f \"vite\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Administrator\\Desktop\\te\\ai+\\ad\\app\\src\\components"
     ]
   }
 }

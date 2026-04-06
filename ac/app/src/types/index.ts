@@ -19,6 +19,15 @@ export interface AuthResponse {
   user: User;
   token: string;
 }
+
+export interface Notice {
+  id: string;
+  title: string;
+  contentUrl: string;
+  createdAt: string;
+  createdMemberId: string;
+}
+
 // 只有在个人中心才会用到这种数据类型
 export interface Member {
   id: string;

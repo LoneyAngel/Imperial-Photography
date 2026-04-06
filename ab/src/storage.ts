@@ -86,3 +86,67 @@ export async function putImage(params: {
   await fs.writeFile(localPath, params.buffer);
   return { key: fileName, url: `${params.publicBaseUrlForLocal}/uploads/${fileName}` };
 }
+
+// 保存通知内容到 OSS 或本地文件系统
+export async function putNoticeContent(params: {
+  content: string;
+  publicBaseUrlForLocal: string;
+}): Promise<PutResult> {
+  const random = crypto.randomBytes(12).toString('hex');
+  const key = `notice/${Date.now()}-${random}.txt`;
+
+  // 上传到 OSS
+  if (hasOssConfig()) {
+    const rawRegion = process.env.OSS_REGION;
+    const endpoint = process.env.OSS_ENDPOINT;
+    const region = rawRegion ? normalizeRegion(rawRegion) : undefined;
+    const client = new OSS({
+      region,
+      endpoint,
+      accessKeyId: process.env.OSS_ACCESS_KEY_ID!,
+      accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET!,
+      bucket: process.env.OSS_BUCKET!,
+    });
+
+    await client.put(key, params.content, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+      },
+    });
+
+    const baseUrl = getPublicBaseUrl();
+    if (!baseUrl) throw new Error('OSS public base url is not configured');
+    return { key, url: `${baseUrl}/${key}` };
+  }
+
+  // 保存到本地文件系统
+  const uploadsDir = path.resolve(process.cwd(), 'uploads', 'notice');
+  await fs.mkdir(uploadsDir, { recursive: true });
+  const fileName = key.replace('notice/', '');
+  const localPath = path.join(uploadsDir, fileName);
+  await fs.writeFile(localPath, params.content, 'utf-8');
+  return { key: fileName, url: `${params.publicBaseUrlForLocal}/uploads/notice/${fileName}` };
+}
+
+// 删除通知内容文件
+export async function deleteNoticeContent(key: string): Promise<void> {
+  if (hasOssConfig()) {
+    const rawRegion = process.env.OSS_REGION;
+    const endpoint = process.env.OSS_ENDPOINT;
+    const region = rawRegion ? normalizeRegion(rawRegion) : undefined;
+    const client = new OSS({
+      region,
+      endpoint,
+      accessKeyId: process.env.OSS_ACCESS_KEY_ID!,
+      accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET!,
+      bucket: process.env.OSS_BUCKET!,
+    });
+    await client.delete(key);
+    return;
+  }
+
+  // 从本地文件系统删除
+  const uploadsDir = path.resolve(process.cwd(), 'uploads', 'notice');
+  const localPath = path.join(uploadsDir, key);
+  await fs.unlink(localPath).catch(() => {}); // 忽略文件不存在错误
+}
