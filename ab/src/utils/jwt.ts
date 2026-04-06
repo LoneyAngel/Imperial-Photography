@@ -61,12 +61,14 @@ export async function generateRefreshToken(member: Member): Promise<string> {
 /**
  * 生成Auth Token和Refresh Token对
  */
-export async function generateTokenPair(member: Member): Promise<{ authToken: string; refreshToken: string }> {
+export async function generateTokenPair(member: Member): Promise<{ authToken: string; refreshToken: string; roleId: number }> {
+  const roleId = await getUserRoleId(member.id);
   const authToken = await generateAuthToken(member);
   const refreshToken = await generateRefreshToken(member);
   return {
     authToken,
     refreshToken,
+    roleId,
   };
 }
 

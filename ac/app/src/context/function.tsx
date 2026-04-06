@@ -60,9 +60,9 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
             );
             if (!res.data) return false;
 
-            // ✅ 使用新的响应格式 { token }
-            const { authToken,refreshToken} = res.data;
-            login(authToken,refreshToken);
+            // refreshToken 通过 HttpOnly Cookie 自动保存
+            const { authToken } = res.data;
+            login(authToken);
 
             return true;
         } catch {
@@ -88,9 +88,9 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
             );
             if (!res.data) return false;
 
-            // ✅ 使用新的响应格式 { user, token    }
-            const { authToken,refreshToken } = res.data;
-            login(authToken,refreshToken);
+            // refreshToken 通过 HttpOnly Cookie 自动保存
+            const { authToken } = res.data;
+            login(authToken);
 
             return true;
         } catch {
