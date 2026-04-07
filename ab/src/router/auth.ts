@@ -15,7 +15,7 @@ const COOKIE_OPTIONS = {
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
   maxAge: 15 * 24 * 60 * 60 * 1000, // 15天
-  path: '/',
+  path: '/api/auth/refresh',
 };
 
 // 设置 refreshToken 到 cookie
@@ -28,6 +28,7 @@ function clearRefreshTokenCookie(res: any) {
   res.clearCookie(COOKIE_NAME, { path: '/' });
 }
 
+// 标准化时间
 async function createVerificationCodeRecord(email: string, code: string) {
   const codeHash = hashVerificationCode(email, code);
 
@@ -93,7 +94,7 @@ router.post('/request-login-code', asyncHandler(async (req, res) => {
     ]);
     res.json({ success: true });
   }
-  else res.status(400).json({ error: '意外错误' });
+  else res.status(400).json({ error: '账号不存在错误' });
 }));
 // 验证验证码
 router.post('/verify-code', asyncHandler(async (req, res) => {

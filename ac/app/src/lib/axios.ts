@@ -3,17 +3,33 @@ import axios from 'axios';
 // 自定义事件：token 刷新成功
 export const TOKEN_REFRESHED_EVENT = 'tokenRefreshed';
 
+// 模块级变量存储 authToken（不在 localStorage，防止 XSS 窃取）
+let memoryAuthToken: string | null = null;
+
+// 设置/获取 authToken 的函数
+export const setMemoryToken = (token: string | null) => {
+  memoryAuthToken = token;
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
+
+export const getMemoryToken = () => memoryAuthToken;
+
 const api = axios.create({
   timeout: 10000,
-  withCredentials: true, // 自动发送和接收 Cookie
+  withCredentials: true, // 自动发送和接收 Cookie（refreshToken）
 });
 
-// --- 1. 请求拦截器：每个请求发起前，自动附带 Token ---
+// --- 1. 请求拦截器：从内存变量获取 Token ---
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // 内存变量已在 setMemoryToken 中同步到 defaults.headers
+    // 这里只需确保没有遗漏
+    if (memoryAuthToken && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${memoryAuthToken}`;
     }
     return config;
   },
@@ -56,34 +72,26 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        // refreshToken 在 HttpOnly Cookie 中
+        // refreshToken 在 HttpOnly Cookie 中，自动发送
         axios.post('/api/auth/refresh', {}, { withCredentials: true })
           .then(({ data }) => {
-            const { authToken, roleId } = data;
+            const { authToken } = data;
 
-            // 临时存储到 localStorage，供后续请求使用
-            // 页面刷新时会通过 TokenProvider 的 initAuth 清除
-            localStorage.setItem('authToken', authToken);
-            if (roleId !== undefined) {
-              localStorage.setItem('userRole', String(roleId));
-            }
+            // 使用模块级变量存储 authToken
+            setMemoryToken(authToken);
+            originalRequest.headers.Authorization = `Bearer ${authToken}`;
 
             // 触发自定义事件，通知 TokenProvider 更新 state
             window.dispatchEvent(new CustomEvent(TOKEN_REFRESHED_EVENT, {
               detail: { authToken }
             }));
 
-            // 更新 axios 默认 header
-            api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
-            originalRequest.headers.Authorization = `Bearer ${authToken}`;
-
             processQueue(null, authToken);
             resolve(api(originalRequest));
           })
           .catch((err) => {
             processQueue(err, null);
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userRole');
+            setMemoryToken(null);
             window.location.href = '/member-auth';
             reject(err);
           })

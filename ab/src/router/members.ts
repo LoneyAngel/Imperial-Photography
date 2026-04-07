@@ -5,9 +5,10 @@ import { prisma } from '../utils/prisma.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
+router.use(authMiddleware)
 
 // 更新会员信息
-router.put('/update', authMiddleware, asyncHandler(async (req, res) => {
+router.put('/update', asyncHandler(async (req, res) => {
   // ✅ 从JWT token获取用户ID，不再需要params验证
   const body = z
     .object({
@@ -34,7 +35,7 @@ router.put('/update', authMiddleware, asyncHandler(async (req, res) => {
 }));
 
 // 获取会员信息
-router.get('/detail', authMiddleware, asyncHandler(async (req, res) => {
+router.get('/detail', asyncHandler(async (req, res) => {
 
   // ✅ 使用JWT中的用户ID，而不是params.id
   const member = await prisma.member.findUnique({

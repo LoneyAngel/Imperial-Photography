@@ -47,10 +47,11 @@ export default function MemberRegister() {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await api.post('/api/auth/request-register-code', {
-        headers: { 'Content-Type': 'application/json' },
-        data: { email: normalizedEmail },
-      });
+      const res = await api.post('/api/auth/request-register-code', 
+        { email: normalizedEmail },{
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
       if (!res.data) throw new Error('send_failed');
       setStep('code');
     } catch {
@@ -70,10 +71,11 @@ export default function MemberRegister() {
     setError(null);
 
     try {
-      const res = await api.post('/api/auth/verify-code', {
+      const res = await api.post('/api/auth/verify-code',
+        { email: normalizedEmail, code: code.trim() }, {
         headers: { 'Content-Type': 'application/json' },
-        data: { email: normalizedEmail, code: code.trim() },
-      });
+        }
+      );
 
       if (!res.data) {
         setError('验证码不正确或已过期');
@@ -108,9 +110,8 @@ export default function MemberRegister() {
 
     try {
       // 设置密码
-      const res = await api.post('/api/auth/set-password', {
+      const res = await api.post('/api/auth/set-password',{ email: normalizedEmail, password }, {
         headers: { 'Content-Type': 'application/json' },
-        data: { email: normalizedEmail, password },
       });
 
       if (!res.data) {
