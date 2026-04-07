@@ -123,9 +123,8 @@ function CodeLoginForm({ onDone, showToast }: {
       setSending(true);
       setError(null);
       setCode('');
-      const res = await api.post('/auth/request-login-code', {
+      const res = await api.post('/auth/request-login-code', { email: normalizedEmail }, {
         headers: { 'Content-Type': 'application/json' },
-        email: normalizedEmail,
       });
       if (!res.data) throw new Error('send_failed');
       setSent(true);

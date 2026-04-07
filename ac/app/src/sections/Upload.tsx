@@ -7,28 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
+import { useToast } from '@/context';
+import { queryClient } from '@/App';
 
 export default function Upload() {
   const { user } = useUser();
-  const {uploadPhoto} = useFunction();
-  const handleUpload = (title: string, description: string, file: File) => {
-    uploadPhoto(title, description, file);
-  };
+  const { uploadPhoto } = useFunction();
+  const { showToast } = useToast();
 
-  if (!user) {
-    return (
-      <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold">需要登录</h1>
-          <p className="text-muted-foreground">请先登录后才能上传作品</p>
-          <Button onClick={() => window.location.href = '/member-auth'}>
-            去登录
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
+  // 所有 useState 必须在条件返回之前定义（React Hooks 规则）
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -48,24 +35,31 @@ export default function Upload() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (file) {
-      setIsUploading(true);
+    if (!file) return;
 
-      // 调用上传函数（不再需要摄影师名字）
-      handleUpload(title.trim(), description.trim(), file);
-
-      // 模拟上传过程，然后显示上传成功的作品
-      setTimeout(() => {
+    setIsUploading(true);
+    try {
+      const success = await uploadPhoto(title.trim(), description.trim(), file);
+      if (success) {
+        showToast('上传成功', 'success');
         setUploadedPhoto({
           url: preview || '',
           title: title.trim() || '未命名作品',
           description: description.trim() || '',
           authorName: user?.name || '匿名用户'
         });
-        setIsUploading(false);
-      }, 1500);
+        // 刷新照片列表缓存
+        queryClient.invalidateQueries({ queryKey: ['photos'] });
+        queryClient.invalidateQueries({ queryKey: ['photos', 'owner'] });
+      } else {
+        showToast('上传失败，请重试', 'error');
+      }
+    } catch {
+      showToast('上传失败，请重试', 'error');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -76,6 +70,21 @@ export default function Upload() {
     setFile(null);
     setPreview(null);
   };
+
+  // 条件返回在所有 hooks 之后
+  if (!user) {
+    return (
+      <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold">需要登录</h1>
+          <p className="text-muted-foreground">请先登录后才能上传作品</p>
+          <Button onClick={() => window.location.href = '/member-auth'}>
+            去登录
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -143,7 +152,6 @@ export default function Upload() {
             </CardContent>
           </Card>
         ) : (
-          // 上传成功后的作品展示区域
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">

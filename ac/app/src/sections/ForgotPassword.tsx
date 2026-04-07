@@ -29,9 +29,8 @@ export default function ForgotPassword() {
       setError(null);
       setCode('');
 
-      const res = await api.post('/api/auth/request-reset-code', {
+      const res = await api.post('/api/auth/request-reset-code',{ email: normalizedEmail }, {
         headers: { 'Content-Type': 'application/json' },
-        data: { email: normalizedEmail },
       });
 
       if (!res.data) {
@@ -66,9 +65,8 @@ export default function ForgotPassword() {
     setError(null);
 
     try {
-      const res = await api.post('/api/auth/verify-reset-code', {
+      const res = await api.post('/api/auth/verify-reset-code', { email: normalizedEmail, code: code.trim() },{
         headers: { 'Content-Type': 'application/json' },
-        data: { email: normalizedEmail, code: code.trim() },
       });
 
       if (!res.data) {

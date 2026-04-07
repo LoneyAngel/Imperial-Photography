@@ -41,9 +41,8 @@ export default function SetPassword() {
     setIsLoading(true);
 
     try {
-      const res = await api.post('/api/auth/set-password', {
+      const res = await api.post('/api/auth/set-password',{ email, password }, {
         headers: { 'Content-Type': 'application/json' },
-        data: { email, password },
       });
 
       if (!res.data) {

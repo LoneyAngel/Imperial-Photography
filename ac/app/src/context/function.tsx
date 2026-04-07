@@ -7,7 +7,7 @@ interface FunctionContextType {
     loginMemberWithEmail: (email: string, code: string) => Promise<boolean>;
     loginMemberWithPassword: (email: string, password: string) => Promise<boolean>;
     updateMemberProfile: (name: string, bio: string) => Promise<boolean>;
-    uploadPhoto: (title: string, description: string, file: File) => boolean;
+    uploadPhoto: (title: string, description: string, file: File) => Promise<boolean>;
     fetchPhotos: () => Promise<Photo[]>;
     fetchOwnerPhotos: (id: string) => Promise<Photo[]>;
     fetchMemberProfile: () => Promise<User | null>;
@@ -121,22 +121,18 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     // 上传照片
-    const uploadPhoto = useCallback((title: string, description: string, file: File) => {
-        void (async () => {
-            try {
-                const form = new FormData();
-                form.append('file', file);
-                form.append('title', title);
-                form.append('description', description);
-                // ✅ memberId已从JWT Token获取，无需从前端发送
+    const uploadPhoto = useCallback(async (title: string, description: string, file: File) => {
+        try {
+            const form = new FormData();
+            form.append('file', file);
+            form.append('title', title);
+            form.append('description', description);
 
-                await api.post('/api/photos', form);
-
-            } catch {
-                return;
-            }
-        })();
-        return true;
+            await api.post('/api/photos', form);
+            return true;
+        } catch {
+            return false;
+        }
     }, []);
 
     // 修改照片信息
