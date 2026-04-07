@@ -6,6 +6,7 @@ export interface Photo {
   createdAt: string;
   description?: string;
   ownerMemberId: string;
+  ownerName?: string;
 }
 
 export interface User {

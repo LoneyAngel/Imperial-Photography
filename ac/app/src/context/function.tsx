@@ -8,7 +8,7 @@ interface FunctionContextType {
     loginMemberWithPassword: (email: string, password: string) => Promise<boolean>;
     updateMemberProfile: (name: string, bio: string) => Promise<boolean>;
     uploadPhoto: (title: string, description: string, file: File) => Promise<boolean>;
-    fetchPhotos: () => Promise<Photo[]>;
+    fetchPhotos: (search?: string) => Promise<Photo[]>;
     fetchOwnerPhotos: (id: string) => Promise<Photo[]>;
     fetchMemberProfile: () => Promise<User | null>;
     updatePhoto: (id: string, title?: string, description?: string) => Promise<boolean>;
@@ -22,10 +22,14 @@ const FunctionContext = createContext<FunctionContextType|null>(null);
 export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     const { login} = useToken(); 
 
-    // 获取所有照片
-    const fetchPhotos = useCallback(async () => {
+    // 获取所有照片（后端根据用户角色自动筛选）
+    const fetchPhotos = useCallback(async (search?: string) => {
         try {
-            const res = await api.get('/api/photos');
+            const params = new URLSearchParams();
+            if (search?.trim()) {
+                params.set('search', search.trim());
+            }
+            const res = await api.get(`/api/photos?${params.toString()}`);
             return res.data as Photo[];
         } catch {
             return [];

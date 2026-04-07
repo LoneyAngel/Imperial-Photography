@@ -9,6 +9,9 @@ import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
 import { useToast } from '@/context';
 import { queryClient } from '@/App';
+import { compressImage, isFileOversized, formatFileSize } from '@/utils/imageCompress';
+
+const MAX_SIZE_MB = 3;
 
 export default function Upload() {
   const { user } = useUser();
@@ -23,9 +26,32 @@ export default function Upload() {
   const [uploadedPhoto, setUploadedPhoto] = useState<{ url: string; title: string; description: string; authorName: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
+    if (!selectedFile) return;
+
+    // 检查是否需要压缩
+    if (isFileOversized(selectedFile, MAX_SIZE_MB)) {
+      showToast(`图片大于 ${MAX_SIZE_MB}MB，正在压缩...`, 'info');
+
+      try {
+        const result = await compressImage(selectedFile, { maxSizeMB: MAX_SIZE_MB });
+
+        setFile(result.file);
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result as string);
+        };
+        reader.readAsDataURL(result.file);
+
+        showToast(`压缩完成：${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`, 'success');
+      } catch {
+        showToast('压缩失败，请选择更小的图片', 'error');
+        setFile(null);
+        setPreview(null);
+      }
+    } else {
       setFile(selectedFile);
       const reader = new FileReader();
       reader.onloadend = () => {

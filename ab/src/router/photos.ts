@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { asyncHandler } from '../utils/api.js';
 import { prisma } from '../utils/prisma.js';
 import { putImage } from '../storage.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -15,18 +15,54 @@ const upload = multer({
 });
 
 // 获取照片列表
-router.get('/', asyncHandler(async (req, res) => {
+router.get('/', optionalAuthMiddleware, asyncHandler(async (req, res) => {
   const query = z.object({
     status: z.enum(['pending', 'approved', 'rejected']).optional(),
     ownerMemberId: z.string().optional(),
+    search: z.string().trim().max(100).optional(),
   }).parse(req.query);
 
+  // 获取用户角色和ID，判断是否有管理权限
+  const userRole = req.user?.roleId ?? 2; // 默认普通用户
+  const userId = req.userId;
+  const isAdmin = userRole === 1 || userRole === 3; // admin 或 superAdmin
+  const isViewingOwnPhotos = query.ownerMemberId && query.ownerMemberId === userId;
+
+  // 构建搜索条件
+  const where: any = {
+    ownerMemberId: query.ownerMemberId,
+  };
+
+  // 根据角色和查询条件决定 status 筛选
+  if (isAdmin) {
+    // 管理员：按前端传的 status 筛选
+    where.status = query.status;
+  } else if (isViewingOwnPhotos) {
+    // 普通用户查看自己的照片：允许查看所有状态
+    where.status = query.status;
+  } else {
+    // 普通用户查看其他照片：强制只返回已审核的
+    where.status = 'approved';
+  }
+
+  // 如果有搜索关键词，搜索作品名、描述或作者名
+  if (query.search) {
+    const searchTerm = query.search;
+    where.OR = [
+      { title: { contains: searchTerm, mode: 'insensitive' } },
+      { description: { contains: searchTerm, mode: 'insensitive' } },
+      { member: { name: { contains: searchTerm, mode: 'insensitive' } } },
+    ];
+  }
+
   const photos = await prisma.photo.findMany({
-    where: {
-      status: query.status,
-      ownerMemberId: query.ownerMemberId,
-    },
+    where,
     orderBy: { createdAt: 'desc' },
+    include: {
+      member: {
+        select: { name: true },
+      },
+    },
   });
 
   res.json(
@@ -38,6 +74,7 @@ router.get('/', asyncHandler(async (req, res) => {
       description: p.description ?? undefined,
       createdAt: p.createdAt.toISOString(),
       ownerMemberId: p.ownerMemberId,
+      ownerName: p.member.name || '匿名用户',
     }))
   );
 }));
@@ -76,7 +113,7 @@ router.post('/', authMiddleware, upload.single('file'), asyncHandler(async (req,
       title: body.title,
       description: body.description,
       url: uploaded.url,
-      status: 'approved',
+      status: 'pending', // 上传后需要审核
       ownerMemberId: memberId, // ✅ 从JWT token获取
     },
   });
