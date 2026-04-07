@@ -13,12 +13,11 @@ export default function PhotoManage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   useEffect(() => {
-    loadPhotos();
+    void loadPhotos();
   }, []);
 
-  const loadPhotos = async () => {
+  const loadPhotos = async (status?: 'pending' | 'approved' | 'rejected') => {
     setLoading(true);
-    const status = statusFilter === 'all' ? undefined : statusFilter;
     const data = await fetchAllPhotos(status);
     setPhotos(data);
     setLoading(false);
@@ -26,14 +25,15 @@ export default function PhotoManage() {
 
   const handleStatusChange = (status: 'all' | 'pending' | 'approved' | 'rejected') => {
     setStatusFilter(status);
-    setTimeout(() => loadPhotos(), 100);
+    const filterStatus = status === 'all' ? undefined : status;
+    void loadPhotos(filterStatus);
   };
 
   const handleApprove = async (id: string) => {
     const success = await updatePhotoStatus(id, 'approved');
     if (success) {
       showToast('图片已批准', 'success');
-      loadPhotos();
+      void loadPhotos(statusFilter === 'all' ? undefined : statusFilter);
     } else {
       showToast('操作失败', 'error');
     }
@@ -43,7 +43,7 @@ export default function PhotoManage() {
     const success = await updatePhotoStatus(id, 'rejected');
     if (success) {
       showToast('图片已拒绝', 'success');
-      loadPhotos();
+      void loadPhotos(statusFilter === 'all' ? undefined : statusFilter);
     } else {
       showToast('操作失败', 'error');
     }
@@ -54,7 +54,7 @@ export default function PhotoManage() {
     const success = await deletePhoto(id);
     if (success) {
       showToast('图片已删除', 'success');
-      loadPhotos();
+      void loadPhotos(statusFilter === 'all' ? undefined : statusFilter);
     } else {
       showToast('删除失败', 'error');
     }
