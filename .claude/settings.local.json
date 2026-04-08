@@ -32,7 +32,8 @@
       "Bash(curl -X POST http://localhost:5174/api/auth/request-code -H \"Content-Type: application/json\" -d '{\"\"email\"\": \"\"verifytest@example.com\"\"}')",
       "Bash(node check_data.js)",
       "Bash(node check_data.mjs)",
-      "Bash(pkill -f \"vite\")"
+      "Bash(pkill -f \"vite\")",
+      "Bash(git check-ignore:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\Administrator\\Desktop\\te\\ai+\\ad\\app\\src\\components"

@@ -9,17 +9,15 @@ router.use(authMiddleware)
 
 // 更新会员信息
 router.put('/update', asyncHandler(async (req, res) => {
-  // ✅ 从JWT token获取用户ID，不再需要params验证
   const body = z
     .object({
-      name: z.string().trim().max(120).optional(),
+      name: z.string().trim().max(20).optional(),
       bio: z.string().trim().max(500).optional(),
     })
     .parse(req.body);
 
-  // ✅ 使用JWT中的用户ID，而不是params.id
   const member = await prisma.member.update({
-    where: { id: req.userId }, // 从JWT token获取用户ID
+    where: { id: req.userId },
     data: {
       name: body.name === undefined ? undefined : body.name,
       bio: body.bio === undefined ? undefined : body.bio,
@@ -37,7 +35,6 @@ router.put('/update', asyncHandler(async (req, res) => {
 // 获取会员信息
 router.get('/detail', asyncHandler(async (req, res) => {
 
-  // ✅ 使用JWT中的用户ID，而不是params.id
   const member = await prisma.member.findUnique({
     where: { id: req.userId },
     select: {

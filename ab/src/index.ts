@@ -9,7 +9,7 @@ import authRoutes from './router/auth.js';
 import photoRoutes from './router/photos.js';
 import memberRoutes from './router/members.js';
 import noticeRoutes from './router/notice.js';
-import adminRoutes from './router/admin.js';
+import adminRoutes from './router/admin/index.js';
 
 const PORT = Number(process.env.PORT ?? '4001');
 const CORS_ORIGINS = (process.env.CORS_ORIGIN ?? 'http://localhost:5173,http://localhost:5174')

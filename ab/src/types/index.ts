@@ -28,18 +28,3 @@ export interface EmailVerificationCode {
   createdAt: Date;
   updatedAt: Date;
 }
-
-export interface AuthRequest {
-  email: string;
-  password?: string;
-  code?: string;
-}
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  code?: string;
-  message?: string;
-}
-

@@ -91,6 +91,11 @@ lerna-debug.log*
 Thumbs.db
 
 # =========================
+# Claude Code
+# =========================
+.claude/
+
+# =========================
 # OS generated files
 # =========================
 .DS_Store

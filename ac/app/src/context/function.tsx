@@ -9,7 +9,7 @@ interface FunctionContextType {
     updateMemberProfile: (name: string, bio: string) => Promise<boolean>;
     uploadPhoto: (title: string, description: string, file: File) => Promise<boolean>;
     fetchPhotos: (search?: string) => Promise<Photo[]>;
-    fetchOwnerPhotos: (id: string) => Promise<Photo[]>;
+    fetchOwnerPhotos: () => Promise<Photo[]>;
     fetchMemberProfile: () => Promise<User | null>;
     updatePhoto: (id: string, title?: string, description?: string) => Promise<boolean>;
     deletePhoto: (id: string) => Promise<boolean>;
@@ -37,9 +37,9 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     // 获取用户所有照片
-    const fetchOwnerPhotos = useCallback(async (id: string) => {
+    const fetchOwnerPhotos = useCallback(async () => {
         try {
-            const res = await api.get(`/api/photos?ownerMemberId=${id}`);
+            const res = await api.get(`/api/photos/user-photos`);
             return res.data as Photo[];
         } catch {
             return [];

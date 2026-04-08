@@ -14,33 +14,25 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-// 获取照片列表
+// 用户或管理员对权限内的照片进行筛选
 router.get('/', optionalAuthMiddleware, asyncHandler(async (req, res) => {
   const query = z.object({
     status: z.enum(['pending', 'approved', 'rejected']).optional(),
-    ownerMemberId: z.string().optional(),
     search: z.string().trim().max(100).optional(),
   }).parse(req.query);
 
   // 获取用户角色和ID，判断是否有管理权限
   const userRole = req.user?.roleId ?? 2; // 默认普通用户
-  const userId = req.userId;
   const isAdmin = userRole === 1 || userRole === 3; // admin 或 superAdmin
-  const isViewingOwnPhotos = query.ownerMemberId && query.ownerMemberId === userId;
 
   // 构建搜索条件
-  const where: any = {
-    ownerMemberId: query.ownerMemberId,
-  };
+  const where: any = {};
 
   // 根据角色和查询条件决定 status 筛选
   if (isAdmin) {
     // 管理员：按前端传的 status 筛选
     where.status = query.status;
-  } else if (isViewingOwnPhotos) {
-    // 普通用户查看自己的照片：允许查看所有状态
-    where.status = query.status;
-  } else {
+  }  else {
     // 普通用户查看其他照片：强制只返回已审核的
     where.status = 'approved';
   }
@@ -197,5 +189,34 @@ router.delete('/:id', authMiddleware, asyncHandler(async (req, res) => {
 
   res.json({ success: true });
 }));
+
+
+// 获取用户自己的照片列表
+router.get('/user-photos', authMiddleware, asyncHandler(async (req, res) => {
+  const userId = req.userId;
+  const photos = await prisma.photo.findMany({
+    where: {
+      ownerMemberId: userId,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+  const name = await prisma.member.findUnique({
+    where: { id: userId },
+    select: { name: true },
+  });
+  res.json(
+    photos.map((p) => ({
+      id: p.id,
+      title: p.title,
+      url: p.url,
+      status: p.status,
+      description: p.description ?? undefined,
+      createdAt: p.createdAt.toISOString(),
+      ownerMemberId: userId,
+      ownerName: name?.name || '匿名用户',
+    }))
+  );
+}));
+
 
 export default router;

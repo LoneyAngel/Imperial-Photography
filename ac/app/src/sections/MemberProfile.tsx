@@ -57,7 +57,7 @@ export default function MemberProfile() {
   // 获取用户照片
   const { data } = useQuery({
     queryKey: ['photos', 'owner', user?.id],
-    queryFn: () => fetchOwnerPhotos(user?.id ?? ''),
+    queryFn: () => fetchOwnerPhotos(),
     initialData: () => {
       if (!user) return undefined;
       const listCache = queryClient.getQueryData(['photos']) as Photo[] | undefined;
