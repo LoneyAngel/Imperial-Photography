@@ -5,30 +5,11 @@ import { prisma } from '../utils/prisma.js';
 import { generateVerificationCode, hashVerificationCode, sendVerificationEmail } from '../utils/email.js';
 import bcrypt from 'bcryptjs';
 import { generateTokenPair, verifyToken } from '../utils/jwt.js';
+import { setRefreshTokenCookie, clearRefreshTokenCookie } from '../utils/cookie.js';
 
 const router = Router();
 
-// Cookie 配置
-const COOKIE_NAME = 'refreshToken';
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
-  maxAge: 15 * 24 * 60 * 60 * 1000, // 15天
-  path: '/api/auth/refresh',
-};
-
-// 设置 refreshToken 到 cookie
-function setRefreshTokenCookie(res: any, token: string) {
-  res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS);
-}
-
-// 清除 refreshToken cookie
-function clearRefreshTokenCookie(res: any) {
-  res.clearCookie(COOKIE_NAME, { path: '/' });
-}
-
-// 标准化时间
+// 更新认证记录
 async function createVerificationCodeRecord(email: string, code: string) {
   const codeHash = hashVerificationCode(email, code);
 

@@ -53,7 +53,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
         setAuthToken(null);
         setMemoryToken(null);
         queryClient.clear();
-        void fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+        void api.post('/api/auth/logout');
         window.location.href = '/';
     }, []);
 
@@ -67,7 +67,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
 
     const value = useMemo(() => ({
         auth_token, isLoading, setAuthToken, login, logout
-    }), [auth_token, isLoading, login, logout]);
+    }), [auth_token, isLoading]);
 
     return (
         <TokenContext.Provider value={value}>

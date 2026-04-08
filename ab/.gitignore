@@ -1,5 +1,26 @@
-node_modules
-dist
-uploads
+# Dependencies
+node_modules/
+
+# Environment
+.env
 .env.local
-prisma/dev.db
+.env.*.local
+
+# Build
+dist/
+
+# Prisma
+.prisma/
+
+# Uploads
+uploads/
+
+# Logs
+*.log
+
+# IDE
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
