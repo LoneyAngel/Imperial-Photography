@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/context';
 import { useAdminFunction } from '@/context/function';
+import toast from 'react-hot-toast';
 
 interface Notice {
   id: string;
@@ -15,7 +15,6 @@ interface Notice {
 }
 
 export default function NoticeManage() {
-  const { showToast } = useToast();
   const { fetchNotices, createNotice, updateNotice, deleteNotice } = useAdminFunction();
   const [notices, setNotices] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,21 +38,21 @@ export default function NoticeManage() {
 
   const handleCreate = async () => {
     if (!newTitle.trim()) {
-      showToast('请输入通知标题', 'error');
+      toast.error('请输入通知标题');
       return;
     }
     if (!newContent.trim()) {
-      showToast('请输入通知内容', 'error');
+      toast.error('请输入通知内容');
       return;
     }
     const notice = await createNotice(newTitle.trim(), newContent.trim());
     if (notice) {
-      showToast('通知发布成功', 'success');
+      toast.success('通知发布成功');
       setNewTitle('');
       setNewContent('');
       loadNotices();
     } else {
-      showToast('发布失败', 'error');
+      toast.error('发布失败');
     }
   };
 
@@ -74,7 +73,7 @@ export default function NoticeManage() {
   const handleSaveEdit = async () => {
     if (!editingNotice) return;
     if (!editTitle.trim()) {
-      showToast('请输入通知标题', 'error');
+      toast.error('请输入通知标题');
       return;
     }
     const success = await updateNotice(editingNotice.id, {
@@ -82,11 +81,11 @@ export default function NoticeManage() {
       content: editContent.trim(),
     });
     if (success) {
-      showToast('通知更新成功', 'success');
+      toast.success('通知更新成功');
       setEditingNotice(null);
       loadNotices();
     } else {
-      showToast('更新失败', 'error');
+      toast.error('更新失败');
     }
   };
 
@@ -94,10 +93,10 @@ export default function NoticeManage() {
     if (!window.confirm('确定要删除该通知吗？')) return;
     const success = await deleteNotice(id);
     if (success) {
-      showToast('通知已删除', 'success');
+      toast.success('通知已删除');
       loadNotices();
     } else {
-      showToast('删除失败', 'error');
+      toast.error('删除失败');
     }
   };
 

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
-import { useToast } from '@/context';
+import toast from 'react-hot-toast';
 import { queryClient } from '@/App';
 import { compressImage, isFileOversized, formatFileSize } from '@/utils/imageCompress';
 
@@ -16,7 +16,6 @@ const MAX_SIZE_MB = 3;
 export default function Upload() {
   const { user } = useUser();
   const { uploadPhoto } = useFunction();
-  const { showToast } = useToast();
 
   // 所有 useState 必须在条件返回之前定义（React Hooks 规则）
   const [title, setTitle] = useState('');
@@ -32,7 +31,7 @@ export default function Upload() {
 
     // 检查是否需要压缩
     if (isFileOversized(selectedFile, MAX_SIZE_MB)) {
-      showToast(`图片大于 ${MAX_SIZE_MB}MB，正在压缩...`, 'info');
+      toast(`图片大于 ${MAX_SIZE_MB}MB，正在压缩...`);
 
       try {
         const result = await compressImage(selectedFile, { maxSizeMB: MAX_SIZE_MB });
@@ -45,9 +44,9 @@ export default function Upload() {
         };
         reader.readAsDataURL(result.file);
 
-        showToast(`压缩完成：${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`, 'success');
+        toast.success(`压缩完成：${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
       } catch {
-        showToast('压缩失败，请选择更小的图片', 'error');
+        toast.error('压缩失败，请选择更小的图片');
         setFile(null);
         setPreview(null);
       }
@@ -69,7 +68,7 @@ export default function Upload() {
     try {
       const success = await uploadPhoto(title.trim(), description.trim(), file);
       if (success) {
-        showToast('上传成功', 'success');
+        toast.success('上传成功');
         setUploadedPhoto({
           url: preview || '',
           title: title.trim() || '未命名作品',
@@ -80,10 +79,10 @@ export default function Upload() {
         queryClient.invalidateQueries({ queryKey: ['photos'] });
         queryClient.invalidateQueries({ queryKey: ['photos', 'owner'] });
       } else {
-        showToast('上传失败，请重试', 'error');
+        toast.error('上传失败，请重试');
       }
     } catch {
-      showToast('上传失败，请重试', 'error');
+      toast.error('上传失败，请重试');
     } finally {
       setIsUploading(false);
     }

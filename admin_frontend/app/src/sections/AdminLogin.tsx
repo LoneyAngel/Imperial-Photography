@@ -4,13 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/context';
 import { useAdminFunction } from '@/context/function';
 import { useToken } from '@/context/token';
+import toast from 'react-hot-toast';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const { showToast } = useToast();
   const { loginAdmin } = useAdminFunction();
   const { login } = useToken();
   const [email, setEmail] = useState('');
@@ -20,7 +19,7 @@ export default function AdminLogin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password) {
-      showToast('请输入邮箱和密码', 'error');
+      toast.error('请输入邮箱和密码');
       return;
     }
 
@@ -29,13 +28,13 @@ export default function AdminLogin() {
       const result = await loginAdmin(email.trim().toLowerCase(), password);
       if (result) {
         login(result.authToken, result.roleId);
-        showToast('登录成功', 'success');
+        toast.success('登录成功');
         navigate('/users');
       } else {
-        showToast('登录失败，请检查账号密码', 'error');
+        toast.error('登录失败，请检查账号密码');
       }
     } catch {
-      showToast('登录失败，请重试', 'error');
+      toast.error('登录失败，请重试');
     } finally {
       setIsLoading(false);
     }

@@ -4,14 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '../context';
 import { useUser } from '../context/user';
 import api from '@/lib/axios';
+import toast from 'react-hot-toast';
 
 
 export default function MemberRegister() {
   const navigate = useNavigate();
-  const { showToast } = useToast();
   const { user } = useUser();
   const [step, setStep] = useState<'email' | 'code' | 'password'>('email');
   const [email, setEmail] = useState('');
@@ -120,7 +119,7 @@ export default function MemberRegister() {
       }
 
       // 密码设置成功，显示提示并延迟跳转
-      showToast('密码设置成功！', 'success');
+      toast.success('密码设置成功！');
 
       // 延迟2秒后跳转到登录页
       setTimeout(() => {

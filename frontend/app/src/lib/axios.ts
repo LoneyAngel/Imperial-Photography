@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 // 自定义事件：token 刷新成功
 export const TOKEN_REFRESHED_EVENT = 'tokenRefreshed';
@@ -55,10 +56,19 @@ api.interceptors.response.use(
     const { config, response } = error;
     const originalRequest = config;
 
+    if (!response) {
+      toast.error('网络连接已断开，请检查网速');
+      return Promise.reject(error);
+    }
+
+    if (response.status === 500) {
+      toast.error('服务器开小差了');
+      return Promise.reject(error);
+    }
+
     // 如果返回 401，尝试刷新 Token
-    if (response?.status === 401 && !originalRequest._retry) {
+    if (response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // 如果已经在刷新了，把当前请求挂起放入队列
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -73,20 +83,14 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        // refreshToken 在 HttpOnly Cookie 中，自动发送
         axios.post('/api/auth/refresh', {}, { withCredentials: true })
           .then(({ data }) => {
             const { authToken } = data.data;
-
-            // 使用模块级变量存储 authToken
             setMemoryToken(authToken);
             originalRequest.headers.Authorization = `Bearer ${authToken}`;
-
-            // 触发自定义事件，通知 TokenProvider 更新 state
             window.dispatchEvent(new CustomEvent(TOKEN_REFRESHED_EVENT, {
               detail: { authToken }
             }));
-
             processQueue(null, authToken);
             resolve(api(originalRequest));
           })
@@ -106,5 +110,6 @@ api.interceptors.response.use(
     return Promise.reject(new Error(errorMessage));
   }
 );
+
 
 export default api;

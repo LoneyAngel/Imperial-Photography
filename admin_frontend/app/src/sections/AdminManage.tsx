@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/context';
 import { useAdminFunction } from '@/context/function';
+import toast from 'react-hot-toast';
 
 interface AdminWithRole {
   id: string;
@@ -19,7 +19,6 @@ const roleNames: Record<number, string> = {
 };
 
 export default function AdminManage() {
-  const { showToast } = useToast();
   const { fetchAdmins, updateUserRole } = useAdminFunction();
   const [admins, setAdmins] = useState<AdminWithRole[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,10 +37,10 @@ export default function AdminManage() {
   const handleRoleChange = async (id: string, newRole: number) => {
     const success = await updateUserRole(id, newRole);
     if (success) {
-      showToast('角色更新成功', 'success');
+      toast.success('角色更新成功');
       loadAdmins();
     } else {
-      showToast('更新失败', 'error');
+      toast.error('更新失败');
     }
   };
 
