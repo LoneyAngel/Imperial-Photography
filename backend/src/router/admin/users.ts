@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { asyncHandler } from '../../utils/api.js';
+import { asyncHandler, ApiResponse } from '../../utils/api.js';
 import { prisma } from '../../utils/prisma.js';
 import { adminOnly } from '../../middleware/admin.js';
 
@@ -19,7 +19,7 @@ router.get('/', adminOnly, asyncHandler(async (req, res) => {
     orderBy: { createdAt: 'desc' },
   });
 
-  res.json(users.map(u => ({
+  ApiResponse.success(res, users.map(u => ({
     id: u.id,
     email: u.email,
     name: u.name ?? undefined,
@@ -50,7 +50,7 @@ router.put('/:id', adminOnly, asyncHandler(async (req, res) => {
     },
   });
 
-  res.json({
+  ApiResponse.success(res, {
     id: user.id,
     email: user.email,
     name: user.name ?? undefined,
@@ -66,7 +66,7 @@ router.delete('/:id', adminOnly, asyncHandler(async (req, res) => {
     where: { id },
   });
 
-  res.json({ success: true });
+  ApiResponse.success(res);
 }));
 
 export default router;

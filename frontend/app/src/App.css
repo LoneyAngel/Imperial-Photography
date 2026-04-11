@@ -13,7 +13,6 @@
 .image-card {
   position: relative;
   overflow: hidden;
-  border-radius: 0.5rem;
   cursor: pointer;
   transition: transform 0.2s ease;
 }

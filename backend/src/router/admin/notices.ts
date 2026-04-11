@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { asyncHandler } from '../../utils/api.js';
+import { asyncHandler, ApiResponse } from '../../utils/api.js';
 import { prisma } from '../../utils/prisma.js';
 import { adminOnly } from '../../middleware/admin.js';
 import { putNoticeContent, deleteNoticeContent } from '../../storage.js';
@@ -13,7 +13,7 @@ router.get('/', adminOnly, asyncHandler(async (req, res) => {
     orderBy: { createdAt: 'desc' },
   });
 
-  res.json(notices.map(n => ({
+  ApiResponse.success(res, notices.map(n => ({
     id: n.id,
     title: n.title,
     contentUrl: n.contentUrl,
@@ -43,7 +43,7 @@ router.post('/', adminOnly, asyncHandler(async (req, res) => {
     },
   });
 
-  res.json({
+  ApiResponse.success(res, {
     id: notice.id,
     title: notice.title,
     contentUrl: notice.contentUrl,
@@ -65,7 +65,7 @@ router.put('/:id', adminOnly, asyncHandler(async (req, res) => {
   });
 
   if (!existingNotice) {
-    res.status(404).json({ error: 'notice_not_found' });
+    ApiResponse.notFound(res, '公告不存在');
     return;
   }
 
@@ -77,7 +77,6 @@ router.put('/:id', adminOnly, asyncHandler(async (req, res) => {
       publicBaseUrlForLocal: baseForLocal,
     });
     contentUrl = uploaded.url;
-    // 删除旧内容文件
     const oldKey = existingNotice.contentUrl.split('/').pop();
     if (oldKey) {
       await deleteNoticeContent(oldKey);
@@ -92,7 +91,7 @@ router.put('/:id', adminOnly, asyncHandler(async (req, res) => {
     },
   });
 
-  res.json({
+  ApiResponse.success(res, {
     id: notice.id,
     title: notice.title,
     contentUrl: notice.contentUrl,
@@ -110,11 +109,10 @@ router.delete('/:id', adminOnly, asyncHandler(async (req, res) => {
   });
 
   if (!existingNotice) {
-    res.status(404).json({ error: 'notice_not_found' });
+    ApiResponse.notFound(res, '公告不存在');
     return;
   }
 
-  // 删除内容文件
   const oldKey = existingNotice.contentUrl.split('/').pop();
   if (oldKey) {
     await deleteNoticeContent(oldKey);
@@ -124,7 +122,7 @@ router.delete('/:id', adminOnly, asyncHandler(async (req, res) => {
     where: { id },
   });
 
-  res.json({ success: true });
+  ApiResponse.success(res);
 }));
 
 export default router;

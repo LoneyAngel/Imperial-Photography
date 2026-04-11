@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { asyncHandler } from '../../utils/api.js';
+import { asyncHandler, ApiResponse } from '../../utils/api.js';
 import { prisma } from '../../utils/prisma.js';
 import { adminOnly } from '../../middleware/admin.js';
 
@@ -17,7 +17,7 @@ router.get('/', adminOnly, asyncHandler(async (req, res) => {
     orderBy: { createdAt: 'desc' },
   });
 
-  res.json(photos.map(p => ({
+  ApiResponse.success(res, photos.map(p => ({
     id: p.id,
     title: p.title,
     url: p.url,
@@ -40,7 +40,7 @@ router.put('/:id/status', adminOnly, asyncHandler(async (req, res) => {
     data: { status: body.status },
   });
 
-  res.json({
+  ApiResponse.success(res, {
     id: photo.id,
     status: photo.status,
   });
@@ -54,7 +54,36 @@ router.delete('/:id', adminOnly, asyncHandler(async (req, res) => {
     where: { id },
   });
 
-  res.json({ success: true });
+  ApiResponse.success(res);
 }));
+
+
+// 用户或管理员对权限内的照片进行筛选
+router.get('/filter', adminOnly, asyncHandler(async (req, res) => {
+  const query = z.object({
+    status: z.enum(['pending', 'approved', 'rejected']).optional(),
+    search: z.string().trim().max(100).optional(),
+  }).parse(req.query);
+
+  const userRole = req.user?.roleId ?? 2;
+  const isAdmin = userRole === 1 || userRole === 3;
+
+  const where: any = {};
+
+  if (isAdmin) {
+    where.status = query.status;
+  } else {
+    where.status = 'approved';
+  }
+
+  if (query.search) {
+    const searchTerm = query.search;
+    where.OR = [
+      { title: { contains: searchTerm, mode: 'insensitive' } },
+      { description: { contains: searchTerm, mode: 'insensitive' } },
+      { member: { name: { contains: searchTerm, mode: 'insensitive' } } },
+    ];
+  }
+}))
 
 export default router;

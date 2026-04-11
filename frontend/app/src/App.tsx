@@ -15,6 +15,7 @@ import { UserProvider } from './context/user';
 import { TokenProvider, useToken } from './context/token';
 import { FunctionProvider } from './context/function';
 import Notice from './sections/Notice';
+import MemberPublicProfile from './sections/MemberPublicProfile';
 
 export const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ function AppContent() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/notice" element={<Notice />} />
+            <Route path="/member/:id" element={<MemberPublicProfile />} />
             <Route path="*" element={<Navigate to="/gallery" replace />} />
           </Routes>
         </main>

@@ -22,10 +22,9 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
     const initAuth = async () => {
       try {
         const res = await api.post('/api/auth/refresh');
-        if (res.data?.authToken) {
-          setAuthToken(res.data.authToken);
-          setRole(res.data.roleId ?? null);
-          // 清除可能存在的临时 localStorage
+        if (res.data?.data?.authToken) {
+          setAuthToken(res.data.data.authToken);
+          setRole(res.data.data.roleId ?? null);
           localStorage.removeItem('authToken');
           localStorage.removeItem('userRole');
         }
@@ -57,7 +56,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
     setRole(null);
     localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
-    void fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    api.post('/api/auth/logout');
     window.location.href = '/login';
   }, []);
 

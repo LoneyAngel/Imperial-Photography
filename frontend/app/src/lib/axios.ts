@@ -6,7 +6,7 @@ export const TOKEN_REFRESHED_EVENT = 'tokenRefreshed';
 // 模块级变量存储 authToken（不在 localStorage，防止 XSS 窃取）
 let memoryAuthToken: string | null = null;
 
-// 设置/获取 authToken 的函数
+// 设置 authToken
 export const setMemoryToken = (token: string | null) => {
   memoryAuthToken = token;
   if (token) {
@@ -40,6 +40,7 @@ api.interceptors.request.use(
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
+// 处理刷新队列：成功时重试请求，失败时拒绝
 const processQueue = (error: any, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error);
@@ -75,7 +76,7 @@ api.interceptors.response.use(
         // refreshToken 在 HttpOnly Cookie 中，自动发送
         axios.post('/api/auth/refresh', {}, { withCredentials: true })
           .then(({ data }) => {
-            const { authToken } = data;
+            const { authToken } = data.data;
 
             // 使用模块级变量存储 authToken
             setMemoryToken(authToken);

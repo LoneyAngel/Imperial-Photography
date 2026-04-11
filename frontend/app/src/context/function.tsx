@@ -2,14 +2,22 @@ import { createContext, ReactNode, useCallback, useContext, useMemo} from 'react
 import { Photo, User, Notice } from '@/types';
 import { useToken } from './token';
 import api from '@/lib/axios';
+
+interface PhotosResult {
+    list: Photo[];
+    total: number;
+    page: number;
+    pageSize: number;
+}
+
 // 定义类型
 interface FunctionContextType {
     loginMemberWithEmail: (email: string, code: string) => Promise<boolean>;
     loginMemberWithPassword: (email: string, password: string) => Promise<boolean>;
     updateMemberProfile: (name: string, bio: string) => Promise<boolean>;
     uploadPhoto: (title: string, description: string, file: File) => Promise<boolean>;
-    fetchPhotos: (search?: string) => Promise<Photo[]>;
-    fetchOwnerPhotos: () => Promise<Photo[]>;
+    fetchPhotos: (search?: string, page?: number) => Promise<PhotosResult>;
+    fetchOwnerPhotos: (page?: number) => Promise<PhotosResult>;
     fetchMemberProfile: () => Promise<User | null>;
     updatePhoto: (id: string, title?: string, description?: string) => Promise<boolean>;
     deletePhoto: (id: string) => Promise<boolean>;
@@ -22,31 +30,32 @@ const FunctionContext = createContext<FunctionContextType|null>(null);
 export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     const { login} = useToken(); 
 
-    // 获取所有照片（后端根据用户角色自动筛选）
-    const fetchPhotos = useCallback(async (search?: string) => {
+    // 获取所有照片
+    const fetchPhotos = useCallback(async (search?: string, page: number = 1) => {
+        const empty: PhotosResult = { list: [], total: 0, page: 1, pageSize: 20 };
         try {
             const params = new URLSearchParams();
-            if (search?.trim()) {
-                params.set('search', search.trim());
-            }
+            if (search?.trim()) params.set('search', search.trim());
+            params.set('page', String(page));
             const res = await api.get(`/api/photos?${params.toString()}`);
-            return res.data as Photo[];
+            return (res.data.data as PhotosResult) ?? empty;
         } catch {
-            return [];
+            return empty;
         }
     }, []);
 
     // 获取用户所有照片
-    const fetchOwnerPhotos = useCallback(async () => {
+    const fetchOwnerPhotos = useCallback(async (page: number = 1) => {
+        const empty: PhotosResult = { list: [], total: 0, page: 1, pageSize: 30 };
         try {
-            const res = await api.get(`/api/photos/user-photos`);
-            return res.data as Photo[];
+            const res = await api.get(`/api/photos/user-photos?page=${page}`);
+            return (res.data.data as PhotosResult) ?? empty;
         } catch {
-            return [];
+            return empty;
         }
     }, []);
 
-    // 邮箱验证码认证
+    // 验证验证码
     // 用于登录或注册
     const loginMemberWithEmail = useCallback(async (email: string, code: string) => {
         const normalizedEmail = email.trim().toLowerCase();
@@ -62,10 +71,9 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-            if (!res.data) return false;
+            if (!res.data?.data) return false;
 
-            // refreshToken 通过 HttpOnly Cookie 自动保存
-            const { authToken } = res.data;
+            const { authToken } = res.data.data;
             login(authToken);
 
             return true;
@@ -90,10 +98,9 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-            if (!res.data) return false;
+            if (!res.data?.data) return false;
 
-            // refreshToken 通过 HttpOnly Cookie 自动保存
-            const { authToken } = res.data;
+            const { authToken } = res.data.data;
             login(authToken);
 
             return true;
@@ -106,7 +113,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     const fetchMemberProfile = useCallback(async () => {
         try {
             const res = await api.get(`/api/members/detail`);
-            return res.data;
+            return res.data.data;
         } catch {
             return null;
         }
@@ -166,7 +173,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     const fetchNotices = useCallback(async () => {
         try {
             const res = await api.get('/api/notice');
-            return res.data as Notice[];
+            return res.data.data as Notice[];
         } catch {
             return [];
         }
@@ -176,7 +183,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     const fetchNoticeById = useCallback(async (id: string) => {
         try {
             const res = await api.get(`/api/notice/${id}`);
-            return res.data as Notice;
+            return res.data.data as Notice;
         } catch {
             return null;
         }

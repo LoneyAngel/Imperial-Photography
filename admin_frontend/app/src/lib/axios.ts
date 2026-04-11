@@ -55,7 +55,7 @@ api.interceptors.response.use(
         // refreshToken 在 HttpOnly Cookie 中
         axios.post('/api/auth/refresh', {}, { withCredentials: true })
           .then(({ data }) => {
-            const { authToken, roleId } = data;
+            const { authToken, roleId } = data.data;
 
             // 临时存储到 localStorage，供后续请求使用
             localStorage.setItem('authToken', authToken);

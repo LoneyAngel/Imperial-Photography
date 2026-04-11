@@ -1,0 +1,31 @@
+/* 1. 主容器样式 */
+.my-masonry-grid {
+  display: flex;
+  margin-left: -20px; /* 抵消列的左边距 */
+  width: auto;
+}
+
+/* 2. 列容器样式 */
+.my-masonry-grid_column {
+  padding-left: 30px; /* 设置列间距 */
+  background-clip: padding-box;
+}
+
+/* 3. 单个照片项样式 */
+.photo-item {
+  background: #fff;
+  overflow: hidden;
+  margin-bottom: 30px; /* 设置行间距 */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.photo-item:hover {
+  transform: translateY(-5px);
+}
+
+.photo-item img {
+  width: 100%;       /* 关键：宽度撑满列 */
+  height: auto;      /* 关键：高度自适应 */
+  display: block;
+}

@@ -6,6 +6,7 @@ import { generateVerificationCode, hashVerificationCode, sendVerificationEmail }
 import bcrypt from 'bcryptjs';
 import { generateTokenPair, verifyToken } from '../utils/jwt.js';
 import { setRefreshTokenCookie, clearRefreshTokenCookie } from '../utils/cookie.js';
+import {ApiResponse} from "../utils/api.js";
 
 const router = Router();
 
@@ -46,7 +47,7 @@ router.post('/request-register-code', asyncHandler(async (req, res) => {
   });
 
   if (existingMember && existingMember.password) {
-    res.status(400).json({ error: 'member_already_registered' });
+    ApiResponse.error(res, '账号已注册错误', 'member_already_registered');
     return;
   }
 
@@ -55,7 +56,7 @@ router.post('/request-register-code', asyncHandler(async (req, res) => {
     createVerificationCodeRecord(email, code),
     sendVerificationEmail({ to: email, code })
   ]);
-  res.json({ success: true });
+  ApiResponse.success(res);
 }));
 // 登录验证码
 router.post('/request-login-code', asyncHandler(async (req, res) => {
@@ -73,9 +74,9 @@ router.post('/request-login-code', asyncHandler(async (req, res) => {
       createVerificationCodeRecord(email, code),
       sendVerificationEmail({ to: email, code })
     ]);
-    res.json({ success: true });
+    ApiResponse.success(res);
   }
-  else res.status(400).json({ error: '账号不存在错误' });
+  else ApiResponse.error(res, '账号不存在错误', 'member_not_found');
 }));
 // 验证验证码
 router.post('/verify-code', asyncHandler(async (req, res) => {
@@ -89,13 +90,13 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
   });
 
   if (!record) {
-    res.status(400).json({ error: 'invalid_code' });
+    ApiResponse.error(res, '验证码无效', 'invalid_code');
     return;
   }
 
   if (new Date() > new Date(record.expiresAt)) {
     await prisma.emailVerificationCode.delete({ where: { email: body.email } });
-    res.status(400).json({ error: 'code_expired' });
+    ApiResponse.error(res, '验证码已过期', 'code_expired');
     return;
   }
   const hash = hashVerificationCode(body.email, body.code);
@@ -103,14 +104,14 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
     const attempts = record.attempts + 1;
     if (attempts >= 3) {
       await prisma.emailVerificationCode.delete({ where: { email: body.email } });
-      res.status(400).json({ error: 'code_max_attempts' });
+      ApiResponse.error(res, '验证码错误次数过多', 'code_max_attempts');
       return;
     }
     await prisma.emailVerificationCode.update({
       where: { email: body.email },
       data: { attempts }
     });
-    res.status(400).json({ error: 'invalid_code' });
+    ApiResponse.error(res, '验证码无效', 'invalid_code');
     return;
   }
   await prisma.emailVerificationCode.delete({ where: { email: body.email } });
@@ -140,8 +141,8 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
   // 设置 refreshToken 到 HttpOnly Cookie
   setRefreshTokenCookie(res, refreshToken);
 
-  res.json({
-    user:{
+  ApiResponse.success(res, {
+    user: {
       id: member.id,
       email: member.email,
       name: member.name,
@@ -161,14 +162,14 @@ router.post('/login', asyncHandler(async (req, res) => {
   const member = await prisma.member.findUnique({ where: { email: body.email } });
 
   if (!member || !member.password) {
-    res.status(401).json({ error: 'invalid_credentials' });
+    ApiResponse.error(res, '邮箱或密码错误', 'invalid_credentials', undefined, 401);
     return;
   }
 
   const isValidPassword = await bcrypt.compare(body.password, member.password);
 
   if (!isValidPassword) {
-    res.status(401).json({ error: 'invalid_credentials' });
+    ApiResponse.error(res, '邮箱或密码错误', 'invalid_credentials', undefined, 401);
     return;
   }
   const { authToken, refreshToken, roleId } = await generateTokenPair(member);
@@ -185,8 +186,8 @@ router.post('/login', asyncHandler(async (req, res) => {
   // 设置 refreshToken 到 HttpOnly Cookie
   setRefreshTokenCookie(res, refreshToken);
 
-  res.json({
-    user:{
+  ApiResponse.success(res, {
+    user: {
       id: member.id,
       email: member.email,
       name: member.name,
@@ -207,7 +208,7 @@ router.post('/set-password', asyncHandler(async (req, res) => {
   const member = await prisma.member.findUnique({ where: { email: body.email } });
 
   if (!member) {
-    res.status(404).json({ error: 'member_not_found' });
+    ApiResponse.notFound(res, '用户不存在');
     return;
   }
 
@@ -238,8 +239,8 @@ router.post('/set-password', asyncHandler(async (req, res) => {
   // 设置 refreshToken 到 HttpOnly Cookie
   setRefreshTokenCookie(res, refreshToken);
 
-  res.json({
-    user:{
+  ApiResponse.success(res, {
+    user: {
       id: member.id,
       email: member.email,
       name: member.name,
@@ -259,14 +260,14 @@ router.post('/request-reset-code', asyncHandler(async (req, res) => {
   const member = await prisma.member.findUnique({ where: { email: body.email } });
 
   if (!member || !member.password) {
-    res.status(400).json({ error: 'no_password' });
+    ApiResponse.error(res, '该账号未设置密码', 'no_password');
     return;
   }
 
   const code = generateVerificationCode();
   await sendVerificationEmail({ to: body.email, code });
 
-  res.json({ success: true });
+  ApiResponse.success(res);
 }));
 
 // 验证重置密码验证码
@@ -281,13 +282,13 @@ router.post('/verify-reset-code', asyncHandler(async (req, res) => {
   });
 
   if (!record) {
-    res.status(400).json({ error: 'invalid_code' });
+    ApiResponse.error(res, '验证码无效', 'invalid_code');
     return;
   }
 
   if (new Date() > new Date(record.expiresAt)) {
     await prisma.emailVerificationCode.delete({ where: { email: body.email } });
-    res.status(400).json({ error: 'code_expired' });
+    ApiResponse.error(res, '验证码已过期', 'code_expired');
     return;
   }
 
@@ -296,19 +297,19 @@ router.post('/verify-reset-code', asyncHandler(async (req, res) => {
     const attempts = record.attempts + 1;
     if (attempts >= 3) {
       await prisma.emailVerificationCode.delete({ where: { email: body.email } });
-      res.status(400).json({ error: 'code_max_attempts' });
+      ApiResponse.error(res, '验证码错误次数过多', 'code_max_attempts');
       return;
     }
     await prisma.emailVerificationCode.update({
       where: { email: body.email },
       data: { attempts }
     });
-    res.status(400).json({ error: 'invalid_code' });
+    ApiResponse.error(res, '验证码无效', 'invalid_code');
     return;
   }
 
   await prisma.emailVerificationCode.delete({ where: { email: body.email } });
-  res.json({ success: true });
+  ApiResponse.success(res);
 }));
 
 // 重置密码
@@ -321,7 +322,7 @@ router.post('/reset-password', asyncHandler(async (req, res) => {
   const member = await prisma.member.findUnique({ where: { email: body.email } });
 
   if (!member || !member.password) {
-    res.status(400).json({ error: 'no_password' });
+    ApiResponse.error(res, '该账号未设置密码', 'no_password');
     return;
   }
 
@@ -332,7 +333,7 @@ router.post('/reset-password', asyncHandler(async (req, res) => {
     data: { password: hashedPassword },
   });
 
-  res.json({ success: true });
+  ApiResponse.success(res);
 }));
 
 // 刷新token
@@ -340,7 +341,7 @@ router.post('/refresh', asyncHandler(async (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
 
   if (!refreshToken) {
-    res.status(401).json({ error: 'missing_refresh_token' });
+    ApiResponse.error(res, '缺少刷新令牌', 'missing_refresh_token', undefined, 401);
     return;
   }
 
@@ -348,7 +349,7 @@ router.post('/refresh', asyncHandler(async (req, res) => {
 
   if (!payload || payload.type !== 'refresh') {
     clearRefreshTokenCookie(res);
-    res.status(401).json({ error: 'invalid_refresh_token' });
+    ApiResponse.error(res, '刷新令牌无效', 'invalid_refresh_token', undefined, 401);
     return;
   }
 
@@ -358,22 +359,21 @@ router.post('/refresh', asyncHandler(async (req, res) => {
 
   if (!member) {
     clearRefreshTokenCookie(res);
-    res.status(401).json({ error: 'member_not_found' });
+    ApiResponse.error(res, '用户不存在', 'member_not_found', undefined, 401);
     return;
   }
 
   const { authToken, refreshToken: newRefreshToken, roleId } = await generateTokenPair(member);
 
-  // 设置新的 refreshToken 到 Cookie
   setRefreshTokenCookie(res, newRefreshToken);
 
-  res.json({ authToken, roleId });
+  ApiResponse.success(res, { authToken, roleId });
 }));
 
 // 登出（清除 cookie）
 router.post('/logout', asyncHandler(async (_req, res) => {
   clearRefreshTokenCookie(res);
-  res.json({ success: true });
+  ApiResponse.success(res);
 }));
 
 export default router;
