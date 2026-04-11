@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ToastProvider } from './context';
 import Navbar from './components/Navbar';
 import Home from './sections/Home';
 import Gallery from './sections/Gallery';
@@ -16,6 +15,8 @@ import { TokenProvider, useToken } from './context/token';
 import { FunctionProvider } from './context/function';
 import Notice from './sections/Notice';
 import MemberPublicProfile from './sections/MemberPublicProfile';
+import ErrorBoundary from './components/ErrorBoundary';
+import { Toaster } from 'react-hot-toast';
 
 export const queryClient = new QueryClient();
 
@@ -72,17 +73,18 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TokenProvider>
-        <FunctionProvider>
-          <UserProvider queryClient={queryClient}>
-            <ToastProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <Toaster position="top-center" reverseOrder={false} />
+        <TokenProvider>
+          <FunctionProvider>
+            <UserProvider queryClient={queryClient}>
               <AppContent />
-            </ToastProvider>
-          </UserProvider>
-        </FunctionProvider>
-      </TokenProvider>
-    </QueryClientProvider>
+            </UserProvider>
+          </FunctionProvider>
+        </TokenProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

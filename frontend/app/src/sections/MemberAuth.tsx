@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '../context';
 import { useUser } from '../context/user';
 import { useFunction } from '@/context/function';
 import api from '@/lib/axios';
+import toast from 'react-hot-toast';
 
 export default function MemberAuth() {
   const { user} = useUser();
@@ -16,12 +16,7 @@ export default function MemberAuth() {
   const [searchParams] = useSearchParams();
   const successMessage = searchParams.get('success');
 
-  // 使用全局的Toast系统
-  const { showToast } = useToast();
-
-  const goHome = () => {
-    navigate('/');
-  };
+  const goHome = () => navigate('/');
   useEffect(() => {
     if (user) {
       navigate('/', { replace: true });
@@ -75,11 +70,11 @@ export default function MemberAuth() {
               </TabsList>
 
               <TabsContent value="code">
-                <CodeLoginForm onDone={goHome} showToast={showToast} />
+                <CodeLoginForm onDone={goHome} />
               </TabsContent>
 
               <TabsContent value="password">
-                <PasswordLoginForm onDone={goHome} showToast={showToast} />
+                <PasswordLoginForm onDone={goHome} />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -90,10 +85,7 @@ export default function MemberAuth() {
 }
 
 // 验证码登录表单
-function CodeLoginForm({ onDone, showToast }: {
-  onDone: () => void;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
-}) {
+function CodeLoginForm({ onDone }: { onDone: () => void }) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
@@ -128,9 +120,9 @@ function CodeLoginForm({ onDone, showToast }: {
       });
       if (!res.data) throw new Error('send_failed');
       setSent(true);
-      showToast('验证码已发送，请查收', 'success');
+      toast.success('验证码已发送，请查收');
     } catch {
-      showToast('验证码发送失败，请稍后重试', 'error');
+      toast.error('验证码发送失败，请稍后重试');
     } finally {
       setSending(false);
     }
@@ -158,12 +150,12 @@ function CodeLoginForm({ onDone, showToast }: {
       if (ok) {
         reset();
         onDone();
-        showToast('登录成功', 'success');
+        toast.success('登录成功');
       } else {
-        showToast('登录失败', 'error');
+        toast.error('登录失败');
       }
     } catch {
-      showToast('验证失败，请重试', 'error');
+      toast.error('验证失败，请重试');
     } finally {
       setVerifying(false);
     }
@@ -231,10 +223,7 @@ function CodeLoginForm({ onDone, showToast }: {
 }
 
 // 密码登录表单
-function PasswordLoginForm({ onDone, showToast }: {
-  onDone: () => void;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
-}) {
+function PasswordLoginForm({ onDone }: { onDone: () => void }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -257,11 +246,11 @@ function PasswordLoginForm({ onDone, showToast }: {
     try {
       const success = await loginMemberWithPassword(email.trim().toLowerCase(), password);
       if (success) {
-        showToast('登录成功', 'success');
+        toast.success('登录成功');
         onDone();
       }
     } catch (err) {
-      showToast('登录失败，请重试', 'error');
+      toast.error('登录失败，请重试');
     } finally {
       setIsLoading(false);
     }

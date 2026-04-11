@@ -3,12 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/context';
 import { useAdminFunction } from '@/context/function';
 import { AdminUser } from '@/types';
+import toast from 'react-hot-toast';
 
 export default function UserManage() {
-  const { showToast } = useToast();
   const { fetchAllUsers, updateUser, deleteUser } = useAdminFunction();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,11 +39,11 @@ export default function UserManage() {
       bio: editBio.trim(),
     });
     if (success) {
-      showToast('用户信息更新成功', 'success');
+      toast.success('用户信息更新成功');
       setEditingUser(null);
       loadUsers();
     } else {
-      showToast('更新失败', 'error');
+      toast.error('更新失败');
     }
   };
 
@@ -52,10 +51,10 @@ export default function UserManage() {
     if (!window.confirm('确定要删除该用户吗？')) return;
     const success = await deleteUser(id);
     if (success) {
-      showToast('用户已删除', 'success');
+      toast.success('用户已删除');
       loadUsers();
     } else {
-      showToast('删除失败', 'error');
+      toast.error('删除失败');
     }
   };
 

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 // 自定义事件：token 刷新成功
 export const TOKEN_REFRESHED_EVENT = 'tokenRefreshed';
@@ -35,6 +36,15 @@ api.interceptors.response.use(
   async (error) => {
     const { config, response } = error;
     const originalRequest = config;
+
+    if (!response) {
+      toast.error('网络连接已断开，请检查网速');
+      return Promise.reject(error);
+    }
+    if (response.status === 500) {
+      toast.error('服务器开小差了');
+      return Promise.reject(error);
+    }
 
     if (response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {

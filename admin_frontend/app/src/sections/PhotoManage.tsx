@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/context';
 import { useAdminFunction } from '@/context/function';
 import { Photo } from '@/types';
+import toast from 'react-hot-toast';
 
 export default function PhotoManage() {
-  const { showToast } = useToast();
   const { fetchAllPhotos, updatePhotoStatus, deletePhoto } = useAdminFunction();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,20 +31,20 @@ export default function PhotoManage() {
   const handleApprove = async (id: string) => {
     const success = await updatePhotoStatus(id, 'approved');
     if (success) {
-      showToast('图片已批准', 'success');
+      toast.success('图片已批准');
       void loadPhotos(statusFilter === 'all' ? undefined : statusFilter);
     } else {
-      showToast('操作失败', 'error');
+      toast.error('操作失败');
     }
   };
 
   const handleReject = async (id: string) => {
     const success = await updatePhotoStatus(id, 'rejected');
     if (success) {
-      showToast('图片已拒绝', 'success');
+      toast.success('图片已拒绝');
       void loadPhotos(statusFilter === 'all' ? undefined : statusFilter);
     } else {
-      showToast('操作失败', 'error');
+      toast.error('操作失败');
     }
   };
 
@@ -53,10 +52,10 @@ export default function PhotoManage() {
     if (!window.confirm('确定要删除该图片吗？')) return;
     const success = await deletePhoto(id);
     if (success) {
-      showToast('图片已删除', 'success');
+      toast.success('图片已删除');
       void loadPhotos(statusFilter === 'all' ? undefined : statusFilter);
     } else {
-      showToast('删除失败', 'error');
+      toast.error('删除失败');
     }
   };
 
