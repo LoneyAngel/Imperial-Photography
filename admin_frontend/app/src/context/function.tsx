@@ -43,9 +43,8 @@ export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => 
         email: email.trim().toLowerCase(),
         password,
       });
-      if (!res.data) return null;
-      // refreshToken 通过 HttpOnly Cookie 自动保存
-      const { authToken, roleId } = res.data;
+      if (!res.data?.data) return null;
+      const { authToken, roleId } = res.data.data;
       return { authToken, roleId };
     } catch {
       return null;
@@ -55,7 +54,7 @@ export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => 
   const fetchAllUsers = useCallback(async () => {
     try {
       const res = await api.get('/api/admin/users');
-      return res.data as AdminUser[];
+      return res.data.data as AdminUser[];
     } catch {
       return [];
     }
@@ -83,7 +82,7 @@ export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => 
     try {
       const query = status ? `?status=${status}` : '';
       const res = await api.get(`/api/admin/photos${query}`);
-      return res.data as Photo[];
+      return res.data.data as Photo[];
     } catch {
       return [];
     }
@@ -110,7 +109,7 @@ export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => 
   const fetchAdmins = useCallback(async () => {
     try {
       const res = await api.get('/api/admin/admins');
-      return res.data as AdminWithRole[];
+      return res.data.data as AdminWithRole[];
     } catch {
       return [];
     }
@@ -128,7 +127,7 @@ export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => 
   const fetchNotices = useCallback(async () => {
     try {
       const res = await api.get('/api/admin/notices');
-      return res.data as Notice[];
+      return res.data.data as Notice[];
     } catch {
       return [];
     }
@@ -137,7 +136,7 @@ export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => 
   const createNotice = useCallback(async (title: string, content: string) => {
     try {
       const res = await api.post('/api/admin/notices', { title, content });
-      return res.data as Notice;
+      return res.data.data as Notice;
     } catch {
       return null;
     }

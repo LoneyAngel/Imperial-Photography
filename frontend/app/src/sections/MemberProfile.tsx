@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
+import Pagination from '@/components/ui/pagination';
 
 export default function MemberProfile() {
   const { fetchOwnerPhotos, updateMemberProfile, updatePhoto, deletePhoto } = useFunction();
@@ -17,6 +18,7 @@ export default function MemberProfile() {
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [editing, setEditing] = useState(false);
+  const [page, setPage] = useState(1);
 
   // 照片查看/编辑状态
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
@@ -56,25 +58,20 @@ export default function MemberProfile() {
 
   // 获取用户照片
   const { data } = useQuery({
-    queryKey: ['photos', 'owner', user?.id],
-    queryFn: () => fetchOwnerPhotos(),
-    initialData: () => {
-      if (!user) return undefined;
-      const listCache = queryClient.getQueryData(['photos']) as Photo[] | undefined;
-      if (!listCache) return;
-      return listCache?.filter((p: Photo) => p.ownerMemberId === user?.id);
-    },
-    initialDataUpdatedAt: () =>
-      queryClient.getQueryState(['photos'])?.dataUpdatedAt,
+    queryKey: ['photos', 'owner', user?.id, page],
+    queryFn: () => fetchOwnerPhotos(page),
     staleTime: 1000 * 60,
+    enabled: !!user,
   });
+
+  const photos = data?.list ?? [];
+  const totalPages = Math.ceil((data?.total ?? 0) / (data?.pageSize ?? 30));
 
   // 照片修改
   const updatePhotoMutation = useMutation({
     mutationFn: ({ id, title, description }: { id: string; title?: string; description?: string }) =>
       updatePhoto(id, title, description),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['photos'] });
       queryClient.invalidateQueries({ queryKey: ['photos', 'owner'] });
       setEditingPhoto(null);
     },
@@ -84,7 +81,6 @@ export default function MemberProfile() {
   const deletePhotoMutation = useMutation({
     mutationFn: (id: string) => deletePhoto(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['photos'] });
       queryClient.invalidateQueries({ queryKey: ['photos', 'owner'] });
       setSelectedPhoto(null);
       setEditingPhoto(null);
@@ -191,29 +187,28 @@ export default function MemberProfile() {
           <div className="mb-4">
             <h2 className="text-xl font-semibold">我的作品</h2>
           </div>
-          {data?.length === 0 ? (
+          {photos.length === 0 ? (
             <div className="text-sm text-muted-foreground border rounded-lg p-6">
               暂无作品
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {data?.map((p: Photo) => (
-                <Card key={p.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                  <CardContent className="pt-4">
-                    <img
-                      src={p.url}
-                      alt={p.title || '未命名作品'}
-                      className="w-full h-40 object-cover rounded-md mb-3"
-                      onClick={() => setSelectedPhoto(p)}
-                    />
-                    <p className="text-sm font-medium">{p.title || '未命名作品'}</p>
-                    {p.description && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{p.description}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {photos.map((p: Photo) => (
+                  <Card key={p.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                    <CardContent className="pt-4">
+                      <img
+                        src={p.url}
+                        alt={p.title || '未命名作品'}
+                        className="w-full h-40 object-cover"
+                        onClick={() => setSelectedPhoto(p)}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+            </>
           )}
         </div>
       </div>

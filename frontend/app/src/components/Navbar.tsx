@@ -20,7 +20,7 @@ export default function Navbar() {
   const { logout } = useToken();
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30">
       <div className="container px-4 flex justify-between items-center h-16">
         <div>
           <Link to="/" className="text-lg font-semibold text-foreground">Imperial use</Link>

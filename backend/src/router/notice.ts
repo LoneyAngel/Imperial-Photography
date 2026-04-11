@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { asyncHandler } from '../utils/api.js';
+import { asyncHandler, ApiResponse } from '../utils/api.js';
 import { prisma } from '../utils/prisma.js';
 
 const router = Router();
@@ -11,15 +11,13 @@ router.get('/', asyncHandler(async (req, res) => {
     orderBy: { createdAt: 'desc' },
   });
 
-  res.json(
-    notices.map((n) => ({
-      id: n.id,
-      title: n.title,
-      contentUrl: n.contentUrl,
-      createdAt: n.createdAt.toISOString(),
-      createdMemberId: n.createdMemberId,
-    }))
-  );
+  ApiResponse.success(res, notices.map((n) => ({
+    id: n.id,
+    title: n.title,
+    contentUrl: n.contentUrl,
+    createdAt: n.createdAt.toISOString(),
+    createdMemberId: n.createdMemberId,
+  })));
 }));
 
 // 获取指定id的公告（无需权限）
@@ -33,11 +31,11 @@ router.get('/:id', asyncHandler(async (req, res) => {
   });
 
   if (!notice) {
-    res.status(404).json({ error: 'notice_not_found' });
+    ApiResponse.notFound(res, '公告不存在');
     return;
   }
 
-  res.json({
+  ApiResponse.success(res, {
     id: notice.id,
     title: notice.title,
     contentUrl: notice.contentUrl,

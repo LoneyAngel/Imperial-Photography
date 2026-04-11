@@ -10,26 +10,28 @@ export const asyncHandler =
 
 // 通用的API响应工具
 export const ApiResponse = {
-  success: <T>(res: Response, data: T, message?: string) => {
+  // 完全成功
+  success: <T = undefined>(res: Response, data?: T | null, message?: string) => {
     return res.status(200).json({
-      success: true,
+      code: 200,
       data,
       message,
     });
   },
 
-  error: (res: Response, message: string, statusCode: number = 400, code?: string) => {
+  error: (res: Response, message: string,code?: string,data?: any, statusCode: number = 400) => {
     return res.status(statusCode).json({
-      success: false,
-      error: message,
+      message,
       code,
+      data,
     });
   },
-
-  ok: (res: Response, message: string = '操作成功') => {
+  // 部分成功
+  ok: (res: Response, message: string = '出了点小问题',code?: string, data?: any) => {
     return res.status(200).json({
-      ok: true,
+      code,
       message,
+      data,
     });
   },
 

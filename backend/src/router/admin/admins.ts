@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { asyncHandler } from '../../utils/api.js';
+import { asyncHandler, ApiResponse } from '../../utils/api.js';
 import { prisma } from '../../utils/prisma.js';
 import { superAdminOnly } from '../../middleware/admin.js';
 
@@ -21,7 +21,7 @@ router.get('/', superAdminOnly, asyncHandler(async (req, res) => {
     orderBy: { createdAt: 'desc' },
   });
 
-  res.json(users.map(u => ({
+  ApiResponse.success(res, users.map(u => ({
     id: u.id,
     email: u.email,
     name: u.name ?? undefined,
@@ -37,9 +37,8 @@ router.put('/:id/role', superAdminOnly, asyncHandler(async (req, res) => {
     roleId: z.number().int().min(1).max(3),
   }).parse(req.body);
 
-  // 不能修改自己的角色
   if (id === req.userId) {
-    res.status(400).json({ error: 'cannot_modify_self' });
+    ApiResponse.error(res, '不能修改自己的角色', 'cannot_modify_self');
     return;
   }
 
@@ -50,7 +49,7 @@ router.put('/:id/role', superAdminOnly, asyncHandler(async (req, res) => {
     select: { roleId: true },
   });
 
-  res.json({ id, roleId: userRole.roleId });
+  ApiResponse.success(res, { id, roleId: userRole.roleId });
 }));
 
 export default router;

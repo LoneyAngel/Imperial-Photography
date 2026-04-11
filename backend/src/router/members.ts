@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { asyncHandler } from '../utils/api.js';
+import { asyncHandler, ApiResponse } from '../utils/api.js';
 import { prisma } from '../utils/prisma.js';
 import { authMiddleware } from '../middleware/auth.js';
 
@@ -24,7 +24,7 @@ router.put('/update', asyncHandler(async (req, res) => {
     },
   });
 
-  res.json({
+  ApiResponse.success(res, {
     id: member.id,
     email: member.email,
     name: member.name ?? undefined,
@@ -45,17 +45,16 @@ router.get('/detail', asyncHandler(async (req, res) => {
     },
   });
   if (!member) {
-    res.status(404).json({ message: 'Member not found' });
+    ApiResponse.notFound(res, 'Member not found');
     return;
   }
-  res.json({
+  ApiResponse.success(res, {
     id: member.id,
     email: member.email,
     name: member.name ?? undefined,
     bio: member.bio ?? undefined,
   });
 }));
- 
 
 
 export default router;

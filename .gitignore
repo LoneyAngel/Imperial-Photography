@@ -177,3 +177,6 @@ dist/
 build/
 
 ./node_modules/
+
+
+deve.md

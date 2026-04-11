@@ -23,9 +23,9 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
         const initAuth = async () => {
             try {
                 const res = await api.post('/api/auth/refresh');
-                if (res.data?.authToken) {
-                    setAuthToken(res.data.authToken);
-                    setMemoryToken(res.data.authToken);
+                if (res.data?.data?.authToken) {
+                    setAuthToken(res.data.data.authToken);
+                    setMemoryToken(res.data.data.authToken);
                 }
             } catch {
                 // refresh 失败，用户未登录或 token 已过期
