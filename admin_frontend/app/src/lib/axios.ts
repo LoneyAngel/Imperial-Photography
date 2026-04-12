@@ -46,6 +46,14 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // 如果报错的请求本身就是刷新接口
+    if (response.status === 401 && originalRequest.url.includes('/api/auth/refresh')) {
+      // Cookie 彻底没了或过期了
+      // 必须直接报错，不要再尝试重试
+      console.warn('Refresh token is invalid, redirecting to login');
+      return Promise.reject(error); 
+    }
+
     if (response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

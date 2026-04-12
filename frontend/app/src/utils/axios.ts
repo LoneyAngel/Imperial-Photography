@@ -66,6 +66,14 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // 如果报错的请求本身就是刷新接口
+    if (response.status === 401 && originalRequest.url.includes('/api/auth/refresh')) {
+      // Cookie 彻底没了或过期了
+      // 必须直接报错，不要再尝试重试
+      console.warn('Refresh token is invalid, redirecting to login');
+      return Promise.reject(error); 
+    }
+
     // 如果返回 401，尝试刷新 Token
     if (response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
@@ -85,6 +93,7 @@ api.interceptors.response.use(
       return new Promise((resolve, reject) => {
         axios.post('/api/auth/refresh', {}, { withCredentials: true })
           .then(({ data }) => {
+            console.log('Token refreshed successfully');
             const { authToken } = data.data;
             setMemoryToken(authToken);
             originalRequest.headers.Authorization = `Bearer ${authToken}`;

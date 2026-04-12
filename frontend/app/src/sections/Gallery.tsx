@@ -107,10 +107,7 @@ export default function Gallery() {
                   className="max-h-full max-w-full object-contain shadow-2xl"
                 />
               </div>
-
-              {/* 右侧：信息详情区 */}
               <div className="w-[350px] md:w-[400px] bg-white flex flex-col border-l border-slate-100">
-                {/* 头部：关闭按钮和标题 */}
                 <div className="p-6 flex items-center justify-between border-b border-slate-50">
                   <h2 className="text-base font-bold text-slate-800">详细信息</h2>
                   <button
@@ -121,9 +118,9 @@ export default function Gallery() {
                   </button>
                 </div>
 
-                {/* 中间：滚动内容区 */}
+                {/* 内容区 */}
                 <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                  {/* 作者板块 */}
+                  {/* 作者 */}
                   <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate(`/member/${selectedPhoto.ownerMemberId}`)}>
                     <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold">
                       {selectedPhoto.ownerName?.charAt(0) || 'U'}
@@ -134,7 +131,7 @@ export default function Gallery() {
                     </div>
                   </div>
 
-                  {/* 标题板块 */}
+                  {/* 标题 */}
                   <div className="space-y-2">
                     <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Title</p>
                     <p className="text-xl font-light text-slate-800 leading-tight">
@@ -142,7 +139,7 @@ export default function Gallery() {
                     </p>
                   </div>
 
-                  {/* 介绍板块 */}
+                  {/* 介绍 */}
                   <div className="space-y-2">
                     <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Description</p>
                     <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap italic">
@@ -151,7 +148,7 @@ export default function Gallery() {
                   </div>
                 </div>
 
-                {/* 底部：下载按钮
+                {/* 下载
                 <div className="p-6 bg-slate-50/50 border-t border-slate-100">
                   <button className="w-full bg-slate-900 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors">
                     下载原图

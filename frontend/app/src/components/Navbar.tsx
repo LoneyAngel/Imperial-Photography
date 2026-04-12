@@ -23,7 +23,7 @@ export default function Navbar() {
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30">
       <div className="container px-4 flex justify-between items-center h-16">
         <div>
-          <Link to="/" className="text-lg font-semibold text-foreground">Imperial use</Link>
+          <Link to="/" className="text-lg font-semibold text-foreground">Imperial</Link>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <Link to="/gallery">
@@ -77,7 +77,7 @@ export default function Navbar() {
                     消息
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={logout}>退出登录</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => void logout()}>退出登录</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (

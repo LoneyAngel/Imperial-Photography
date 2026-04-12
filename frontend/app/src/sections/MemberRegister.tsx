@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUser } from '../context/user';
-import api from '@/lib/axios';
+import api from '@/utils/axios';
 import toast from 'react-hot-toast';
 
 

@@ -14,21 +14,42 @@ export default function Home() {
     <div className="flex-1 bg-gradient-to-b from-slate-50 to-background">
       <div className="container flex flex-col items-center py-16">
         <div className="w-full max-w-4xl mx-auto text-center px-4 mt-6">
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight leading-tight">
-            Imperial use
+          <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-tight">
+            Imperial
           </h1>
           <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed">
             一个面向摄影创作者的国际摄影组织
           </p>
-          <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed">
+          <p className="mt-3 text-base md:text-lg text-muted-foreground leading-relaxed">
             换一个角度，记录这些故事
           </p>
           <div className="mt-8 flex items-center gap-3 justify-center">
-            <Button onClick={handleBrowse}>join us</Button>
+            {/* <Button onClick={handleBrowse}>join us</Button> */}
+            <button
+              onClick={handleBrowse}
+              className="
+                bg-transparent
+                text-black
+                px-4
+                py-2
+                border-b-2
+                border-dashed
+                border-gray-300
+                font-medium
+                transition-all
+                duration-300
+                hover:bg-gray-50
+                hover:border-gray-700
+                hover:text-gray-700
+                active:scale-95 
+              "
+            >
+              join us
+            </button>
           </div>
         </div>
 
-        <div className="mt-20 flex flex-col gap-4 items-center w-[50%]">
+        <div className="mt-20 flex flex-col gap-6 items-center w-[50%]">
           <div className="w-full flex gap-8">
             <div className="flex flex-col gap-2">
               <div className="mt-2 text-sm text-muted-foreground text-start px-2">

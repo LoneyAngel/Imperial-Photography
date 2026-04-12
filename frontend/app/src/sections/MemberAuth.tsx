@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser } from '../context/user';
 import { useFunction } from '@/context/function';
-import api from '@/lib/axios';
+import api from '@/utils/axios';
 import toast from 'react-hot-toast';
 
 export default function MemberAuth() {

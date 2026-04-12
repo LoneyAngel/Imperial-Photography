@@ -1,6 +1,7 @@
 import { queryClient } from '@/App';
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState, useEffect } from 'react';
-import api, { TOKEN_REFRESHED_EVENT, setMemoryToken } from '@/lib/axios';
+import api, { TOKEN_REFRESHED_EVENT, setMemoryToken } from '@/utils/axios';
+import toast from 'react-hot-toast';
 
 // 定义类型
 interface TokenContextType {
@@ -8,7 +9,7 @@ interface TokenContextType {
     isLoading: boolean; // 初始化加载状态
     setAuthToken: React.Dispatch<React.SetStateAction<string | null>>;
     login: (authToken: string) => void;
-    logout: () => void;
+    logout: () => Promise<void>;
 }
 
 const TokenContext = createContext<TokenContextType | null>(null);
@@ -28,7 +29,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
                     setMemoryToken(res.data.data.authToken);
                 }
             } catch {
-                // refresh 失败，用户未登录或 token 已过期
+                // refresh 失败，用户未登录或 cookie 已过期
                 setMemoryToken(null);
             } finally {
                 setIsLoading(false);
@@ -49,12 +50,16 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
         };
     }, []);
 
-    const logout = useCallback(() => {
+    const logout = useCallback(async () => {
         setAuthToken(null);
         setMemoryToken(null);
         queryClient.clear();
-        void api.post('/api/auth/logout');
-        window.location.href = '/';
+        await api.post('/api/auth/logout').catch(() => {
+            toast.error('退出登录失败，请稍后再试');
+        }).finally(() => {
+            console.log('Logged out, redirecting to home');
+            window.location.href = '/';
+        });
     }, []);
 
     const login = useCallback((authToken: string) => {
