@@ -19,6 +19,8 @@ export default function MemberRegister() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
 
@@ -30,6 +32,7 @@ export default function MemberRegister() {
     setError(null);
     setIsLoading(false);
     setStep('email');
+    setAgreedToPrivacy(false);
   };
   useEffect(() => {
     if (user) {
@@ -39,6 +42,10 @@ export default function MemberRegister() {
     }
   }, [user, navigate]);
   const sendCode = async () => {
+    if (!agreedToPrivacy) {
+      setError('请先阅读并同意隐私协议');
+      return;
+    }
     if (!emailValid) {
       setError('请输入有效的邮箱地址');
       return;
@@ -171,13 +178,34 @@ export default function MemberRegister() {
                   />
                 </div>
 
+                {/* 隐私协议勾选 */}
+                <div className="flex items-start gap-2">
+                  <input
+                    id="privacy"
+                    type="checkbox"
+                    checked={agreedToPrivacy}
+                    onChange={(e) => setAgreedToPrivacy(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 cursor-pointer"
+                  />
+                  <label htmlFor="privacy" className="text-sm text-muted-foreground leading-snug">
+                    我已阅读并同意
+                    <button
+                      type="button"
+                      onClick={() => setShowPrivacy(true)}
+                      className="text-gray-600 hover:underline mx-1"
+                    >
+                      《隐私协议》
+                    </button>
+                  </label>
+                </div>
+
                 {error && <p className="text-sm text-destructive">{error}</p>}
 
                 <Button
                   type="button"
                   className="w-full"
                   onClick={() => void sendCode()}
-                  disabled={!emailValid || isLoading}
+                  disabled={!emailValid || !agreedToPrivacy || isLoading}
                 >
                   {isLoading ? '发送中...' : '发送验证码'}
                 </Button>
@@ -289,7 +317,7 @@ export default function MemberRegister() {
             <div className="flex items-center justify-center pt-2">
               <button
                 type="button"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-gray-500 underline decoration-gray-500 decoration-1 underline-offset-4 decoration-dashed hover:decoration-gray-700 hover:text-gray-800"
                 onClick={() => navigate('/member-auth')}
               >
                 已有账号？去登录
@@ -299,7 +327,7 @@ export default function MemberRegister() {
             <div className="flex items-center justify-center pt-1">
               <button
                 type="button"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-gray-500 underline decoration-gray-500 decoration-1 underline-offset-4 decoration-dashed hover:decoration-gray-700 hover:text-gray-800"
                 onClick={() => {
                   reset();
                 }}
@@ -310,6 +338,53 @@ export default function MemberRegister() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 隐私协议弹窗 */}
+      {showPrivacy && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowPrivacy(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[70vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b flex items-center justify-between">
+              <h2 className="text-lg font-semibold">隐私协议</h2>
+              <button onClick={() => setShowPrivacy(false)} className="text-muted-foreground hover:text-foreground text-xl">×</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 text-sm text-muted-foreground space-y-4 leading-relaxed">
+              <p>最后更新日期：2025年</p>
+              <p>欢迎使用 Imperial Photography（以下简称“本平台”）。在注册前，请仔细阅读本隐私协议。</p>
+              <div>
+                <p className="font-medium text-foreground mb-1">1. 收集的信息</p>
+                <p>我们仅收集您的邮箱地址、个人名称、个人简介及您主动上传的照片作品。</p>
+              </div>
+              <div>
+                <p className="font-medium text-foreground mb-1">2. 信息用途</p>
+                <p>您的信息仅用于身份验证、展示作品及提供平台服务，不会向第三方出售或共享您的个人信息。</p>
+              </div>
+              <div>
+                <p className="font-medium text-foreground mb-1">3. 作品权利</p>
+                <p>您上传的照片作品的着作权归您所有。本平台仅展示您的作品，不会将其用于商业目的。</p>
+              </div>
+              <div>
+                <p className="font-medium text-foreground mb-1">4. 数据安全</p>
+                <p>我们采用合理的安全措施保护您的个人信息，包括加密存储和传输。</p>
+              </div>
+              <div>
+                <p className="font-medium text-foreground mb-1">5. 联系我们</p>
+                <p>如您对本协议有任何疑问，请通过平台内的联系方式与我们取得联系。</p>
+              </div>
+            </div>
+            <div className="p-4 border-t">
+              <Button className="w-full" onClick={() => { setAgreedToPrivacy(true); setShowPrivacy(false); }}>
+                我已阅读并同意
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
