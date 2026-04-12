@@ -1,24 +1,23 @@
-import { Photo } from '@/types';
+import { Photo, User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { X } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, Suspense } from 'react';
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
 import Pagination from '@/components/ui/pagination';
 
 export default function MemberProfile() {
-  const { fetchOwnerPhotos, updateMemberProfile, updatePhoto, deletePhoto } = useFunction();
+  const { updateMemberProfile, updatePhoto, deletePhoto } = useFunction();
   const { user } = useUser();
   const queryClient = useQueryClient();
 
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [editing, setEditing] = useState(false);
-  const [page, setPage] = useState(1);
 
   // 照片查看/编辑状态
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
@@ -55,17 +54,6 @@ export default function MemberProfile() {
       queryClient.invalidateQueries({ queryKey: ['userMe'] });
     },
   });
-
-  // 获取用户照片
-  const { data } = useQuery({
-    queryKey: ['photos', 'owner', user?.id, page],
-    queryFn: () => fetchOwnerPhotos(page),
-    staleTime: 1000 * 60,
-    enabled: !!user,
-  });
-
-  const photos = data?.list ?? [];
-  const totalPages = Math.ceil((data?.total ?? 0) / (data?.pageSize ?? 30));
 
   // 照片修改
   const updatePhotoMutation = useMutation({
@@ -187,29 +175,10 @@ export default function MemberProfile() {
           <div className="mb-4">
             <h2 className="text-xl font-semibold">我的作品</h2>
           </div>
-          {photos.length === 0 ? (
-            <div className="text-sm text-muted-foreground border rounded-lg p-6">
-              暂无作品
-            </div>
-          ) : (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {photos.map((p: Photo) => (
-                  <Card key={p.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                    <CardContent className="pt-4">
-                      <img
-                        src={p.url}
-                        alt={p.title || '未命名作品'}
-                        className="w-full h-40 object-cover"
-                        onClick={() => setSelectedPhoto(p)}
-                      />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-            </>
-          )}
+          {/* 这部分需要添加照片加载管理 */}
+          <Suspense fallback={<div className="text-center py-16"><p className="text-muted-foreground">正在加载作品...</p></div>}>
+            <Photos user={user} setSelectedPhoto={setSelectedPhoto} />
+          </Suspense>
         </div>
       </div>
 
@@ -219,9 +188,9 @@ export default function MemberProfile() {
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedPhoto(null)}
         >
-          <div className="bg-background shadow-xl w-full max-w-6xl h-[80vh] overflow-hidden border border-slate-200">
+          <div className="bg-background shadow-xl w-full max-w-6xl h-[80vh] overflow-hidden border border-slate-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex h-full">
-              {/* 左侧：图片展示区 */}
+              {/* 左侧图片 */}
               <div className="flex-1 bg-slate-100 flex items-center justify-center p-6 relative">
                 <img
                   src={selectedPhoto.url}
@@ -230,9 +199,8 @@ export default function MemberProfile() {
                 />
               </div>
 
-              {/* 右侧：信息详情区 */}
+              {/* 右侧详情 */}
               <div className="w-[350px] md:w-[400px] bg-white flex flex-col border-l border-slate-100">
-                {/* 头部：关闭按钮和标题 */}
                 <div className="p-6 flex items-center justify-between border-b border-slate-50">
                   <h2 className="text-base font-bold text-slate-800">详细信息</h2>
                   <button
@@ -243,17 +211,13 @@ export default function MemberProfile() {
                   </button>
                 </div>
 
-                {/* 中间：滚动内容区 */}
                 <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                  {/* 标题板块 */}
                   <div className="space-y-2">
                     <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Title</p>
                     <p className="text-xl font-light text-slate-800 leading-tight">
                       {selectedPhoto.title || 'Untitled Work'}
                     </p>
                   </div>
-
-                  {/* 介绍板块 */}
                   <div className="space-y-2">
                     <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Description</p>
                     <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap italic">
@@ -261,8 +225,6 @@ export default function MemberProfile() {
                     </p>
                   </div>
                 </div>
-
-                {/* 底部：操作按钮 */}
                 <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex gap-3">
                   <Button
                     variant="outline"
@@ -340,6 +302,62 @@ export default function MemberProfile() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+import { useDeferredValue} from "react"
+
+function Photos({ user, setSelectedPhoto }: { user: User | null; setSelectedPhoto: (p: Photo | null) => void }) {
+  const { fetchOwnerPhotos } = useFunction();
+  const [page, setPage] = useState(1);
+  
+  // 使用 deferredPage，让分页请求在后台静默进行，不阻塞当前 UI
+  const deferredPage = useDeferredValue(page);
+
+  const { data: photos } = useSuspenseQuery({
+    queryKey: ['photos', 'owner', user?.id, deferredPage], // 使用延迟的页码
+    queryFn: () => fetchOwnerPhotos(deferredPage),
+    staleTime: 1000 * 60,
+  });
+
+  const { list, total, pageSize } = photos;
+  const totalPages = Math.ceil(total / (pageSize ?? 30));
+
+  // 判断是否正在加载下一页（用于给 UI 增加淡出效果）
+  const isStale = page !== deferredPage;
+
+  if (list.length === 0) {
+    return (
+      <div className="text-sm text-muted-foreground border rounded-lg p-6">
+        暂无作品
+      </div>
+    );
+  }
+
+  return (
+    <div className={isStale ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {list.map((p: Photo) => (
+          <Card key={p.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardContent className="pt-4">
+              <img
+                src={p.url}
+                loading="lazy" // 懒加载
+                alt={p.title || '未命名作品'}
+                className="w-full h-40 object-cover rounded-md"
+                onClick={() => setSelectedPhoto(p)}
+              />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      <Pagination 
+        page={page} 
+        totalPages={totalPages} 
+        onPageChange={setPage} 
+      />
     </div>
   );
 }

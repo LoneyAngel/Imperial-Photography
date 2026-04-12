@@ -79,6 +79,7 @@ export default function Gallery() {
         )}
       </div>
 
+      {/* 这部分可能需要进行加载处理 */}
       {photos.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-muted-foreground">
