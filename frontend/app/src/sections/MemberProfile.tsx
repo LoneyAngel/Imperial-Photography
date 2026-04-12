@@ -5,10 +5,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { X } from 'lucide-react';
 import { useState, useEffect, Suspense } from 'react';
-import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
 import Pagination from '@/components/ui/pagination';
+import { useDeferredValue} from "react"
+
 
 export default function MemberProfile() {
   const { updateMemberProfile, updatePhoto, deletePhoto } = useFunction();
@@ -306,7 +308,6 @@ export default function MemberProfile() {
   );
 }
 
-import { useDeferredValue} from "react"
 
 function Photos({ user, setSelectedPhoto }: { user: User | null; setSelectedPhoto: (p: Photo | null) => void }) {
   const { fetchOwnerPhotos } = useFunction();
