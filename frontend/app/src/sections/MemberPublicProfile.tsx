@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import Pagination from '@/components/ui/pagination';
-import api from '@/lib/axios';
+import api from '@/utils/axios';
 
 interface MemberPhotosResult {
   member: { name: string; bio?: string };

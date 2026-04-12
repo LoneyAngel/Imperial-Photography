@@ -5,11 +5,6 @@ import { useToken } from '@/context/token';
 export default function AdminNavbar() {
   const { logout, role } = useToken();
   const location = useLocation();
-
-  const handleLogout = () => {
-    logout();
-  };
-
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -50,7 +45,7 @@ export default function AdminNavbar() {
           variant="outline"
           className="bg-transparent border-white text-white hover:bg-slate-600 hover:text-white"
           size="sm"
-          onClick={handleLogout}
+          onClick={() => void logout()}
         >
           退出登录
         </Button>

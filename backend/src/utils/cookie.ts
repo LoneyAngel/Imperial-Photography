@@ -15,6 +15,6 @@ function setRefreshTokenCookie(res: any, token: string) {
 
 // 清除 refreshToken cookie
 function clearRefreshTokenCookie(res: any) {
-  res.clearCookie(COOKIE_NAME, { path: '/' });
+  res.clearCookie(COOKIE_NAME, { path: '/api/auth/refresh' });
 }
 export { setRefreshTokenCookie, clearRefreshTokenCookie };

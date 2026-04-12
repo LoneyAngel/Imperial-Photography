@@ -63,7 +63,7 @@ function AppContent() {
         </main>
         <footer className="border-t py-6 mt-auto">
           <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-            <p>Imperial use © 2024 - All rights reserved</p>
+            <p>Imperial © 2024 - All rights reserved</p>
           </div>
         </footer>
       </div>

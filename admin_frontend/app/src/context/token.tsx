@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState, useEffect } from 'react';
 import api, { TOKEN_REFRESHED_EVENT } from '@/lib/axios';
+import toast from 'react-hot-toast';
 
 interface TokenContextType {
   auth_token: string | null;
@@ -7,7 +8,7 @@ interface TokenContextType {
   isLoading: boolean;
   setAuthToken: React.Dispatch<React.SetStateAction<string | null>>;
   login: (authToken: string, roleId: number) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const TokenContext = createContext<TokenContextType | null>(null);
@@ -51,13 +52,16 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     setAuthToken(null);
     setRole(null);
-    localStorage.removeItem('authToken');
     localStorage.removeItem('userRole');
-    api.post('/api/auth/logout');
-    window.location.href = '/login';
+    await api.post('/api/auth/logout').catch(() => {
+        toast.error('退出登录失败，请稍后再试');
+    }).finally(() => {
+        console.log('Logged out, redirecting to home');
+        window.location.href = '/';
+    });
   }, []);
 
   const login = useCallback((authToken: string, roleId: number) => {
