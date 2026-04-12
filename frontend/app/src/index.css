@@ -59,3 +59,7 @@
       "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
   }
 }
+
+*{
+  transition: all 0.3s ease;
+}
