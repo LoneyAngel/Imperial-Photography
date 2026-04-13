@@ -1,14 +1,14 @@
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { useUser } from '@/context/user';
-import img1 from '@/picture/1.jpg';
-import img2 from '@/picture/2.jpg';
+import img1 from '@/assets/picture/1.jpg';
+import img2 from '@/assets/picture/2.jpg';
 
 export default function Home() {
   const navigate = useNavigate();
   const {user} = useUser();
   const handleBrowse = () => {
-    navigate(user ? '/' : '/register');
+    if(user) console.log("原地跳转");
+    navigate(user ? '/gallery' : '/register');
   };
   return (
     <div className="flex-1 bg-gradient-to-b from-slate-50 to-background">
@@ -24,7 +24,6 @@ export default function Home() {
             换一个角度，记录这些故事
           </p>
           <div className="mt-8 flex items-center gap-3 justify-center">
-            {/* <Button onClick={handleBrowse}>join us</Button> */}
             <button
               onClick={handleBrowse}
               className="
