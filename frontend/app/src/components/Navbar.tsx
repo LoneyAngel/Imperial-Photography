@@ -30,7 +30,7 @@ export default function Navbar() {
             <Button
               variant={isActive('/gallery') ? 'default' : 'ghost'}
               size="sm"
-              className="nav-link"
+              className="nav-link nav-link-underline hover:bg-inherit hover:text-black"
             >
               <LayoutGrid className="h-4 w-4 mr-2" />
               浏览作品
@@ -41,7 +41,7 @@ export default function Navbar() {
               <Button
                 variant={isActive('/upload') ? 'default' : 'ghost'}
                 size="sm"
-                className="nav-link"
+                className="nav-link nav-link-underline hover:bg-inherit hover:text-black"
               >
                 <Upload className="h-4 w-4 mr-2" />
                 上传作品
@@ -49,7 +49,7 @@ export default function Navbar() {
             </Link>
           )}
           {user ? (
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -60,8 +60,8 @@ export default function Navbar() {
                   <UserCircle2 className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel className="max-w-[220px]">
+              <DropdownMenuContent align="end" >
+                <DropdownMenuLabel className="max-w-[220px] text-muted-foreground font-normal">
                   {user.name || user.email.split('@')[0] || user.email}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />

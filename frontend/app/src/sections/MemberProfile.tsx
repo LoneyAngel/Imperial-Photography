@@ -166,7 +166,7 @@ export default function MemberProfile() {
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{bio || '—'}</p>
                   </div>
                   <Button className="w-full" variant="outline" onClick={() => setEditing(true)}>
-                    修改
+                    编辑
                   </Button>
                 </div>
               )}
@@ -233,7 +233,7 @@ export default function MemberProfile() {
                     className="flex-1"
                     onClick={() => handleEditPhoto(selectedPhoto)}
                   >
-                    修改
+                    编辑
                   </Button>
                   <Button
                     className="flex-1 bg-red-600 text-white hover:bg-red-700"
