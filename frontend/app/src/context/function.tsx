@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo} from 'react';
+import { createContext, ReactNode, use, useMemo} from 'react';
 import { Photo, User, Notice } from '@/types';
 import { useToken } from './token';
 import api from '@/utils/axios';
@@ -31,7 +31,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     const { login} = useToken(); 
 
     // 获取所有照片
-    const fetchPhotos = useCallback(async (search?: string, page: number = 1) => {
+    const fetchPhotos = async (search?: string, page: number = 1) => {
         const empty: PhotosResult = { list: [], total: 0, page: 1, pageSize: 20 };
         try {
             const params = new URLSearchParams();
@@ -42,10 +42,10 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         } catch {
             return empty;
         }
-    }, []);
+    };
 
     // 获取用户所有照片
-    const fetchOwnerPhotos = useCallback(async (page: number = 1) => {
+    const fetchOwnerPhotos = async (page: number = 1) => {
         const empty: PhotosResult = { list: [], total: 0, page: 1, pageSize: 30 };
         try {
             const res = await api.get(`/api/photos/user-photos?page=${page}`);
@@ -53,11 +53,11 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         } catch {
             return empty;
         }
-    }, []);
+    };
 
     // 验证验证码
     // 用于登录或注册
-    const loginMemberWithEmail = useCallback(async (email: string, code: string) => {
+    const loginMemberWithEmail = async (email: string, code: string) => {
         const normalizedEmail = email.trim().toLowerCase();
         const normalizedCode = code.trim();
         if (!normalizedEmail || normalizedCode.length !== 6) return false;
@@ -80,12 +80,12 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         } catch {
             return false;
         }
-    }, [login]);
+    };
 
 
 
     // 密码登录
-    const loginMemberWithPassword = useCallback(async (email: string, password: string) => {
+    const loginMemberWithPassword = async (email: string, password: string) => {
         const normalizedEmail = email.trim().toLowerCase();
         if (!normalizedEmail || !password) return false;
 
@@ -107,19 +107,19 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         } catch {
             return false;
         }
-    }, [login]);
+    };
 
     // 获取用户信息
-    const fetchMemberProfile = useCallback(async () => {
+    const fetchMemberProfile = async () => {
         try {
             const res = await api.get(`/api/members/detail`);
             return res.data.data;
         } catch {
             return null;
         }
-    }, []);
+    };
 
-    const updateMemberProfile = useCallback(async (name: string, bio: string) => {
+    const updateMemberProfile = async (name: string, bio: string) => {
         try {
             await api.put(`/api/members/update`, {
                 name: name.trim(),
@@ -129,10 +129,10 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         } catch {
             return false;
         }
-    }, []);
+    };
 
     // 上传照片
-    const uploadPhoto = useCallback(async (title: string, description: string, file: File) => {
+    const uploadPhoto = async (title: string, description: string, file: File) => {
         try {
             const form = new FormData();
             form.append('file', file);
@@ -144,10 +144,10 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         } catch {
             return false;
         }
-    }, []);
+    };
 
     // 修改照片信息
-    const updatePhoto = useCallback(async (id: string, title?: string, description?: string) => {
+    const updatePhoto = async (id: string, title?: string, description?: string) => {
         try {
             await api.put(`/api/photos/${id}`, {
                 title: title?.trim(),
@@ -157,37 +157,37 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         } catch {
             return false;
         }
-    }, []);
+    };
 
     // 删除照片
-    const deletePhoto = useCallback(async (id: string) => {
+    const deletePhoto = async (id: string) => {
         try {
             await api.delete(`/api/photos/${id}`);
             return true;
         } catch {
             return false;
         }
-    }, []);
+    };
 
     // 获取所有通知
-    const fetchNotices = useCallback(async () => {
+    const fetchNotices = async () => {
         try {
             const res = await api.get('/api/notice');
             return res.data.data as Notice[];
         } catch {
             return [];
         }
-    }, []);
+    };
 
     // 获取单个通知详情
-    const fetchNoticeById = useCallback(async (id: string) => {
+    const fetchNoticeById = async (id: string) => {
         try {
             const res = await api.get(`/api/notice/${id}`);
             return res.data.data as Notice;
         } catch {
             return null;
         }
-    }, []);
+    }
 
     const value = useMemo(() => ({
         loginMemberWithEmail,
@@ -213,15 +213,15 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         fetchNotices,
         fetchNoticeById]);
     return (
-    <FunctionContext.Provider value={value}>
+    <FunctionContext value={value}>
         {children}
-    </FunctionContext.Provider>
+    </FunctionContext>
     );
 };
 
 // 3. 自定义 Hook，方便外部调用
 export const useFunction = () => {
-  const context = useContext(FunctionContext);
+  const context = use(FunctionContext);
   if (!context) {
     throw new Error('useFunction must be used within a FunctionProvider');
   }

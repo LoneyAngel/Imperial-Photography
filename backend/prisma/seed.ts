@@ -5,14 +5,18 @@ const prisma = new PrismaClient();
 
 async function main() {
   // 插入初始角色数据
-  await prisma.role.createMany({
-    data: [
-      { id: 1, name: 'admin' },
-      { id: 2, name: 'user' },
-      { id: 3, name: 'superAdmin' },
-    ],
-    skipDuplicates: true,
-  });
+  const roles = [
+    { id: 1, name: 'admin' },
+    { id: 2, name: 'user' },
+    { id: 3, name: 'superAdmin' },
+  ];
+  for (const role of roles) {
+    await prisma.role.upsert({
+      where: { id: role.id },
+      update: {},
+      create: role,
+    });
+  }
 
   console.log('Roles seeded: admin (id=1), user (id=2), superAdmin (id=3)');
 

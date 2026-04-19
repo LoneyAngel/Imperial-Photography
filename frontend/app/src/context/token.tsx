@@ -1,5 +1,5 @@
 import { queryClient } from '@/App';
-import { createContext, ReactNode, useCallback, useContext, useMemo, useState, useEffect } from 'react';
+import { createContext, ReactNode, use, useMemo, useState, useEffect } from 'react';
 import api, { TOKEN_REFRESHED_EVENT, setMemoryToken } from '@/utils/axios';
 import toast from 'react-hot-toast';
 
@@ -50,7 +50,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
         };
     }, []);
 
-    const logout = useCallback(async () => {
+    const logout = async () => {
         setAuthToken(null);
         setMemoryToken(null);
         queryClient.clear();
@@ -60,29 +60,29 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
             console.log('Logged out, redirecting to home');
             window.location.href = '/';
         });
-    }, []);
+    };
 
-    const login = useCallback((authToken: string) => {
+    const login = (authToken: string) => {
         setAuthToken((pre) => {
             if (pre === authToken) return pre;
             return authToken;
         });
         setMemoryToken(authToken);
-    }, []);
+    };
 
     const value = useMemo(() => ({
         auth_token, isLoading, setAuthToken, login, logout
     }), [auth_token, isLoading]);
 
     return (
-        <TokenContext.Provider value={value}>
+        <TokenContext value={value}>
             {children}
-        </TokenContext.Provider>
+        </TokenContext>
     );
 };
 
 export const useToken = () => {
-    const context = useContext(TokenContext);
+    const context = use(TokenContext);
     if (!context) {
         throw new Error('useToken must be used within a TokenProvider');
     }

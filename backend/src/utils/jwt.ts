@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Member } from '@prisma/client';
-import { prisma } from './prisma.js';
+import {prisma} from './prisma.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_AUTH_EXPIRES_IN = process.env.JWT_AUTH_EXPIRES_IN || '30m';
