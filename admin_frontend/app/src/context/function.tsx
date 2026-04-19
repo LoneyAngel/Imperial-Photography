@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo } from 'react';
+import { createContext, ReactNode, use, useMemo } from 'react';
 import { AdminUser, Photo } from '@/types';
 import api from '@/lib/axios';
 
@@ -37,48 +37,45 @@ interface AdminFunctionContextType {
 const AdminFunctionContext = createContext<AdminFunctionContextType | null>(null);
 
 export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => {
-  const loginAdmin = useCallback(async (email: string, password: string) => {
+  const loginAdmin = async (email: string, password: string) => {
     try {
-      const res = await api.post('/api/auth/login', {
-        email: email.trim().toLowerCase(),
-        password,
-      });
+      const res = await api.post('/api/auth/login', { email: email.trim().toLowerCase(), password });
       if (!res.data?.data) return null;
       const { authToken, roleId } = res.data.data;
       return { authToken, roleId };
     } catch {
       return null;
     }
-  }, []);
+  };
 
-  const fetchAllUsers = useCallback(async () => {
+  const fetchAllUsers = async () => {
     try {
       const res = await api.get('/api/admin/users');
       return res.data.data as AdminUser[];
     } catch {
       return [];
     }
-  }, []);
+  };
 
-  const updateUser = useCallback(async (id: string, data: { name?: string; bio?: string }) => {
+  const updateUser = async (id: string, data: { name?: string; bio?: string }) => {
     try {
       await api.put(`/api/admin/users/${id}`, data);
       return true;
     } catch {
       return false;
     }
-  }, []);
+  };
 
-  const deleteUser = useCallback(async (id: string) => {
+  const deleteUser = async (id: string) => {
     try {
       await api.delete(`/api/admin/users/${id}`);
       return true;
     } catch {
       return false;
     }
-  }, []);
+  };
 
-  const fetchAllPhotos = useCallback(async (status?: 'pending' | 'approved' | 'rejected') => {
+  const fetchAllPhotos = async (status?: 'pending' | 'approved' | 'rejected') => {
     try {
       const query = status ? `?status=${status}` : '';
       const res = await api.get(`/api/admin/photos${query}`);
@@ -86,79 +83,79 @@ export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => 
     } catch {
       return [];
     }
-  }, []);
+  };
 
-  const updatePhotoStatus = useCallback(async (id: string, status: 'pending' | 'approved' | 'rejected') => {
+  const updatePhotoStatus = async (id: string, status: 'pending' | 'approved' | 'rejected') => {
     try {
       await api.put(`/api/admin/photos/${id}/status`, { status });
       return true;
     } catch {
       return false;
     }
-  }, []);
+  };
 
-  const deletePhoto = useCallback(async (id: string) => {
+  const deletePhoto = async (id: string) => {
     try {
       await api.delete(`/api/admin/photos/${id}`);
       return true;
     } catch {
       return false;
     }
-  }, []);
+  };
 
-  const fetchAdmins = useCallback(async () => {
+  const fetchAdmins = async () => {
     try {
       const res = await api.get('/api/admin/admins');
       return res.data.data as AdminWithRole[];
     } catch {
       return [];
     }
-  }, []);
+  };
 
-  const updateUserRole = useCallback(async (id: string, roleId: number) => {
+  const updateUserRole = async (id: string, roleId: number) => {
     try {
       await api.put(`/api/admin/admins/${id}/role`, { roleId });
       return true;
     } catch {
       return false;
     }
-  }, []);
+  };
 
-  const fetchNotices = useCallback(async () => {
+  const fetchNotices = async () => {
     try {
       const res = await api.get('/api/admin/notices');
       return res.data.data as Notice[];
     } catch {
       return [];
     }
-  }, []);
+  };
 
-  const createNotice = useCallback(async (title: string, content: string) => {
+  const createNotice = async (title: string, content: string) => {
     try {
       const res = await api.post('/api/admin/notices', { title, content });
       return res.data.data as Notice;
     } catch {
       return null;
     }
-  }, []);
+  };
 
-  const updateNotice = useCallback(async (id: string, data: { title?: string; content?: string }) => {
+  const updateNotice = async (id: string, data: { title?: string; content?: string }) => {
     try {
       await api.put(`/api/admin/notices/${id}`, data);
       return true;
     } catch {
       return false;
     }
-  }, []);
+  };
 
-  const deleteNotice = useCallback(async (id: string) => {
+  const deleteNotice = async (id: string) => {
     try {
       await api.delete(`/api/admin/notices/${id}`);
       return true;
     } catch {
       return false;
     }
-  }, []);
+  };
 
   const value = useMemo(() => ({
     loginAdmin,
@@ -177,14 +174,14 @@ export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => 
   }), [loginAdmin, fetchAllUsers, updateUser, deleteUser, fetchAllPhotos, updatePhotoStatus, deletePhoto, fetchAdmins, updateUserRole, fetchNotices, createNotice, updateNotice, deleteNotice]);
 
   return (
-    <AdminFunctionContext.Provider value={value}>
+    <AdminFunctionContext value={value}>
       {children}
-    </AdminFunctionContext.Provider>
+    </AdminFunctionContext>
   );
 };
 
 export const useAdminFunction = () => {
-  const context = useContext(AdminFunctionContext);
+  const context = use(AdminFunctionContext);
   if (!context) {
     throw new Error('useAdminFunction must be used within an AdminFunctionProvider');
   }

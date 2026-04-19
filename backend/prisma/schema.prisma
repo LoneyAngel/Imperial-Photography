@@ -1,34 +1,27 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  output          = "../node_modules/.prisma/client"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum PhotoStatus {
-  pending
-  approved
-  rejected
+  schemas  = ["photo_member"]
 }
 
 model Member {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  password   String?
-  createdAt  DateTime @default(now())
-  verifiedAt DateTime @default(now())
+  id         String    @id @default(cuid())
+  email      String    @unique
+  createdAt  DateTime  @default(now())
+  verifiedAt DateTime  @default(now())
   name       String?
   bio        String?
-
-  // 关联到照片表
+  password   String?
   photos     Photo[]
-
-  // 关联到用户角色表
   userRole   UserRole?
 
   @@index([createdAt])
+  @@schema("photo_member")
 }
 
 model EmailVerificationCode {
@@ -38,49 +31,58 @@ model EmailVerificationCode {
   expiresAt DateTime
   attempts  Int      @default(0)
   createdAt DateTime @default(now())
+
+  @@schema("photo_member")
 }
 
 model Photo {
-  id               String      @id @default(cuid())
-  title            String
-  description      String?
-  url              String
-  status           PhotoStatus @default(pending)
-  createdAt        DateTime    @default(now())
-  ownerMemberId    String      // 改为必填，会员上传照片时必须关联
-
-  // 关联到会员表
-  member           Member      @relation(fields: [ownerMemberId], references: [id])
+  id            String      @id @default(cuid())
+  title         String
+  description   String?
+  url           String
+  status        PhotoStatus @default(pending)
+  createdAt     DateTime    @default(now())
+  ownerMemberId String
+  member        Member      @relation(fields: [ownerMemberId], references: [id])
 
   @@index([status, createdAt])
   @@index([ownerMemberId, createdAt])
+  @@schema("photo_member")
 }
 
 model Notice {
   id              String   @id @default(cuid())
   title           String
-  contentUrl      String   // 通知内容文件路径
   createdAt       DateTime @default(now())
-  createdMemberId String   // 创建公告的管理员ID，不建立外键关联
+  createdMemberId String
+  contentUrl      String
 
   @@index([createdAt])
+  @@schema("photo_member")
 }
 
 model Role {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-
-  // 关联到用户角色表
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
   userRoles UserRole[]
+
+  @@schema("photo_member")
 }
 
 model UserRole {
   userId String @unique
   roleId Int
-
-  // 关联
-  member Member @relation(fields: [userId], references: [id], onDelete: Cascade)
   role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([roleId])
+  @@schema("photo_member")
+}
+
+enum PhotoStatus {
+  pending
+  approved
+  rejected
+
+  @@schema("photo_member")
 }

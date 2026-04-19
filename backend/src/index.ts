@@ -3,7 +3,6 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middleware/errors.js';
-
 // 导入路由
 import authRoutes from './router/auth.js';
 import photoRoutes from './router/photos.js';

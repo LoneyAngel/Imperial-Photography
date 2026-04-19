@@ -125,7 +125,7 @@ router.post('/', authMiddleware, upload.single('file'), asyncHandler(async (req,
 
   const baseForLocal = `http://localhost:${process.env.PORT || '4001'}`;
   const uploaded = await putImage({
-    buffer: file.buffer,
+    buffer: Buffer.from(file.buffer),
     mime: file.mimetype,
     originalName: file.originalname,
     publicBaseUrlForLocal: baseForLocal,
