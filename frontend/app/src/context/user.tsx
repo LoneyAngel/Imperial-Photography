@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useMemo} from 'react';
+import { createContext, ReactNode, useContext} from 'react';
 import { User } from '@/types';
 import { useFunction } from './function';
 import { useToken } from './token';
@@ -28,18 +28,18 @@ export const UserProvider = ({ children }: { queryClient: QueryClient, children:
     });
 
     // 2. 使用 useMemo 优化性能，只有当 user 或状态改变时才重新渲染 Provider 订阅者
-    const value = useMemo(() => ({
+    const value = {
         user,
         isLoading,
         error,
         // isAdmin: user?.role === 'admin', // 可以在这里封装便捷的权限判断
         refresh: refetch,
-    }), [user, isLoading, error, refetch]);
+    };
 
     return (
-    <UserContext.Provider value={value}>
+    <UserContext value={value}>
         {children}
-    </UserContext.Provider>
+    </UserContext>
     );
 };
 

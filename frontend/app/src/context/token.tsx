@@ -1,5 +1,5 @@
 import { queryClient } from '@/App';
-import { createContext, ReactNode, use, useMemo, useState, useEffect } from 'react';
+import { createContext, ReactNode, use,useState, useEffect } from 'react';
 import api, { TOKEN_REFRESHED_EVENT, setMemoryToken } from '@/utils/axios';
 import toast from 'react-hot-toast';
 
@@ -70,9 +70,9 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
         setMemoryToken(authToken);
     };
 
-    const value = useMemo(() => ({
+    const value = {
         auth_token, isLoading, setAuthToken, login, logout
-    }), [auth_token, isLoading]);
+    };
 
     return (
         <TokenContext value={value}>

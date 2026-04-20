@@ -9,7 +9,15 @@ import { setRefreshTokenCookie, clearRefreshTokenCookie } from '../utils/cookie.
 import {ApiResponse} from "../utils/api.js";
 
 const router = Router();
-
+const emailbase = z.string().trim().toLowerCase().pipe(z.email());
+const codebase = z.string().length(6).regex(/^\d+$/);
+// 邮箱验证
+const emailSchema =z.object({
+  email: emailbase
+});
+const emailAndCodeSchema = emailSchema.extend({
+  code: codebase
+});
 // 更新认证记录
 async function createVerificationCodeRecord(email: string, code: string) {
   const codeHash = hashVerificationCode(email, code);
@@ -36,18 +44,20 @@ async function createVerificationCodeRecord(email: string, code: string) {
 }
 // 注册验证码
 router.post('/request-register-code', asyncHandler(async (req, res) => {
-  const body = z.object({
-    email: z.string().trim().toLowerCase().email(),
-  }).parse(req.body);
-  const {email} = body;
+  const a = emailSchema.safeParse(req.body) || {};
+  if (!a.success) {
+    ApiResponse.error(res, '无效的邮箱格式', 'invalid_email');
+    return;
+  }
+  const email = a.data.email;
 
   const existingMember = await prisma.member.findUnique({
-    where: { email },
+    where: { email: email },
     select: { password: true }
   });
 
   if (existingMember && existingMember.password) {
-    ApiResponse.error(res, '账号已注册错误', 'member_already_registered');
+    ApiResponse.error(res, '账号已注册', 'member_already_registered', undefined, 409);
     return;
   }
 
@@ -60,10 +70,12 @@ router.post('/request-register-code', asyncHandler(async (req, res) => {
 }));
 // 登录验证码
 router.post('/request-login-code', asyncHandler(async (req, res) => {
-  const body = z.object({
-    email: z.string().trim().toLowerCase().email(),
-  }).parse(req.body);
-  const {email} = body;
+  const a = emailSchema.safeParse(req.body) || {};
+  if (!a.success) {
+    ApiResponse.error(res, '无效的邮箱格式', 'invalid_email');
+    return;
+  }
+  const email = a.data.email;
   const existingMember = await prisma.member.findUnique({
     where: { email },
     select: { password: true }
@@ -76,17 +88,18 @@ router.post('/request-login-code', asyncHandler(async (req, res) => {
     ]);
     ApiResponse.success(res);
   }
-  else ApiResponse.error(res, '账号不存在错误', 'member_not_found');
+  else ApiResponse.error(res, '账号不存在', 'member_not_found');
 }));
 // 验证验证码
 router.post('/verify-code', asyncHandler(async (req, res) => {
-  const body = z.object({
-    email: z.string().trim().toLowerCase().email(),
-    code: z.string().length(6).regex(/^\d+$/),
-  }).parse(req.body);
-
+  const body = emailAndCodeSchema.safeParse(req.body);
+  if (!body.success) {
+    ApiResponse.error(res, '验证码或者邮箱有错误', 'invalid_parameters');
+    return;
+  }
+  const { email, code } = body.data;
   const record = await prisma.emailVerificationCode.findUnique({
-    where: { email: body.email }
+    where: { email: email }
   });
 
   if (!record) {
@@ -95,33 +108,33 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
   }
 
   if (new Date() > new Date(record.expiresAt)) {
-    await prisma.emailVerificationCode.delete({ where: { email: body.email } });
+    await prisma.emailVerificationCode.delete({ where: { email: email } });
     ApiResponse.error(res, '验证码已过期', 'code_expired');
     return;
   }
-  const hash = hashVerificationCode(body.email, body.code);
+  const hash = hashVerificationCode(email, code);
   if (hash !== record.codeHash) {
     const attempts = record.attempts + 1;
     if (attempts >= 3) {
-      await prisma.emailVerificationCode.delete({ where: { email: body.email } });
+      await prisma.emailVerificationCode.delete({ where: { email: email } });
       ApiResponse.error(res, '验证码错误次数过多', 'code_max_attempts');
       return;
     }
     await prisma.emailVerificationCode.update({
-      where: { email: body.email },
+      where: { email: email },
       data: { attempts }
     });
-    ApiResponse.error(res, '验证码无效', 'invalid_code');
+    ApiResponse.error(res, '验证码不正确', 'invalid_code');
     return;
   }
-  await prisma.emailVerificationCode.delete({ where: { email: body.email } });
+  await prisma.emailVerificationCode.delete({ where: { email: email } });
 
   const member = await prisma.member.upsert({
-    where: { email: body.email },
+    where: { email: email },
     update: {},
     create: {
-      email: body.email,
-      name: body.email.split('@')[0],
+      email: email,
+      name: email.split('@')[0],
       verifiedAt: new Date()
     },
   });

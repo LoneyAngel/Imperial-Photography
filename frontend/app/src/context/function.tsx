@@ -1,4 +1,4 @@
-import { createContext, ReactNode, use, useMemo} from 'react';
+import { createContext, ReactNode, use} from 'react';
 import { Photo, User, Notice } from '@/types';
 import { useToken } from './token';
 import api from '@/utils/axios';
@@ -12,7 +12,7 @@ interface PhotosResult {
 
 // 定义类型
 interface FunctionContextType {
-    loginMemberWithEmail: (email: string, code: string) => Promise<boolean>;
+    loginMemberWithEmail: (email: string, code: string) => Promise<{ message: string } | null>;
     loginMemberWithPassword: (email: string, password: string) => Promise<boolean>;
     updateMemberProfile: (name: string, bio: string) => Promise<boolean>;
     uploadPhoto: (title: string, description: string, file: File) => Promise<boolean>;
@@ -23,6 +23,9 @@ interface FunctionContextType {
     deletePhoto: (id: string) => Promise<boolean>;
     fetchNotices: () => Promise<Notice[]>;
     fetchNoticeById: (id: string) => Promise<Notice | null>;
+    sendAuthCode: (email: string) => Promise<{ message: string } | null>;
+    sendRegisterCode: (email: string) => Promise<{ message: string } | null>;
+    
 }
 // 这个泛型定义可以避免一个ts错误，即在使用 useContext 时，如果上下文为空，会报错
 const FunctionContext = createContext<FunctionContextType|null>(null);
@@ -60,7 +63,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     const loginMemberWithEmail = async (email: string, code: string) => {
         const normalizedEmail = email.trim().toLowerCase();
         const normalizedCode = code.trim();
-        if (!normalizedEmail || normalizedCode.length !== 6) return false;
+        if (!normalizedEmail || normalizedCode.length !== 6) return null;
 
         try {
             const res = await api.post('/api/auth/verify-code', {
@@ -71,14 +74,16 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-            if (!res.data?.data) return false;
-
-            const { authToken } = res.data.data;
-            login(authToken);
-
-            return true;
+            if (res.data.status === 200) {
+                const { authToken } = res.data.data;
+                login(authToken);
+                return null;
+            }
+            else return{
+                message: res.data.message || '登录失败，请检查验证码后重试',
+            }
         } catch {
-            return false;
+            throw new Error('verify-code 出现意外错误');
         }
     };
 
@@ -118,7 +123,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
             return null;
         }
     };
-
+    // 更新用户信息
     const updateMemberProfile = async (name: string, bio: string) => {
         try {
             await api.put(`/api/members/update`, {
@@ -188,8 +193,44 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
             return null;
         }
     }
+    // 请求登录验证码
+    const sendAuthCode = async (email: string) => {
+        // 1.成功 200
+        // 2.失败 显示后端的提供的错误信息
+        // 3.意外错误 通过错误边界处理
+        try{
+            const res = await api.post('/auth/request-login-code', { email}, {
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if(res.data.status === 200) return null;
+            else return{
+                message: res.data.message || '验证码发送失败，请稍后重试',
+            }
+        }
+        catch{
+            throw new Error('request-login-code 出现意外错误');
+        }
+    }
+        // 请求注册验证码
+    const sendRegisterCode = async (email: string) => {
+        // 同上
+        try{
+            const res = await api.post('/api/auth/request-register-code', 
+                { email},{
+                headers: { 'Content-Type': 'application/json' },
+                }
+            );
+            if (res.data.status===200) return null;
+            else return {
+                message: res.data.message || '验证码发送失败，请稍后重试',
+            } 
+        }
+        catch{
+            throw new Error('request-register-code 出现意外错误');
+        }
+    }
 
-    const value = useMemo(() => ({
+    const value = {
         loginMemberWithEmail,
         loginMemberWithPassword,
         updateMemberProfile,
@@ -200,18 +241,10 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         updatePhoto,
         deletePhoto,
         fetchNotices,
-        fetchNoticeById
-    }), [loginMemberWithEmail,
-        loginMemberWithPassword,
-        updateMemberProfile,
-        uploadPhoto,
-        fetchPhotos,
-        fetchOwnerPhotos,
-        fetchMemberProfile,
-        updatePhoto,
-        deletePhoto,
-        fetchNotices,
-        fetchNoticeById]);
+        fetchNoticeById,
+        sendAuthCode,
+        sendRegisterCode,
+    };
     return (
     <FunctionContext value={value}>
         {children}
