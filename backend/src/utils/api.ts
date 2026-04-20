@@ -1,3 +1,20 @@
+/*
+- 正常响应 success
+- 正常响应 但是请求并不合理 ok
+- 错误响应 error
+
+错误代码
+200 正常
+401 未授权
+403 禁止访问
+409 请求本身没问题，但由于服务器上已存在相同的资源（即邮箱已占用），导致请求无法完成
+
+
+*/
+
+
+
+
 import { Response } from 'express';
 import express from 'express';
 export const asyncHandler =

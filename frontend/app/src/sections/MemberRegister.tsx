@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,8 +21,8 @@ export default function MemberRegister() {
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
-  const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
+  const normalizedEmail = () => email.trim().toLowerCase();
+  const emailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail());
 
   const reset = () => {
     setEmail('');
@@ -40,13 +40,13 @@ export default function MemberRegister() {
       // 使用 replace: true 是为了防止用户点击浏览器返回键又回到登录页，形成死循环
       navigate('/', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user]);
   const sendCode = async () => {
     if (!agreedToPrivacy) {
       setError('请先阅读并同意隐私协议');
       return;
     }
-    if (!emailValid) {
+    if (!emailValid()) {
       setError('请输入有效的邮箱地址');
       return;
     }
@@ -54,7 +54,7 @@ export default function MemberRegister() {
       setIsLoading(true);
       setError(null);
       const res = await api.post('/api/auth/request-register-code', 
-        { email: normalizedEmail },{
+        { email: normalizedEmail() },{
           headers: { 'Content-Type': 'application/json' },
         }
       );

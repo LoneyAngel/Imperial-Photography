@@ -1,27 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useUser } from '../context/user';
 import { useFunction } from '@/context/function';
-import api from '@/utils/axios';
 import toast from 'react-hot-toast';
 
 export default function MemberAuth() {
-  const { user} = useUser();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  // 检查是否有 success 参数，并根据其值显示相应的消息,可能是 "password_set" 或 "password_reset"
   const successMessage = searchParams.get('success');
 
   const goHome = () => navigate('/');
-  useEffect(() => {
-    if (user) {
-      navigate('/', { replace: true });
-    }
-  }, [user, navigate]);
 
   return (
     <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10 bg-slate-50">
@@ -86,55 +79,50 @@ export default function MemberAuth() {
 
 // 验证码登录表单
 function CodeLoginForm({ onDone }: { onDone: () => void }) {
+  const { loginMemberWithEmail,sendAuthCode } = useFunction();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const normalizedEmail = email.trim().toLowerCase();
+  const emailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+  const [isPending, startTransition] = useTransition();
 
-  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
-  const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
-  const { loginMemberWithEmail } = useFunction();
+  
 
   const reset = () => {
     setEmail('');
     setCode('');
     setSent(false);
     setError(null);
-    setSending(false);
     setVerifying(false);
   };
 
-  const sendCode = async () => {
-    if (!emailValid) {
+  const send = async () => {
+    if (!emailValid()) {
       setError('请输入有效的邮箱地址');
       return;
     }
-    try {
-      setSending(true);
+    startTransition(async () => {
       setError(null);
-      setCode('');
-      const res = await api.post('/auth/request-login-code', { email: normalizedEmail }, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!res.data) throw new Error('send_failed');
+      const res = await sendAuthCode(normalizedEmail);
+      if(res){
+        toast.error(res.message);
+        return;
+      }
       setSent(true);
       toast.success('验证码已发送，请查收');
-    } catch {
-      toast.error('验证码发送失败，请稍后重试');
-    } finally {
-      setSending(false);
-    }
+    });
   };
 
   const verifyCodeAndLogin = async () => {
-    if (!emailValid) {
+    if (!emailValid()) {
       setError('请输入有效的邮箱地址');
       return;
     }
     if (!sent) {
-      setError('请先发送验证码');
+      setError('还没有发送验证码');
       return;
     }
     if (!code.trim()) {
@@ -163,11 +151,12 @@ function CodeLoginForm({ onDone }: { onDone: () => void }) {
 
 
   return (
-    <div className="space-y-4">
+    <form className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="memberEmail">邮箱</Label>
         <Input
-          id="memberEmail"
+          id="email"
+          name='email'
           type="email"
           placeholder="name@example.com"
           value={email}
@@ -175,33 +164,16 @@ function CodeLoginForm({ onDone }: { onDone: () => void }) {
         />
       </div>
 
-      {sent && (
-        <div className="space-y-2">
-          <Label htmlFor="memberCode">验证码</Label>
-          <Input
-            id="memberCode"
-            inputMode="numeric"
-            placeholder="6位数字"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-          />
-          <p className="text-xs text-muted-foreground">
-            验证码已发送，请查收
-          </p>
-        </div>
-      )}
-
       {error && <p className="text-sm text-destructive">{error}</p>}
-
       <div className="flex gap-2">
         <Button
           type="button"
           variant="outline"
           className="flex-1"
-          onClick={() => void sendCode()}
-          disabled={!emailValid || sending}
+          onClick={() => void send()}
+          disabled={isPending}
         >
-          {sending ? '发送中...' : '发送验证码'}
+          {isPending ? '发送中...' : '发送验证码'}
         </Button>
         <Button
           type="button"
@@ -218,7 +190,7 @@ function CodeLoginForm({ onDone }: { onDone: () => void }) {
           没有账号？注册
         </span>
       </Link>
-    </div>
+    </form>
   );
 }
 
