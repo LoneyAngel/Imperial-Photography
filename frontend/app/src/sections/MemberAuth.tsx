@@ -7,14 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFunction } from '@/context/function';
 import toast from 'react-hot-toast';
-
+import { Eye, EyeOff } from 'lucide-react';
 export default function MemberAuth() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   // 检查是否有 success 参数，并根据其值显示相应的消息,可能是 "password_set" 或 "password_reset"
   const successMessage = searchParams.get('success');
-
-  const goHome = () => navigate('/');
 
   return (
     <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10 bg-slate-50">
@@ -24,7 +21,6 @@ export default function MemberAuth() {
             <div className="flex items-center">
               <button
                 type="button"
-                onClick={goHome}
                 className="text-sm text-blue-600 hover:underline mr-2"
               >
                 ← 返回
@@ -63,11 +59,11 @@ export default function MemberAuth() {
               </TabsList>
 
               <TabsContent value="code">
-                <CodeLoginForm onDone={goHome} />
+                <CodeLoginForm />
               </TabsContent>
 
               <TabsContent value="password">
-                <PasswordLoginForm onDone={goHome} />
+                <PasswordLoginForm />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -78,17 +74,17 @@ export default function MemberAuth() {
 }
 
 // 验证码登录表单
-function CodeLoginForm({ onDone }: { onDone: () => void }) {
+function CodeLoginForm() {
   const { loginMemberWithEmail,sendAuthCode } = useFunction();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [verifying, setVerifying] = useState(false);
   const normalizedEmail = email.trim().toLowerCase();
   const emailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
-  const [isPending, startTransition] = useTransition();
-
+  const [AuthCode_isPending, startAuthCodeTransition] = useTransition();
+  const [verify_isPending, startVerifyTransition] = useTransition();
+  const navigate = useNavigate();
   
 
   const reset = () => {
@@ -96,7 +92,6 @@ function CodeLoginForm({ onDone }: { onDone: () => void }) {
     setCode('');
     setSent(false);
     setError(null);
-    setVerifying(false);
   };
 
   const send = async () => {
@@ -104,7 +99,7 @@ function CodeLoginForm({ onDone }: { onDone: () => void }) {
       setError('请输入有效的邮箱地址');
       return;
     }
-    startTransition(async () => {
+    startAuthCodeTransition(async () => {
       setError(null);
       const res = await sendAuthCode(normalizedEmail);
       if(res){
@@ -122,31 +117,24 @@ function CodeLoginForm({ onDone }: { onDone: () => void }) {
       return;
     }
     if (!sent) {
-      setError('还没有发送验证码');
+      toast.error('还没有发送验证码');
       return;
     }
     if (!code.trim()) {
-      setError('请输入验证码');
+      setError('验证码为空');
       return;
     }
-
-    setVerifying(true);
     setError(null);
-
-    try {
+    startVerifyTransition(async () => {
       const ok = await loginMemberWithEmail(normalizedEmail, code.trim());
       if (ok) {
-        reset();
-        onDone();
-        toast.success('登录成功');
+        toast.error(ok.message||'登录失败，请检查验证码后重试');
       } else {
-        toast.error('登录失败');
+        reset();
+        window.location.href = '/';
+        toast.success('登录成功');
       }
-    } catch {
-      toast.error('验证失败，请重试');
-    } finally {
-      setVerifying(false);
-    }
+    })
   };
 
 
@@ -160,7 +148,11 @@ function CodeLoginForm({ onDone }: { onDone: () => void }) {
           type="email"
           placeholder="name@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value)
+            if(error) setError(null);
+          }}
+          required
         />
       </div>
 
@@ -171,17 +163,17 @@ function CodeLoginForm({ onDone }: { onDone: () => void }) {
           variant="outline"
           className="flex-1"
           onClick={() => void send()}
-          disabled={isPending}
+          disabled={AuthCode_isPending}
         >
-          {isPending ? '发送中...' : '发送验证码'}
+          {AuthCode_isPending ? '发送中...' : '发送验证码'}
         </Button>
         <Button
           type="button"
           className="flex-1"
           onClick={() => void verifyCodeAndLogin()}
-          disabled={!sent || !code.trim() || verifying}
+          disabled={!sent || !code.trim() || verify_isPending}
         >
-          {verifying ? '登录中...' : '登录'}
+          {verify_isPending ? '登录中...' : '登录'}
         </Button>
       </div>
 
@@ -195,7 +187,7 @@ function CodeLoginForm({ onDone }: { onDone: () => void }) {
 }
 
 // 密码登录表单
-function PasswordLoginForm({ onDone }: { onDone: () => void }) {
+function PasswordLoginForm() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -203,7 +195,6 @@ function PasswordLoginForm({ onDone }: { onDone: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const {loginMemberWithPassword} = useFunction();
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -219,7 +210,7 @@ function PasswordLoginForm({ onDone }: { onDone: () => void }) {
       const success = await loginMemberWithPassword(email.trim().toLowerCase(), password);
       if (success) {
         toast.success('登录成功');
-        onDone();
+        window.location.href = '/'
       }
     } catch (err) {
       toast.error('登录失败，请重试');
@@ -236,8 +227,12 @@ function PasswordLoginForm({ onDone }: { onDone: () => void }) {
           id="loginEmail"
           type="email"
           placeholder="name@example.com"
+          name='email'
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value)
+            if(error) setError(null);
+          }}
           required
         />
       </div>
@@ -249,10 +244,29 @@ function PasswordLoginForm({ onDone }: { onDone: () => void }) {
             id="loginPassword"
             type={showPassword ? 'text' : 'password'}
             placeholder="请输入密码"
+            name='password'
+            className='pr-10'
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              if(error) setError(null);
+            }}
             required
           />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+            onClick={() => setShowPassword((prev) => !prev)}
+            tabIndex={-1} // 防止 Tab 键切换到这个按钮，优化输入体验
+          >
+            {showPassword ? (
+              <EyeOff className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            )}
+          </Button>
         </div>
       </div>
 

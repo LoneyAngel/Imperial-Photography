@@ -63,10 +63,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const login = (authToken: string) => {
-        setAuthToken((pre) => {
-            if (pre === authToken) return pre;
-            return authToken;
-        });
+        setAuthToken(authToken);
         setMemoryToken(authToken);
     };
 

@@ -13,7 +13,7 @@ interface PhotosResult {
 // 定义类型
 interface FunctionContextType {
     loginMemberWithEmail: (email: string, code: string) => Promise<{ message: string } | null>;
-    loginMemberWithPassword: (email: string, password: string) => Promise<boolean>;
+    loginMemberWithPassword: (email: string, password: string) => Promise<{ message: string } | null>;
     updateMemberProfile: (name: string, bio: string) => Promise<boolean>;
     uploadPhoto: (title: string, description: string, file: File) => Promise<boolean>;
     fetchPhotos: (search?: string, page?: number) => Promise<PhotosResult>;
@@ -87,12 +87,12 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-
-
-    // 密码登录
+    // 密码登录 √
     const loginMemberWithPassword = async (email: string, password: string) => {
         const normalizedEmail = email.trim().toLowerCase();
-        if (!normalizedEmail || !password) return false;
+        if (!normalizedEmail || !password) return {
+            message: '请输入邮箱和密码',
+        };
 
         try {
             const res = await api.post('/api/auth/login', {
@@ -103,14 +103,16 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-            if (!res.data?.data) return false;
-
-            const { authToken } = res.data.data;
-            login(authToken);
-
-            return true;
+            if (res.data.status === 200) {
+                const { authToken } = res.data.data;
+                login(authToken);
+                return null;
+            }
+            else return {
+                message: res.data.message || '登录失败，请检查邮箱和密码后重试',
+            }
         } catch {
-            return false;
+            throw new Error('login 出现意外错误');
         }
     };
 
@@ -193,7 +195,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
             return null;
         }
     }
-    // 请求登录验证码
+    // 请求登录验证码 √
     const sendAuthCode = async (email: string) => {
         // 1.成功 200
         // 2.失败 显示后端的提供的错误信息

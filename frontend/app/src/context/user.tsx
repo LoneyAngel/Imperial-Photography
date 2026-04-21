@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext} from 'react';
+import { createContext, ReactNode, use} from 'react';
 import { User } from '@/types';
 import { useFunction } from './function';
 import { useToken } from './token';
@@ -45,7 +45,7 @@ export const UserProvider = ({ children }: { queryClient: QueryClient, children:
 
 // 3. 自定义 Hook，方便外部调用
 export const useUser = () => {
-  const context = useContext(UserContext);
+  const context = use(UserContext);
   if (!context) {
     throw new Error('useUser must be used within a UserProvider');
   }

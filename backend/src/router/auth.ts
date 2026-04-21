@@ -11,12 +11,16 @@ import {ApiResponse} from "../utils/api.js";
 const router = Router();
 const emailbase = z.string().trim().toLowerCase().pipe(z.email());
 const codebase = z.string().length(6).regex(/^\d+$/);
+const passwordbase = z.string().min(6);
 // 邮箱验证
 const emailSchema =z.object({
   email: emailbase
 });
 const emailAndCodeSchema = emailSchema.extend({
   code: codebase
+});
+const emailAndPasswordSchema = emailSchema.extend({
+  password: passwordbase
 });
 // 更新认证记录
 async function createVerificationCodeRecord(email: string, code: string) {
@@ -168,31 +172,32 @@ router.post('/verify-code', asyncHandler(async (req, res) => {
 
 // 密码登录
 router.post('/login', asyncHandler(async (req, res) => {
-  const body = z.object({
-    email: z.string().trim().toLowerCase().email(),
-    password: z.string().min(6),
-  }).parse(req.body);
-  const member = await prisma.member.findUnique({ where: { email: body.email } });
+  const body = emailAndPasswordSchema.safeParse(req.body);
+  if (!body.success) {
+    ApiResponse.error(res, '无效的邮箱或密码格式', 'invalid_parameters');
+    return;
+  }
+  const { email, password } = body.data;
+  const member = await prisma.member.findUnique({ where: { email: email } });
 
   if (!member || !member.password) {
-    ApiResponse.error(res, '邮箱或密码错误', 'invalid_credentials', undefined, 401);
+    ApiResponse.error(res, '用户不存在或未设置密码', 'member_not_found', undefined, 404);
     return;
   }
 
-  const isValidPassword = await bcrypt.compare(body.password, member.password);
+  const isValidPassword = await bcrypt.compare(password, member.password);
 
   if (!isValidPassword) {
-    ApiResponse.error(res, '邮箱或密码错误', 'invalid_credentials', undefined, 401);
+    ApiResponse.error(res, '邮箱或密码错误', 'invalid_credentials', undefined, 400);
     return;
   }
-  const { authToken, refreshToken, roleId } = await generateTokenPair(member);
-  // 为用户赋予默认 user 角色（如果还没有角色）
+  const { authToken, refreshToken } = await generateTokenPair(member);
   await prisma.userRole.upsert({
     where: { userId: member.id },
     update: {},
     create: {
       userId: member.id,
-      roleId: 2, // user 角色
+      roleId: 2, // user 普通用户角色
     },
   });
 
@@ -200,14 +205,7 @@ router.post('/login', asyncHandler(async (req, res) => {
   setRefreshTokenCookie(res, refreshToken);
 
   ApiResponse.success(res, {
-    user: {
-      id: member.id,
-      email: member.email,
-      name: member.name,
-      bio: member.bio,
-    },
     authToken,
-    roleId,
   });
 }));
 
