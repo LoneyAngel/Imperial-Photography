@@ -28,9 +28,9 @@ export default function Navbar() {
         <div className="ml-auto flex items-center gap-2">
           <Link to="/gallery">
             <Button
-              variant={isActive('/gallery') ? 'default' : 'ghost'}
+              variant="ghost"
               size="sm"
-              className="nav-link nav-link-underline hover:bg-inherit hover:text-black"
+              className={`nav-link nav-link-underline hover:bg-inherit hover:text-black relative ${isActive('/gallery') ? 'shadow-[0_2px_0_0_rgba(0,0,0,1)]' : ''}`}
             >
               <LayoutGrid className="h-4 w-4 mr-2" />
               浏览作品
@@ -39,9 +39,9 @@ export default function Navbar() {
           {user && (
             <Link to="/upload">
               <Button
-                variant={isActive('/upload') ? 'default' : 'ghost'}
+                variant="ghost"
                 size="sm"
-                className="nav-link nav-link-underline hover:bg-inherit hover:text-black"
+                className={`nav-link nav-link-underline hover:bg-inherit hover:text-black relative ${isActive('/upload') ? 'shadow-[0_2px_0_0_rgba(0,0,0,1)]' : ''}`}
               >
                 <Upload className="h-4 w-4 mr-2" />
                 上传作品

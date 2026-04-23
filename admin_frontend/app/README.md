@@ -1,6 +1,16 @@
-# 管理员前端
+# Imperial Photography - 管理后台
 
-照片分享平台的后台管理系统。
+摄影师社区平台的管理后台系统，提供用户管理、照片审核、公告发布等功能。
+
+## 技术栈
+
+- **React 19** - 前端框架
+- **TypeScript** - 类型安全
+- **Vite** - 构建工具
+- **React Router** - 路由管理
+- **Tailwind CSS** - 样式框架
+- **shadcn/ui** - UI 组件库
+- **Axios** - HTTP 客户端
 
 ## 功能模块
 
@@ -15,10 +25,10 @@
 - 审核图片（批准/拒绝）
 - 删除图片
 
-### 通知管理
-- 发布新通知（标题 + 内容）
-- 编辑通知
-- 删除通知
+### 公告管理
+- 发布新公告（标题 + 内容）
+- 编辑公告
+- 删除公告
 
 ### 管理员管理（仅超级管理员）
 - 查看所有用户及其角色
@@ -28,69 +38,76 @@
 
 | roleId | 角色 | 权限 |
 |--------|------|------|
-| 1 | 管理员 | 用户管理、图片管理、通知管理 |
+| 1 | 管理员 | 用户管理、图片管理、公告管理 |
 | 2 | 普通用户 | 无管理权限 |
 | 3 | 超级管理员 | 全部权限 + 管理员管理 |
-
-## 技术栈
-
-- **框架**: React 18 + TypeScript
-- **构建工具**: Vite 5
-- **路由**: React Router 7
-- **样式**: TailwindCSS
-- **UI组件**: Radix UI + Lucide Icons
-- **HTTP客户端**: Axios
 
 ## 项目结构
 
 ```
-app/
-├── src/
-│   ├── components/       # 组件
-│   │   ├── ui/           # UI基础组件
-│   │   └── AdminNavbar.tsx
-│   ├── context/          # React Context
-│   │   ├── token.tsx     # Token和角色状态管理
-│   │   ├── function.tsx  # API函数
-│   │   └── toast.tsx     # Toast提示
-│   ├── sections/         # 页面模块
-│   │   ├── AdminLogin.tsx
-│   │   ├── UserManage.tsx
-│   │   ├── PhotoManage.tsx
-│   │   ├── NoticeManage.tsx
-│   │   └── AdminManage.tsx
-│   ├── lib/              # 工具库
-│   │   ├── axios.ts      # Axios配置
-│   │   └── utils.ts      # 通用工具
-│   ├── types/            # 类型定义
-│   └── App.tsx           # 主应用
-├── package.json
-├── vite.config.ts
-└── tailwind.config.js
+src/
+├── components/        # 组件
+│   ├── ui/           # shadcn/ui 基础组件
+│   └── AdminNavbar.tsx
+├── context/          # React Context
+│   ├── token.tsx    # Token 和角色状态管理
+│   └── function.tsx # API 函数
+├── sections/         # 页面模块
+│   ├── AdminLogin.tsx
+│   ├── UserManage.tsx
+│   ├── PhotoManage.tsx
+│   ├── NoticeManage.tsx
+│   └── AdminManage.tsx
+├── lib/              # 工具库
+│   ├── axios.ts     # Axios 配置
+│   └── utils.ts     # 通用工具
+├── types/            # 类型定义
+├── App.tsx           # 主应用
+└── main.tsx          # 应用入口
 ```
 
-## 开发
+## 快速开始
+
+### 安装依赖
 
 ```bash
-# 安装依赖
 npm install
+```
 
-# 启动开发服务器
+### 开发模式
+
+```bash
 npm run dev
+```
 
-# 构建生产版本
+开发服务器默认运行在 `http://localhost:5174`
+
+### 构建生产版本
+
+```bash
 npm run build
+```
 
-# 预览生产版本
+### 预览生产版本
+
+```bash
 npm run preview
 ```
 
-## 配置
+### 代码检查
 
-### Vite代理
-开发环境下，API请求通过Vite代理转发到后端：
+```bash
+npm run lint
+```
+
+## 环境配置
+
+### Vite 代理
+
+开发环境下，API 请求通过 Vite 代理转发到后端：
 
 ```typescript
+// vite.config.ts
 server: {
   port: 5174,
   proxy: {
@@ -102,19 +119,17 @@ server: {
 }
 ```
 
-### 环境变量
-生产环境需要配置后端API地址。
-
-## 登录
+## 登录流程
 
 管理员通过邮箱密码登录，登录成功后：
-- Token存储在localStorage
-- 角色信息存储在localStorage（`userRole`）
+- Token 存储在内存中
+- Refresh Token 存储在 HttpOnly Cookie 中
+- 角色信息从用户信息中获取
 - 根据角色显示不同的管理模块
 
-## API接口
+## API 接口
 
-所有管理API都需要认证，路径前缀 `/api/admin`：
+所有管理 API 都需要认证，路径前缀 `/api/admin`：
 
 | 接口 | 方法 | 权限 | 说明 |
 |------|------|------|------|
@@ -124,14 +139,18 @@ server: {
 | `/photos` | GET | admin/superAdmin | 获取图片列表 |
 | `/photos/:id/status` | PUT | admin/superAdmin | 更新图片状态 |
 | `/photos/:id` | DELETE | admin/superAdmin | 删除图片 |
-| `/notices` | GET | admin/superAdmin | 获取通知列表 |
-| `/notices` | POST | admin/superAdmin | 创建通知 |
-| `/notices/:id` | PUT | admin/superAdmin | 更新通知 |
-| `/notices/:id` | DELETE | admin/superAdmin | 删除通知 |
+| `/notices` | GET | admin/superAdmin | 获取公告列表 |
+| `/notices` | POST | admin/superAdmin | 创建公告 |
+| `/notices/:id` | PUT | admin/superAdmin | 更新公告 |
+| `/notices/:id` | DELETE | admin/superAdmin | 删除公告 |
 | `/admins` | GET | superAdmin | 获取所有用户角色 |
 | `/admins/:id/role` | PUT | superAdmin | 更新用户角色 |
 
 ## 相关项目
 
-- **后端API**: `../ab/` - Express + Prisma + PostgreSQL
-- **用户前端**: `../ac/app/` - 用户照片分享平台
+- **后端 API**: [../../backend/](../../backend/) - Express + Prisma + PostgreSQL
+- **用户前端**: [../../frontend/app/](../../frontend/app/) - 用户端应用
+
+## License
+
+MIT

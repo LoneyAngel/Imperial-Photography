@@ -10,32 +10,30 @@ import { useFunction } from '@/context/function';
 import toast from 'react-hot-toast';
 import { queryClient } from '@/App';
 import { compressImage, isFileOversized, formatFileSize } from '@/utils/imageCompress';
-
-const MAX_SIZE_MB = 3;
+import { useNavigate } from 'react-router-dom';
+import {IMAGE_MAX_SIZE_MB} from "@/config/file"
 
 export default function Upload() {
   const { user } = useUser();
   const { uploadPhoto } = useFunction();
 
-  // 所有 useState 必须在条件返回之前定义（React Hooks 规则）
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadedPhoto, setUploadedPhoto] = useState<{ url: string; title: string; description: string; authorName: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const navigate = useNavigate();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
     // 检查是否需要压缩
-    if (isFileOversized(selectedFile, MAX_SIZE_MB)) {
-      toast(`图片大于 ${MAX_SIZE_MB}MB，正在压缩...`);
-
+    if (isFileOversized(selectedFile, IMAGE_MAX_SIZE_MB)) {
+      console.log(`图片大于 ${IMAGE_MAX_SIZE_MB}MB，正在压缩...`);
       try {
-        const result = await compressImage(selectedFile, { maxSizeMB: MAX_SIZE_MB });
-
+        const result = await compressImage(selectedFile, { maxSizeMB: IMAGE_MAX_SIZE_MB });
         setFile(result.file);
 
         const reader = new FileReader();
@@ -44,9 +42,9 @@ export default function Upload() {
         };
         reader.readAsDataURL(result.file);
 
-        toast.success(`压缩完成：${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
+        console.log(`压缩完成：${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
       } catch {
-        toast.error('压缩失败，请选择更小的图片');
+        console.error('压缩失败，请选择更小的图片');
         setFile(null);
         setPreview(null);
       }
@@ -103,7 +101,7 @@ export default function Upload() {
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">需要登录</h1>
           <p className="text-muted-foreground">请先登录后才能上传作品</p>
-          <Button onClick={() => window.location.href = '/member-auth'}>
+          <Button onClick={() => navigate('/member-auth')}>
             去登录
           </Button>
         </div>
@@ -216,7 +214,7 @@ export default function Upload() {
                 </div>
 
                 <div className="flex gap-3 pt-4">
-                  <Button className="flex-1" onClick={() => window.location.href = '/gallery'}>
+                  <Button className="flex-1" onClick={() => navigate('/gallery')}>
                     查看所有作品
                   </Button>
                   <Button variant="outline" className="flex-1" onClick={resetToUploadForm}>

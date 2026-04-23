@@ -1,0 +1,1 @@
+export const IMAGE_MAX_SIZE_MB = 3

@@ -1,62 +1,74 @@
-# Imperial Use - 摄影师社区平台
+# Imperial Photography - 用户前端
 
-一个面向摄影创作者的国际摄影组织网站，用户可以浏览作品、上传照片、管理个人资料。
+摄影师社区平台的用户端应用，支持作品浏览、照片上传、个人资料管理等功能。
 
 ## 技术栈
 
-- **React 18** - 前端框架
+- **React 19** - 前端框架
 - **TypeScript** - 类型安全
 - **Vite** - 构建工具
 - **React Router** - 路由管理
 - **TanStack Query** - 服务器状态管理
 - **Tailwind CSS** - 样式框架
-- **Radix UI** - 无障碍 UI 组件
+- **shadcn/ui** - UI 组件库
 - **Axios** - HTTP 客户端
 
 ## 项目结构
 
 ```
 src/
-├── components/          # 公共组件
-│   ├── ui/             # 基础 UI 组件
-│   └── Navbar.tsx      # 导航栏
-├── context/            # React Context
-│   ├── token.tsx       # Token 管理（认证状态）
-│   ├── user.tsx        # 用户信息
-│   ├── function.tsx    # API 函数封装
-│   └── toast.tsx       # 全局通知
-├── sections/           # 页面组件
-│   ├── Home.tsx        # 首页
-│   ├── Gallery.tsx     # 作品展示（支持搜索）
-│   ├── Upload.tsx      # 上传作品
-│   ├── MemberAuth.tsx  # 登录页
-│   ├── MemberRegister.tsx # 注册页
-│   ├── MemberProfile.tsx  # 个人中心
-│   ├── Notice.tsx      # 通知列表
-│   ├── ForgotPassword.tsx # 忘记密码
-│   ├── ResetPassword.tsx  # 重置密码
-│   └── SetPassword.tsx    # 设置密码
-├── lib/                # 工具库
-│   ├── axios.ts        # Axios 配置（拦截器、Token 刷新）
-│   └── utils.ts        # 通用工具函数
-├── types/              # TypeScript 类型定义
-└── App.tsx             # 应用入口
+├── assets/             # 静态资源
+│   ├── home-bg.jpg     # 首页背景
+│   └── picture/        # 示例图片
+├── components/         # 公共组件
+│   ├── ui/            # shadcn/ui 基础组件
+│   ├── Navbar.tsx     # 导航栏
+│   ├── Photocard.tsx  # 照片卡片
+│   └── ErrorBoundary.tsx
+├── config/            # 配置文件
+├── context/           # React Context
+│   ├── token.tsx     # Token 管理（认证状态）
+│   ├── user.tsx      # 用户信息
+│   └── function.tsx  # API 函数封装
+├── hooks/             # 自定义 Hooks
+├── sections/          # 页面组件
+│   ├── Home.tsx             # 首页
+│   ├── Gallery.tsx          # 作品展示
+│   ├── Upload.tsx           # 上传作品
+│   ├── MemberAuth.tsx       # 登录页
+│   ├── MemberRegister.tsx   # 注册页
+│   ├── MemberProfile.tsx    # 个人中心
+│   ├── MemberPublicProfile.tsx # 公开用户主页
+│   ├── Notice.tsx           # 公告列表
+│   ├── ForgotPassword.tsx   # 忘记密码
+│   ├── ResetPassword.tsx    # 重置密码
+│   └── SetPassword.tsx      # 设置密码
+├── styles/            # 样式文件
+├── types/             # TypeScript 类型定义
+├── utils/             # 工具函数
+│   ├── axios.ts       # Axios 配置
+│   ├── imageCompress.ts # 图片压缩
+│   ├── validation.ts  # 表单验证
+│   └── utils.ts       # 通用工具
+├── App.tsx            # 应用根组件
+└── main.tsx           # 应用入口
 ```
 
 ## 功能特性
 
 ### 用户认证
-- 邮箱验证码登录
+- 邮箱验证码登录/注册
 - 密码登录
-- 用户注册
 - 密码找回/重置
-- Token 自动刷新
+- Token 自动刷新（使用 HttpOnly Cookie）
+- 登录后状态自动同步
 
 ### 作品展示
 - 照片瀑布流展示
 - 作品搜索（按作品名、作者名）
 - 作品详情弹窗
 - 作者信息展示
+- 公开用户主页
 
 ### 作品上传
 - 图片上传
@@ -69,9 +81,9 @@ src/
 - 我的作品管理
 - 作品修改/删除
 
-### 通知系统
-- 通知列表
-- 通知详情查看
+### 公告系统
+- 公告列表
+- 公告详情查看
 
 ## 快速开始
 
@@ -87,6 +99,8 @@ npm install
 npm run dev
 ```
 
+开发服务器默认运行在 `http://localhost:5173`
+
 ### 构建生产版本
 
 ```bash
@@ -99,13 +113,18 @@ npm run build
 npm run preview
 ```
 
+### 代码检查
+
+```bash
+npm run lint
+```
+
 ## 环境配置
 
-项目需要后端 API 支持，默认请求地址为 `/api/*`。
-
-如需配置代理，在 `vite.config.ts` 中设置：
+项目需要后端 API 支持，API 请求通过 Vite 代理转发：
 
 ```typescript
+// vite.config.ts
 export default defineConfig({
   server: {
     proxy: {
@@ -121,7 +140,7 @@ export default defineConfig({
 ## 认证机制
 
 ### Token 存储
-- **authToken**: 存储在内存中（模块级变量），防止 XSS 攻击
+- **authToken**: 存储在内存中，防止 XSS 攻击
 - **refreshToken**: 存储在 HttpOnly Cookie 中，由浏览器自动管理
 
 ### 自动刷新流程
@@ -135,15 +154,24 @@ export default defineConfig({
 
 | 函数 | 说明 |
 |-----|------|
-| `verifyCode` | 邮箱验证码登录 |
-| `loginMemberWithPassword` | 密码登录 |
+| `requestCode` | 请求验证码（注册/登录/重置密码） |
+| `verifyCodeAndLogin` | 验证码登录 |
+| `loginWithPassword` | 密码登录 |
+| `registerMember` | 注册用户 |
+| `setPassword` | 设置密码 |
+| `resetPassword` | 重置密码 |
+| `logout` | 登出 |
 | `fetchPhotos` | 获取已审核照片列表 |
+| `searchPhotos` | 搜索照片 |
 | `uploadPhoto` | 上传照片 |
 | `updatePhoto` | 修改照片信息 |
 | `deletePhoto` | 删除照片 |
+| `fetchMyPhotos` | 获取我的照片 |
 | `fetchMemberProfile` | 获取用户信息 |
 | `updateMemberProfile` | 更新用户信息 |
-| `fetchNotices` | 获取通知列表 |
+| `fetchPublicProfile` | 获取公开用户信息 |
+| `fetchNotices` | 获取公告列表 |
+| `fetchNoticeDetail` | 获取公告详情 |
 
 ## 照片审核流程
 
@@ -155,11 +183,10 @@ export default defineConfig({
 Gallery 展示 → 只显示 approved
 ```
 
-## 组件设计原则
+## 相关项目
 
-- 使用 `useCallback` 缓存作为 props 或依赖项的函数
-- 使用 `useMemo` 缓存复杂计算结果和对象
-- Context value 使用 `useMemo` 包装，避免不必要重渲染
+- **后端 API**: [../../backend/](../../backend/) - Express + Prisma + PostgreSQL
+- **管理后台**: [../../admin_frontend/app/](../../admin_frontend/app/) - 管理员前端
 
 ## License
 
