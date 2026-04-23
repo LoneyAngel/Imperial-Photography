@@ -22,6 +22,7 @@ export const getMemoryToken = () => memoryAuthToken;
 const api = axios.create({
   timeout: 10000,
   withCredentials: true, // 自动发送和接收 Cookie（refreshToken）
+  baseURL: '/api'
 });
 
 // --- 1. 请求拦截器：从内存变量获取 Token ---
@@ -67,7 +68,7 @@ api.interceptors.response.use(
     }
 
     // 如果报错的请求本身就是刷新接口
-    if (response.status === 401 && originalRequest.url.includes('/api/auth/refresh')) {
+    if (response.status === 401 && originalRequest.url.includes('/auth/refresh')) {
       // Cookie 彻底没了或过期了
       // 必须直接报错，不要再尝试重试
       console.warn('Refresh token is invalid, redirecting to login');

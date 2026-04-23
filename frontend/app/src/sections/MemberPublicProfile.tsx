@@ -17,7 +17,7 @@ interface MemberPhotosResult {
 
 async function fetchMemberPhotos(memberId: string, page: number): Promise<MemberPhotosResult | null> {
   try {
-    const res = await api.get(`/api/photos/member/${memberId}?page=${page}`);
+    const res = await api.get(`/photos/member/${memberId}?page=${page}`);
     return res.data.data as MemberPhotosResult;
   } catch {
     return null;

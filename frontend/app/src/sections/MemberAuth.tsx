@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFunction } from '@/context/function';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { useCountdown } from '@/hooks/count';
 export default function MemberAuth() {
   const [searchParams] = useSearchParams();
   // 检查是否有 success 参数，并根据其值显示相应的消息,可能是 "password_set" 或 "password_reset"
@@ -18,14 +19,11 @@ export default function MemberAuth() {
       <div className="w-full max-w-md">
         <Card className="shadow-sm border border-slate-200">
           <CardHeader className="space-y-3">
-            <div className="flex items-center">
-              <button
-                type="button"
-                className="text-sm text-blue-600 hover:underline mr-2"
-              >
+            <Link to="/" className="flex items-center">
+              <span className="text-sm text-black hover:underline mr-2">
                 ← 返回
-              </button>
-            </div>
+              </span>
+            </Link>
             <div className="flex items-center justify-center">
               <div className="text-3xl font-semibold tracking-tight">
                 <span className="text-blue-600">I</span>
@@ -75,17 +73,18 @@ export default function MemberAuth() {
 
 // 验证码登录表单
 function CodeLoginForm() {
-  const { loginMemberWithEmail,sendAuthCode } = useFunction();
+  const { verifyCode,sendAuthCode } = useFunction();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const normalizedEmail = email.trim().toLowerCase();
-  const emailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
-  const [AuthCode_isPending, startAuthCodeTransition] = useTransition();
-  const [verify_isPending, startVerifyTransition] = useTransition();
   const navigate = useNavigate();
-  
+  const emailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+  const [isCode, startAuthCodeTransition] = useTransition();
+  const [isVerify, startVerifyTransition] = useTransition();
+  const { timeLeft, start, isCounting } = useCountdown(60);
+  let timer: NodeJS.Timeout;
 
   const reset = () => {
     setEmail('');
@@ -95,6 +94,8 @@ function CodeLoginForm() {
   };
 
   const send = async () => {
+    console.log('发送验证码给', normalizedEmail);
+    console.log('邮箱格式是否有效', emailValid());
     if (!emailValid()) {
       setError('请输入有效的邮箱地址');
       return;
@@ -106,12 +107,14 @@ function CodeLoginForm() {
         toast.error(res.message);
         return;
       }
+      start();
       setSent(true);
       toast.success('验证码已发送，请查收');
     });
   };
 
   const verifyCodeAndLogin = async () => {
+    setError(null);
     if (!emailValid()) {
       setError('请输入有效的邮箱地址');
       return;
@@ -124,17 +127,18 @@ function CodeLoginForm() {
       setError('验证码为空');
       return;
     }
-    setError(null);
     startVerifyTransition(async () => {
-      const ok = await loginMemberWithEmail(normalizedEmail, code.trim());
-      if (ok) {
-        toast.error(ok.message||'登录失败，请检查验证码后重试');
-      } else {
-        reset();
-        window.location.href = '/';
-        toast.success('登录成功');
+      const res = await verifyCode(normalizedEmail, code.trim());
+      if (res) {
+        toast.error(res.message||'登录失败，请检查验证码后重试');
+        return;
       }
+      toast.success('登录成功');
     })
+    reset();
+    timer = setTimeout(() => {
+      navigate('/');
+     }, 2000);
   };
 
 
@@ -155,6 +159,23 @@ function CodeLoginForm() {
           required
         />
       </div>
+      <div className={`space-y-2 transition-all duration-500`}>
+        <Label htmlFor="authCode">验证码</Label>
+        <Input
+          id="authCode"
+          name='code'
+          type="text"
+          placeholder="请发送验证码"
+          maxLength={6}
+          value={code}
+          disabled={!sent} // 没发送前禁止输入，防止用户盲填
+          onChange={(e) => {
+            setCode(e.target.value);
+            if(error) setError(null);
+          }}
+          className="tracking-[0.5em] font-mono text-center" // 艺术感：等宽字体+间距，方便输入数字
+        />
+      </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex gap-2">
@@ -163,17 +184,25 @@ function CodeLoginForm() {
           variant="outline"
           className="flex-1"
           onClick={() => void send()}
-          disabled={AuthCode_isPending}
+          disabled={isCode||!emailValid()||isCounting}
         >
-          {AuthCode_isPending ? '发送中...' : '发送验证码'}
+          {isCode ? (
+            "发送中..."
+          ) : isCounting ? (
+            `${timeLeft} 秒后重发`
+          ) : sent ? (
+            "重新发送"
+          ) : (
+            "发送验证码"
+          )}
         </Button>
         <Button
           type="button"
           className="flex-1"
           onClick={() => void verifyCodeAndLogin()}
-          disabled={!sent || !code.trim() || verify_isPending}
+          disabled={!sent || !code.trim() || isVerify}
         >
-          {verify_isPending ? '登录中...' : '登录'}
+          {isVerify ? '登录中...' : '登录'}
         </Button>
       </div>
 
@@ -188,14 +217,15 @@ function CodeLoginForm() {
 
 // 密码登录表单
 function PasswordLoginForm() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const {loginMemberWithPassword} = useFunction();
-  const handleLogin = async (e: React.FormEvent) => {
+  const [isLogining, loginTransition] = useTransition();
+  const navigate = useNavigate();
+  let timer: NodeJS.Timeout;
+  const handleLogin = async (e:any) => {
     e.preventDefault();
     setError(null);
 
@@ -203,20 +233,18 @@ function PasswordLoginForm() {
       setError('请输入邮箱和密码');
       return;
     }
-
-    setIsLoading(true);
-
-    try {
-      const success = await loginMemberWithPassword(email.trim().toLowerCase(), password);
-      if (success) {
+    loginTransition(async () => {
+      const a = await loginMemberWithPassword(email.trim().toLowerCase(), password);
+      if (a) {
+        toast.error(a.message||'登录失败，请检查邮箱和密码后重试');
+        return;
+      } else {
         toast.success('登录成功');
-        window.location.href = '/'
       }
-    } catch (err) {
-      toast.error('登录失败，请重试');
-    } finally {
-      setIsLoading(false);
-    }
+    });
+    timer = setTimeout(() => {
+      navigate('/');
+    }, 2000); // 2秒后跳转
   };
 
   return (
@@ -243,6 +271,7 @@ function PasswordLoginForm() {
           <Input
             id="loginPassword"
             type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
             placeholder="请输入密码"
             name='password'
             className='pr-10'
@@ -272,19 +301,22 @@ function PasswordLoginForm() {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? '登录中...' : '登录'}
+      <Button type="submit" className="w-full" disabled={isLogining}>
+        {isLogining ? '登录中...' : '登录'}
       </Button>
 
-      <div className="flex items-center justify-between pt-2">
-        <button
-          type="button"
-          className="text-sm text-blue-600 hover:underline text-center w-full"
-          onClick={() => navigate('/forgot-password')}
+      <Link to="/forgot-password" className="block w-full text-center text-[12px] text-gray-500">
+        <span
+          className="border-b-[1px] hover:border-gray-500"
         >
           忘记密码？
-        </button>
-      </div>
+        </span>
+      </Link>
+      <Link to="/register" className='block w-full text-center text-[12px] text-gray-500 '>
+        <span className='border-b-[1px] hover:border-gray-500'>
+          没有账号？注册
+        </span>
+      </Link>
     </form>
   );
 }

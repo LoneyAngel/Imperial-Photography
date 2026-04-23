@@ -23,7 +23,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const initAuth = async () => {
             try {
-                const res = await api.post('/api/auth/refresh');
+                const res = await api.post('/auth/refresh');
                 if (res.data?.data?.authToken) {
                     setAuthToken(res.data.data.authToken);
                     setMemoryToken(res.data.data.authToken);
@@ -51,15 +51,19 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     const logout = async () => {
-        setAuthToken(null);
-        setMemoryToken(null);
-        queryClient.clear();
-        await api.post('/api/auth/logout').catch(() => {
-            toast.error('退出登录失败，请稍后再试');
-        }).finally(() => {
-            console.log('Logged out, redirecting to home');
+        try {
+            // 1. 先通知后端销毁 Cookie (此时还带着 Token)
+            await api.post('/auth/logout');
+        } catch (err) {
+            console.error('Logout API failed', err);
+        } finally {
+            // 2. 无论后端接口是否成功，前端必须强制清理
+            setAuthToken(null);
+            setMemoryToken(null);
+            queryClient.clear();
+            toast.success('已安全退出');
             window.location.href = '/';
-        });
+        }
     };
 
     const login = (authToken: string) => {

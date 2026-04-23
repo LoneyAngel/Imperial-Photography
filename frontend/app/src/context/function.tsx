@@ -12,7 +12,7 @@ interface PhotosResult {
 
 // 定义类型
 interface FunctionContextType {
-    loginMemberWithEmail: (email: string, code: string) => Promise<{ message: string } | null>;
+    verifyCode: (email: string, code: string) => Promise<{ message: string } | null>;
     loginMemberWithPassword: (email: string, password: string) => Promise<{ message: string } | null>;
     updateMemberProfile: (name: string, bio: string) => Promise<boolean>;
     uploadPhoto: (title: string, description: string, file: File) => Promise<boolean>;
@@ -25,7 +25,8 @@ interface FunctionContextType {
     fetchNoticeById: (id: string) => Promise<Notice | null>;
     sendAuthCode: (email: string) => Promise<{ message: string } | null>;
     sendRegisterCode: (email: string) => Promise<{ message: string } | null>;
-    
+    set_password: (email: string, password: string) => Promise<{ message: string } | null>;
+    resetPassword: (email: string, password: string) => Promise<{ message: string } | null>;
 }
 // 这个泛型定义可以避免一个ts错误，即在使用 useContext 时，如果上下文为空，会报错
 const FunctionContext = createContext<FunctionContextType|null>(null);
@@ -40,7 +41,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
             const params = new URLSearchParams();
             if (search?.trim()) params.set('search', search.trim());
             params.set('page', String(page));
-            const res = await api.get(`/api/photos?${params.toString()}`);
+            const res = await api.get(`/photos?${params.toString()}`);
             return (res.data.data as PhotosResult) ?? empty;
         } catch {
             return empty;
@@ -51,22 +52,138 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     const fetchOwnerPhotos = async (page: number = 1) => {
         const empty: PhotosResult = { list: [], total: 0, page: 1, pageSize: 30 };
         try {
-            const res = await api.get(`/api/photos/user-photos?page=${page}`);
+            const res = await api.get(`/photos/user-photos?page=${page}`);
             return (res.data.data as PhotosResult) ?? empty;
         } catch {
             return empty;
         }
     };
 
+
+    // 获取用户信息
+    const fetchMemberProfile = async () => {
+        try {
+            const res = await api.get(`/members/detail`);
+            return res.data.data;
+        } catch {
+            return null;
+        }
+    };
+    // 更新用户信息
+    const updateMemberProfile = async (name: string, bio: string) => {
+        try {
+            await api.put(`/members/update`, {
+                name: name.trim(),
+                bio: bio.trim()
+            });
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    // 上传照片
+    const uploadPhoto = async (title: string, description: string, file: File) => {
+        try {
+            const form = new FormData();
+            form.append('file', file);
+            form.append('title', title);
+            form.append('description', description);
+
+            await api.post('/photos', form);
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    // 修改照片信息
+    const updatePhoto = async (id: string, title?: string, description?: string) => {
+        try {
+            await api.put(`/photos/${id}`, {
+                title: title?.trim(),
+                description: description?.trim(),
+            });
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    // 删除照片
+    const deletePhoto = async (id: string) => {
+        try {
+            await api.delete(`/photos/${id}`);
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    // 获取所有通知
+    const fetchNotices = async () => {
+        try {
+            const res = await api.get('/notice');
+            return res.data.data as Notice[];
+        } catch {
+            return [];
+        }
+    };
+
+    // 获取单个通知详情
+    const fetchNoticeById = async (id: string) => {
+        try {
+            const res = await api.get(`/notice/${id}`);
+            return res.data.data as Notice;
+        } catch {
+            return null;
+        }
+    }
+    // 请求登录验证码 √
+    const sendAuthCode = async (email: string) => {
+        // 1.成功 200
+        // 2.失败 显示后端的提供的错误信息
+        // 3.意外错误 通过错误边界处理
+        try{
+            const res = await api.post('/auth/request-code', { email}, {
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if(res.status === 200) return null;
+            else return{
+                message: res.data.message || '验证码发送失败，请稍后重试',
+            }
+        }
+        catch{
+            return {message:  '验证码发送失败，请稍后重试'};
+        }
+    }
+    // 请求注册验证码
+    const sendRegisterCode = async (email: string) => {
+        // 同上
+        try{
+            const res = await api.post('/auth/request-register-code', 
+                { email},{
+                headers: { 'Content-Type': 'application/json' },
+                }
+            );
+            if (res.status===200) return null;
+            else return {
+                message: res.data.message || '验证码发送失败，请稍后重试',
+            } 
+        }
+        catch{
+            return {message:  '验证码发送失败，请稍后重试'};
+        }
+    }
     // 验证验证码
     // 用于登录或注册
-    const loginMemberWithEmail = async (email: string, code: string) => {
+    const verifyCode = async (email: string, code: string) => {
         const normalizedEmail = email.trim().toLowerCase();
         const normalizedCode = code.trim();
         if (!normalizedEmail || normalizedCode.length !== 6) return null;
 
         try {
-            const res = await api.post('/api/auth/verify-code', {
+            const res = await api.post('/auth/verify-code', {
                     email: normalizedEmail,
                     code: normalizedCode
                 },
@@ -74,7 +191,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-            if (res.data.status === 200) {
+            if (res.status === 200) {
                 const { authToken } = res.data.data;
                 login(authToken);
                 return null;
@@ -95,7 +212,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         };
 
         try {
-            const res = await api.post('/api/auth/login', {
+            const res = await api.post('/auth/login', {
                     email: normalizedEmail,
                     password
                 },
@@ -103,7 +220,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
-            if (res.data.status === 200) {
+            if (res.status === 200) {
                 const { authToken } = res.data.data;
                 login(authToken);
                 return null;
@@ -112,128 +229,54 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
                 message: res.data.message || '登录失败，请检查邮箱和密码后重试',
             }
         } catch {
-            throw new Error('login 出现意外错误');
+            return {message:  '登录出现意外错误'};
         }
     };
+    const set_password = async (email: string, password: string) => {
+        const normalizedEmail = email.trim().toLowerCase();
+        if (!normalizedEmail || !password) return {
+            message: '请输入邮箱和密码',
+        };
 
-    // 获取用户信息
-    const fetchMemberProfile = async () => {
         try {
-            const res = await api.get(`/api/members/detail`);
-            return res.data.data;
-        } catch {
-            return null;
-        }
-    };
-    // 更新用户信息
-    const updateMemberProfile = async (name: string, bio: string) => {
-        try {
-            await api.put(`/api/members/update`, {
-                name: name.trim(),
-                bio: bio.trim()
-            });
-            return true;
-        } catch {
-            return false;
-        }
-    };
-
-    // 上传照片
-    const uploadPhoto = async (title: string, description: string, file: File) => {
-        try {
-            const form = new FormData();
-            form.append('file', file);
-            form.append('title', title);
-            form.append('description', description);
-
-            await api.post('/api/photos', form);
-            return true;
-        } catch {
-            return false;
-        }
-    };
-
-    // 修改照片信息
-    const updatePhoto = async (id: string, title?: string, description?: string) => {
-        try {
-            await api.put(`/api/photos/${id}`, {
-                title: title?.trim(),
-                description: description?.trim(),
-            });
-            return true;
-        } catch {
-            return false;
-        }
-    };
-
-    // 删除照片
-    const deletePhoto = async (id: string) => {
-        try {
-            await api.delete(`/api/photos/${id}`);
-            return true;
-        } catch {
-            return false;
-        }
-    };
-
-    // 获取所有通知
-    const fetchNotices = async () => {
-        try {
-            const res = await api.get('/api/notice');
-            return res.data.data as Notice[];
-        } catch {
-            return [];
-        }
-    };
-
-    // 获取单个通知详情
-    const fetchNoticeById = async (id: string) => {
-        try {
-            const res = await api.get(`/api/notice/${id}`);
-            return res.data.data as Notice;
-        } catch {
-            return null;
-        }
-    }
-    // 请求登录验证码 √
-    const sendAuthCode = async (email: string) => {
-        // 1.成功 200
-        // 2.失败 显示后端的提供的错误信息
-        // 3.意外错误 通过错误边界处理
-        try{
-            const res = await api.post('/auth/request-login-code', { email}, {
-                headers: { 'Content-Type': 'application/json' },
-            });
-            if(res.data.status === 200) return null;
-            else return{
-                message: res.data.message || '验证码发送失败，请稍后重试',
-            }
-        }
-        catch{
-            throw new Error('request-login-code 出现意外错误');
-        }
-    }
-        // 请求注册验证码
-    const sendRegisterCode = async (email: string) => {
-        // 同上
-        try{
-            const res = await api.post('/api/auth/request-register-code', 
-                { email},{
-                headers: { 'Content-Type': 'application/json' },
+            const res = await api.post('/auth/set-password', {
+                    email: normalizedEmail,
+                    password
+                },
+                {
+                    headers: { 'Content-Type': 'application/json' },
                 }
             );
-            if (res.data.status===200) return null;
+            if (res.status === 200) {
+                const { authToken } = res.data.data;
+                login(authToken);
+                return null;
+            }
             else return {
-                message: res.data.message || '验证码发送失败，请稍后重试',
-            } 
+                message: res.data.message || '密码设置失败，请重试',
+            }
+        } catch {
+            return {message:  '密码设置出现意外错误'};
         }
-        catch{
-            throw new Error('request-register-code 出现意外错误');
+    };
+
+    const resetPassword = async (email: string, password: string) => {
+        const normalizedEmail = email.trim().toLowerCase();
+        if (!normalizedEmail || !password) return { message: '请输入邮箱和密码' };
+        try {
+            const res = await api.post('/auth/reset-password',
+                { email: normalizedEmail, password },
+                { headers: { 'Content-Type': 'application/json' } }
+            );
+            if (res.status === 200) return null;
+            return { message: res.data.message || '重置密码失败，请重试' };
+        } catch {
+            return { message: '重置密码出现意外错误' };
         }
-    }
+    };
 
     const value = {
-        loginMemberWithEmail,
+        verifyCode,
         loginMemberWithPassword,
         updateMemberProfile,
         uploadPhoto,
@@ -246,6 +289,8 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
         fetchNoticeById,
         sendAuthCode,
         sendRegisterCode,
+        set_password,
+        resetPassword
     };
     return (
     <FunctionContext value={value}>
