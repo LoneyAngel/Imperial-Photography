@@ -24,13 +24,13 @@ export default function SetPassword() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!email) { setError('无效的请求'); return; }
+    if (!email) { setError('邮箱为空'); return; }
     if (password.length < 6) { setError('密码长度至少6位'); return; }
     if (password !== confirmPassword) { setError('两次输入的密码不一致'); return; }
     startTransition(async () => {
       const err = await set_password(email, password);
       if (err) { toast.error(err.message); return; }
-      toast.success('密码设置成功');
+      toast.success('设置成功');
       navigate('/member-auth?success=password_set');
     });
   };

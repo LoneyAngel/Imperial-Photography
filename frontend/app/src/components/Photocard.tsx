@@ -1,12 +1,11 @@
 import Masonry from 'react-masonry-css';
-import '@/PhotoGrid.css'; // 引入样式文件
+import '@/styles/PhotoGrid.css'; // 引入样式文件
 import { Photo } from '@/types';
 
 // 修复 React-Masonry-CSS 的默认导入问题
 const MasonryComponent = (Masonry as any).default ? (Masonry as any).default : Masonry;
 
 
-// 1. 定义断点（响应式设置）
 const breakpointColumnsObj = {
   default: 4,    // 默认显示 4 列
   1100: 3,       // 屏幕宽度 < 1100px 时显示 3 列
@@ -15,7 +14,6 @@ const breakpointColumnsObj = {
 };
 
 const PhotoGrid = ({ photos, setSelectedPhoto }: { photos: Photo[]; setSelectedPhoto: (photo: Photo) => void }) => {
-  // 2. 准备照片项
   const items = photos.map((photo) => (
     <div key={photo.id} className="photo-item" onClick={() => setSelectedPhoto(photo)}>
       <img 
@@ -26,7 +24,6 @@ const PhotoGrid = ({ photos, setSelectedPhoto }: { photos: Photo[]; setSelectedP
     </div>
   ));
 
-  // 3. 渲染 Masonry 组件
   return (
     <MasonryComponent
       breakpointCols={breakpointColumnsObj}
