@@ -1,21 +1,15 @@
 import { Router } from 'express';
-import { z } from 'zod';
 import { asyncHandler, ApiResponse } from '../../utils/api.js';
 import { prisma } from '../../utils/prisma.js';
 import { adminOnly } from '../../middleware/admin.js';
+import { updateMemberSchema } from '../../utils/z/members.js';
 
 const router = Router();
 
 // 获取所有用户列表
-router.get('/', adminOnly, asyncHandler(async (req, res) => {
+router.get('/', adminOnly, asyncHandler(async (_req, res) => {
   const users = await prisma.member.findMany({
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      bio: true,
-      createdAt: true,
-    },
+    select: { id: true, email: true, name: true, bio: true, createdAt: true },
     orderBy: { createdAt: 'desc' },
   });
 
@@ -30,24 +24,17 @@ router.get('/', adminOnly, asyncHandler(async (req, res) => {
 
 // 更新用户信息
 router.put('/:id', adminOnly, asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const body = z.object({
-    name: z.string().trim().max(20).optional(),
-    bio: z.string().trim().max(500).optional(),
-  }).parse(req.body);
+  const userId = [req.params.id].flat()[0];
+  const parsed = updateMemberSchema.safeParse(req.body);
+  if (!parsed.success) {
+    ApiResponse.error(res, '无效的请求参数', 'invalid_parameters');
+    return;
+  }
 
   const user = await prisma.member.update({
-    where: { id },
-    data: {
-      name: body.name,
-      bio: body.bio,
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      bio: true,
-    },
+    where: { id:userId },
+    data: { name: parsed.data.name, bio: parsed.data.bio },
+    select: { id: true, email: true, name: true, bio: true },
   });
 
   ApiResponse.success(res, {
@@ -60,12 +47,8 @@ router.put('/:id', adminOnly, asyncHandler(async (req, res) => {
 
 // 删除用户
 router.delete('/:id', adminOnly, asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  await prisma.member.delete({
-    where: { id },
-  });
-
+  const userId = [req.params.id].flat()[0];
+  await prisma.member.delete({ where: { id: userId   } });
   ApiResponse.success(res);
 }));
 

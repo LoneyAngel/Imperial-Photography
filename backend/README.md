@@ -117,8 +117,6 @@ src/
 | `/api/auth/verify-code` | POST | 验证验证码（注册/登录） |
 | `/api/auth/login` | POST | 密码登录 |
 | `/api/auth/set-password` | POST | 设置密码 |
-| `/api/auth/request-reset-code` | POST | 请求重置密码验证码 |
-| `/api/auth/verify-reset-code` | POST | 验证重置密码验证码 |
 | `/api/auth/reset-password` | POST | 重置密码 |
 | `/api/auth/refresh` | POST | 刷新 Token |
 | `/api/auth/logout` | POST | 登出 |

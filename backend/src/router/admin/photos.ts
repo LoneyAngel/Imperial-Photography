@@ -1,19 +1,21 @@
 import { Router } from 'express';
-import { z } from 'zod';
 import { asyncHandler, ApiResponse } from '../../utils/api.js';
 import { prisma } from '../../utils/prisma.js';
 import { adminOnly } from '../../middleware/admin.js';
+import { adminPhotoQuerySchema, adminPhotoFilterSchema, updatePhotoStatusSchema } from '../../utils/z/photos.js';
 
 const router = Router();
 
 // 获取所有图片列表
 router.get('/', adminOnly, asyncHandler(async (req, res) => {
-  const query = z.object({
-    status: z.enum(['pending', 'approved', 'rejected']).optional(),
-  }).parse(req.query);
+  const parsed = adminPhotoQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    ApiResponse.error(res, '无效的查询参数', 'invalid_parameters');
+    return;
+  }
 
   const photos = await prisma.photo.findMany({
-    where: query.status ? { status: query.status } : undefined,
+    where: parsed.data.status ? { status: parsed.data.status } : undefined,
     orderBy: { createdAt: 'desc' },
   });
 
@@ -30,51 +32,42 @@ router.get('/', adminOnly, asyncHandler(async (req, res) => {
 
 // 更新图片状态
 router.put('/:id/status', adminOnly, asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const body = z.object({
-    status: z.enum(['pending', 'approved', 'rejected']),
-  }).parse(req.body);
+  const photoId = [req.params.id].flat()[0];
+  const parsed = updatePhotoStatusSchema.safeParse(req.body);
+  if (!parsed.success) {
+    ApiResponse.error(res, '无效的状态值', 'invalid_parameters');
+    return;
+  }
 
   const photo = await prisma.photo.update({
-    where: { id },
-    data: { status: body.status },
+    where: { id:photoId },
+    data: { status: parsed.data.status },
   });
 
-  ApiResponse.success(res, {
-    id: photo.id,
-    status: photo.status,
-  });
+  ApiResponse.success(res, { id: photo.id, status: photo.status });
 }));
 
 // 删除图片
 router.delete('/:id', adminOnly, asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  await prisma.photo.delete({
-    where: { id },
-  });
-
+  const photoId = [req.params.id].flat()[0];
+  await prisma.photo.delete({ where: { id:photoId } });
   ApiResponse.success(res);
 }));
 
-
 // 用户或管理员对权限内的照片进行筛选
 router.get('/filter', adminOnly, asyncHandler(async (req, res) => {
-  const query = z.object({
-    status: z.enum(['pending', 'approved', 'rejected']).optional(),
-    search: z.string().trim().max(100).optional(),
-  }).parse(req.query);
+  const parsed = adminPhotoFilterSchema.safeParse(req.query);
+  if (!parsed.success) {
+    ApiResponse.error(res, '无效的查询参数', 'invalid_parameters');
+    return;
+  }
+  const query = parsed.data;
 
   const userRole = req.user?.roleId ?? 2;
   const isAdmin = userRole === 1 || userRole === 3;
 
   const where: any = {};
-
-  if (isAdmin) {
-    where.status = query.status;
-  } else {
-    where.status = 'approved';
-  }
+  where.status = isAdmin ? query.status : 'approved';
 
   if (query.search) {
     const searchTerm = query.search;
@@ -84,6 +77,6 @@ router.get('/filter', adminOnly, asyncHandler(async (req, res) => {
       { member: { name: { contains: searchTerm, mode: 'insensitive' } } },
     ];
   }
-}))
+}));
 
 export default router;

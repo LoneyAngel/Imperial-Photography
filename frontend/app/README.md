@@ -135,7 +135,7 @@ export default defineConfig({
 
 | 函数 | 说明 |
 |-----|------|
-| `loginMemberWithEmail` | 邮箱验证码登录 |
+| `verifyCode` | 邮箱验证码登录 |
 | `loginMemberWithPassword` | 密码登录 |
 | `fetchPhotos` | 获取已审核照片列表 |
 | `uploadPhoto` | 上传照片 |

@@ -30,17 +30,15 @@ export default function Home() {
                 bg-transparent
                 text-black
                 px-4
-                py-2
-                border-b-2
-                border-dashed
-                border-gray-300
-                font-medium
+                py-3
+                font-serif italic
                 transition-all
                 duration-300
-                hover:bg-gray-50
-                hover:border-gray-700
+                hover:bg-gray-100
+                hover:shadow-2xl
                 hover:text-gray-700
-                active:scale-95 
+                active:scale-105
+                shadow-md
               "
             >
               join us

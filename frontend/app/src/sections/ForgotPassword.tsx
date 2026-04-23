@@ -1,87 +1,53 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import api from '@/utils/axios';
-
+import { useFunction } from '@/context/function';
+import toast from 'react-hot-toast';
+import {useCountdown} from '@/hooks/count';
 export default function ForgotPassword() {
   const navigate = useNavigate();
+  const { sendAuthCode, verifyCode } = useFunction();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
-  const [verifying, setVerifying] = useState(false);
+  const [sending, startSendTransition] = useTransition();
+  const [verifying, startVerifyTransition] = useTransition();
+  const { timeLeft, start, isCounting } = useCountdown(60);
 
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
   const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
-  
-  const sendCode = async () => {
-    if (!emailValid) {
-      setError('请输入有效的邮箱地址');
-      return;
-    }
 
-    try {
-      setSending(true);
+  const sendCode = () => {
+    if (!emailValid) { setError('请输入有效的邮箱地址'); return; }
+    startSendTransition(async () => {
       setError(null);
       setCode('');
-
-      const res = await api.post('/api/auth/request-reset-code',{ email: normalizedEmail }, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!res.data) {
-        if (res.data.error === 'no_password') {
-          setError('该邮箱未设置密码，请使用验证码登录');
-        } else {
-          throw new Error('send_failed');
-        }
-        return;
-      }
-
+      const err = await sendAuthCode(normalizedEmail);
+      if (err) { toast.error(err.message); return; }
+      start();
       setSent(true);
-    } catch (err) {
-      setError('验证码发送失败，请稍后重试');
-    } finally {
-      setSending(false);
-    }
+      toast.success('验证码已发送，请查收');
+    });
   };
 
-  const verifyAndReset = async () => {
-    if (!emailValid) {
-      setError('请输入有效的邮箱地址');
-      return;
-    }
-
-    if (!sent) {
-      setError('请先发送验证码');
-      return;
-    }
-
-    setVerifying(true);
-    setError(null);
-
-    try {
-      const res = await api.post('/api/auth/verify-reset-code', { email: normalizedEmail, code: code.trim() },{
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!res.data) {
-        setError(res.data.error === 'invalid_code' ? '验证码不正确或已过期' : '验证失败');
-        return;
-      }
-
-      // 验证成功，跳转到设置新密码页面
-      const token = res.data.token;
-      navigate(`/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(normalizedEmail)}`);
-    } catch (err) {
-      setError('验证失败，请重试');
-    } finally {
-      setVerifying(false);
-    }
+  const verifyAndReset = () => {
+    if (!emailValid) { setError('请输入有效的邮箱地址'); return; }
+    if (!sent) { setError('请先发送验证码'); return; }
+    if (code.trim().length !== 6) { setError('请输入6位验证码'); return; }
+    startVerifyTransition(async () => {
+      setError(null);
+      const err = await verifyCode(normalizedEmail, code);
+      if (err) { toast.error(err.message); return; }
+      toast.success('验证码验证成功，即将跳转重置密码页面');
+    });
+    const timer = setTimeout(() => {
+      navigate(`/reset-password?email=${encodeURIComponent(normalizedEmail)}`);
+    }, 3000);
+    return () => clearTimeout(timer);
   };
 
   return (
@@ -131,15 +97,23 @@ export default function ForgotPassword() {
                 type="button"
                 variant="outline"
                 className="flex-1"
-                onClick={() => void sendCode()}
-                disabled={!emailValid || sending}
+                onClick={() => sendCode()}
+                disabled={!emailValid || sending || isCounting}
               >
-                {sending ? '发送中...' : sent ? '重新发送' : '发送验证码'}
+                {sending ? (
+                  "发送中..."
+                ) : isCounting ? (
+                  `${timeLeft} 秒后重发`
+                ) : sent ? (
+                  "重新发送"
+                ) : (
+                  "发送验证码"
+                )}
               </Button>
               <Button
                 type="button"
                 className="flex-1"
-                onClick={() => void verifyAndReset()}
+                onClick={() => verifyAndReset()}
                 disabled={!sent || !code.trim() || verifying}
               >
                 {verifying ? '验证中...' : '验证'}
@@ -149,7 +123,7 @@ export default function ForgotPassword() {
             <div className="flex items-center justify-center pt-2">
               <button
                 type="button"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-gray-600 hover:underline"
                 onClick={() => navigate('/member-auth')}
               >
                 返回登录

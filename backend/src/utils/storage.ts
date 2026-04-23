@@ -3,7 +3,8 @@ import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import OSS from 'ali-oss';
 
-type PutResult = { url: string; key: string };
+type PutResult = { url:string,key: string };
+const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || '4001'}`;
 
 // 检查是否配置了 OSS 存储
 function hasOssConfig() {
@@ -48,7 +49,6 @@ export async function putImage(params: {
   buffer: Buffer;
   mime: string;
   originalName?: string;
-  publicBaseUrlForLocal: string;
 }): Promise<PutResult> {
   const fileExt = extFromMime(params.mime);
   const random = crypto.randomBytes(12).toString('hex');
@@ -84,13 +84,12 @@ export async function putImage(params: {
   const fileName = key.replace('photos/', '');
   const localPath = path.join(uploadsDir, fileName);
   await fs.writeFile(localPath, params.buffer);
-  return { key: fileName, url: `${params.publicBaseUrlForLocal}/uploads/${fileName}` };
+  return { key: fileName, url: `${BASE_URL}/uploads/${fileName}` };
 }
 
 // 保存通知内容到 OSS 或本地文件系统
 export async function putNoticeContent(params: {
   content: string;
-  publicBaseUrlForLocal: string;
 }): Promise<PutResult> {
   const random = crypto.randomBytes(12).toString('hex');
   const key = `notice/${Date.now()}-${random}.txt`;
@@ -125,7 +124,7 @@ export async function putNoticeContent(params: {
   const fileName = key.replace('notice/', '');
   const localPath = path.join(uploadsDir, fileName);
   await fs.writeFile(localPath, params.content, 'utf-8');
-  return { key: fileName, url: `${params.publicBaseUrlForLocal}/uploads/notice/${fileName}` };
+  return { key: fileName, url: `${BASE_URL}/uploads/notice/${fileName}` };
 }
 
 // 删除通知内容文件

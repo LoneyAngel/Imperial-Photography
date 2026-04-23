@@ -1,67 +1,46 @@
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff } from 'lucide-react';
-import api from '@/utils/axios';
+import { useFunction } from '@/context/function';
+import toast from 'react-hot-toast';
+import { useToken } from '@/context/token';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const token = searchParams.get('token') || '';
+  const token = useToken()
   const email = searchParams.get('email') || '';
 
+  const { resetPassword } = useFunction();
+  const [isPending, startTransition] = useTransition();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: any) => {
     e.preventDefault();
     setError(null);
-
-    if (!token || !email) {
-      setError('无效的请求');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('密码长度至少6位');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('两次输入的密码不一致');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const res = await api.post('/api/auth/reset-password', { token, email, password },{
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!res.data) {
-        setError(res.data.error || '重置密码失败');
-        return;
-      }
-
-      // 密码重置成功，跳转到登录页面
+    if (!token || !email) { setError('无效的请求'); return; }
+    if (password.length < 6) { setError('密码长度至少6位'); return; }
+    if (password !== confirmPassword) { setError('两次输入的密码不一致'); return; }
+    startTransition(async () => {
+      const err = await resetPassword(email, password);
+      if (err) { toast.error(err.message); return; }
+      toast.success('密码重置成功');
       navigate('/member-auth?success=password_reset');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '重置密码失败');
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   if (!token || !email) {
+    console.log("email:",email)
+    console.log("token:",token)
+
     return (
       <div className="min-h-[calc(100vh-50px-64px)] flex items-center justify-center px-4 py-10 bg-slate-50">
         <div className="w-full max-w-md">
@@ -138,8 +117,8 @@ export default function ResetPassword() {
                 <p className="text-sm text-destructive">{error}</p>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? '重置中...' : '重置密码'}
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? '重置中...' : '重置密码'}
               </Button>
             </form>
           </CardContent>

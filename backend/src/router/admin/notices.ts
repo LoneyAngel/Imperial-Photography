@@ -1,17 +1,15 @@
 import { Router } from 'express';
-import { z } from 'zod';
 import { asyncHandler, ApiResponse } from '../../utils/api.js';
 import { prisma } from '../../utils/prisma.js';
 import { adminOnly } from '../../middleware/admin.js';
-import { putNoticeContent, deleteNoticeContent } from '../../storage.js';
+import { putNoticeContent, deleteNoticeContent } from '../../utils/storage.js';
+import { NoticeSchema, idParamSchema } from '../../utils/z/notices.js';
 
 const router = Router();
 
 // 获取所有通知
-router.get('/', adminOnly, asyncHandler(async (req, res) => {
-  const notices = await prisma.notice.findMany({
-    orderBy: { createdAt: 'desc' },
-  });
+router.get('/', adminOnly, asyncHandler(async (_req, res) => {
+  const notices = await prisma.notice.findMany({ orderBy: { createdAt: 'desc' } });
 
   ApiResponse.success(res, notices.map(n => ({
     id: n.id,
@@ -24,23 +22,16 @@ router.get('/', adminOnly, asyncHandler(async (req, res) => {
 
 // 创建通知
 router.post('/', adminOnly, asyncHandler(async (req, res) => {
-  const body = z.object({
-    title: z.string().trim().min(1).max(200),
-    content: z.string().trim().max(10000),
-  }).parse(req.body);
-
-  const baseForLocal = `http://localhost:${process.env.PORT || '4001'}`;
-  const uploaded = await putNoticeContent({
-    content: body.content,
-    publicBaseUrlForLocal: baseForLocal,
-  });
+  const parsed = NoticeSchema.safeParse(req.body);
+  if (!parsed.success) {
+    ApiResponse.error(res, '无效的请求参数', 'invalid_parameters');
+    return;
+  }
+  const { title, content } = parsed.data;
+  const uploaded = await putNoticeContent({ content});
 
   const notice = await prisma.notice.create({
-    data: {
-      title: body.title,
-      contentUrl: uploaded.url,
-      createdMemberId: req.userId!,
-    },
+    data: { title, contentUrl: uploaded.url, createdMemberId: req.userId! },
   });
 
   ApiResponse.success(res, {
@@ -54,41 +45,37 @@ router.post('/', adminOnly, asyncHandler(async (req, res) => {
 
 // 更新通知
 router.put('/:id', adminOnly, asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const body = z.object({
-    title: z.string().trim().min(1).max(200).optional(),
-    content: z.string().trim().max(10000).optional(),
-  }).parse(req.body);
+  const paramParsed = idParamSchema.safeParse(req.params);
+  if (!paramParsed.success) {
+    ApiResponse.error(res, '无效的参数', 'invalid_parameters');
+    return;
+  }
+  const { id } = paramParsed.data;
 
-  const existingNotice = await prisma.notice.findUnique({
-    where: { id },
-  });
+  const parsed = NoticeSchema.safeParse(req.body);
+  if (!parsed.success) {
+    ApiResponse.error(res, '无效的请求参数', 'invalid_parameters');
+    return;
+  }
+  const { title, content } = parsed.data;
 
+  const existingNotice = await prisma.notice.findUnique({ where: { id } });
   if (!existingNotice) {
     ApiResponse.notFound(res, '公告不存在');
     return;
   }
 
   let contentUrl = existingNotice.contentUrl;
-  if (body.content) {
-    const baseForLocal = `http://localhost:${process.env.PORT || '4001'}`;
-    const uploaded = await putNoticeContent({
-      content: body.content,
-      publicBaseUrlForLocal: baseForLocal,
-    });
+  if (content) {
+    const uploaded = await putNoticeContent({ content });
     contentUrl = uploaded.url;
     const oldKey = existingNotice.contentUrl.split('/').pop();
-    if (oldKey) {
-      await deleteNoticeContent(oldKey);
-    }
+    if (oldKey) await deleteNoticeContent(oldKey);
   }
 
   const notice = await prisma.notice.update({
     where: { id },
-    data: {
-      title: body.title,
-      contentUrl,
-    },
+    data: { title, contentUrl },
   });
 
   ApiResponse.success(res, {
@@ -102,26 +89,23 @@ router.put('/:id', adminOnly, asyncHandler(async (req, res) => {
 
 // 删除通知
 router.delete('/:id', adminOnly, asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const parsed = idParamSchema.safeParse(req.params);
+  if (!parsed.success) {
+    ApiResponse.error(res, '无效的参数', 'invalid_parameters');
+    return;
+  }
+  const { id } = parsed.data;
 
-  const existingNotice = await prisma.notice.findUnique({
-    where: { id },
-  });
-
+  const existingNotice = await prisma.notice.findUnique({ where: { id } });
   if (!existingNotice) {
     ApiResponse.notFound(res, '公告不存在');
     return;
   }
 
   const oldKey = existingNotice.contentUrl.split('/').pop();
-  if (oldKey) {
-    await deleteNoticeContent(oldKey);
-  }
+  if (oldKey) await deleteNoticeContent(oldKey);
 
-  await prisma.notice.delete({
-    where: { id },
-  });
-
+  await prisma.notice.delete({ where: { id } });
   ApiResponse.success(res);
 }));
 

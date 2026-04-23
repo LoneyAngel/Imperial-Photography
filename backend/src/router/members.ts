@@ -1,20 +1,20 @@
 import { Router } from 'express';
-import { z } from 'zod';
 import { asyncHandler, ApiResponse } from '../utils/api.js';
 import { prisma } from '../utils/prisma.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { updateMemberSchema } from '../utils/z/members.js';
 
 const router = Router();
-router.use(authMiddleware)
+router.use(authMiddleware);
 
 // 更新会员信息
 router.put('/update', asyncHandler(async (req, res) => {
-  const body = z
-    .object({
-      name: z.string().trim().max(20).optional(),
-      bio: z.string().trim().max(500).optional(),
-    })
-    .parse(req.body);
+  const parsed = updateMemberSchema.safeParse(req.body);
+  if (!parsed.success) {
+    ApiResponse.error(res, '无效的请求参数', 'invalid_parameters');
+    return;
+  }
+  const body = parsed.data;
 
   const member = await prisma.member.update({
     where: { id: req.userId },
@@ -34,20 +34,16 @@ router.put('/update', asyncHandler(async (req, res) => {
 
 // 获取会员信息
 router.get('/detail', asyncHandler(async (req, res) => {
-
   const member = await prisma.member.findUnique({
     where: { id: req.userId },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      bio: true,
-    },
+    select: { id: true, email: true, name: true, bio: true },
   });
+
   if (!member) {
     ApiResponse.notFound(res, 'Member not found');
     return;
   }
+
   ApiResponse.success(res, {
     id: member.id,
     email: member.email,
@@ -55,6 +51,5 @@ router.get('/detail', asyncHandler(async (req, res) => {
     bio: member.bio ?? undefined,
   });
 }));
-
 
 export default router;

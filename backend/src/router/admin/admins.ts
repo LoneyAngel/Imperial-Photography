@@ -1,22 +1,20 @@
 import { Router } from 'express';
-import { z } from 'zod';
 import { asyncHandler, ApiResponse } from '../../utils/api.js';
 import { prisma } from '../../utils/prisma.js';
 import { superAdminOnly } from '../../middleware/admin.js';
+import { updateRoleSchema } from '../../utils/z/members.js';
 
 const router = Router();
 
 // 获取所有用户及其角色（超级管理员）
-router.get('/', superAdminOnly, asyncHandler(async (req, res) => {
+router.get('/', superAdminOnly, asyncHandler(async (_req, res) => {
   const users = await prisma.member.findMany({
     select: {
       id: true,
       email: true,
       name: true,
       createdAt: true,
-      userRole: {
-        select: { roleId: true },
-      },
+      userRole: { select: { roleId: true } },
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -32,24 +30,26 @@ router.get('/', superAdminOnly, asyncHandler(async (req, res) => {
 
 // 更新用户角色（超级管理员）
 router.put('/:id/role', superAdminOnly, asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const body = z.object({
-    roleId: z.number().int().min(1).max(3),
-  }).parse(req.body);
+  const userId = [req.params.id].flat()[0];
+  const parsed = updateRoleSchema.safeParse(req.body);
+  if (!parsed.success) {
+    ApiResponse.error(res, '无效的角色值', 'invalid_parameters');
+    return;
+  }
 
-  if (id === req.userId) {
+  if (userId === req.userId) {
     ApiResponse.error(res, '不能修改自己的角色', 'cannot_modify_self');
     return;
   }
 
   const userRole = await prisma.userRole.upsert({
-    where: { userId: id },
-    update: { roleId: body.roleId },
-    create: { userId: id, roleId: body.roleId },
+    where: { userId: userId },
+    update: { roleId: parsed.data.roleId },
+    create: { userId: userId, roleId: parsed.data.roleId },
     select: { roleId: true },
   });
 
-  ApiResponse.success(res, { id, roleId: userRole.roleId });
+  ApiResponse.success(res, { id: userId, roleId: userRole.roleId });
 }));
 
 export default router;

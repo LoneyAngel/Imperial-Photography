@@ -5,7 +5,7 @@ const COOKIE_OPTIONS = {
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
   maxAge: 15 * 24 * 60 * 60 * 1000, // 15天
-  path: '/api/auth/refresh',
+  path: '/',
 };
 
 // 设置 refreshToken 到 cookie
@@ -15,6 +15,6 @@ function setRefreshTokenCookie(res: any, token: string) {
 
 // 清除 refreshToken cookie
 function clearRefreshTokenCookie(res: any) {
-  res.clearCookie(COOKIE_NAME, { path: '/api/auth/refresh' });
+  res.clearCookie(COOKIE_NAME, { path: '/' });
 }
 export { setRefreshTokenCookie, clearRefreshTokenCookie };

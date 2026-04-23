@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useTransition } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUser } from '../context/user';
-import api from '@/utils/axios';
 import toast from 'react-hot-toast';
+import { useFunction } from '@/context/function';
+import { useCountdown } from '@/hooks/count';
 
 
 export default function MemberRegister() {
@@ -17,10 +18,15 @@ export default function MemberRegister() {
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [isSending, sendCodeTransition] = useTransition();
+  const [isVerifying, verifyCodeTransition] = useTransition();
+  const [isSettingPassword, setPasswordTransition] = useTransition();
+  const { timeLeft, start, isCounting } = useCountdown(60);
+  const { sendRegisterCode, verifyCode,set_password} = useFunction();
   const normalizedEmail = () => email.trim().toLowerCase();
   const emailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail());
 
@@ -30,9 +36,9 @@ export default function MemberRegister() {
     setPassword('');
     setConfirmPassword('');
     setError(null);
-    setIsLoading(false);
     setStep('email');
     setAgreedToPrivacy(false);
+    setSent(false);
   };
   useEffect(() => {
     if (user) {
@@ -42,6 +48,7 @@ export default function MemberRegister() {
     }
   }, [user]);
   const sendCode = async () => {
+    setError(null);
     if (!agreedToPrivacy) {
       setError('请先阅读并同意隐私协议');
       return;
@@ -50,54 +57,37 @@ export default function MemberRegister() {
       setError('请输入有效的邮箱地址');
       return;
     }
-    try {
-      setIsLoading(true);
-      setError(null);
-      const res = await api.post('/api/auth/request-register-code', 
-        { email: normalizedEmail() },{
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
-      if (!res.data) throw new Error('send_failed');
+    sendCodeTransition(async () => {
+      const res = await sendRegisterCode(normalizedEmail());
+      if (res) {
+        toast.error(res.message || '验证码发送失败，请重试');
+        return;
+      }
+      start();
+      setSent(true);
       setStep('code');
-    } catch {
-      setError('验证码发送失败，请稍后重试');
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
-  const verifyCode = async () => {
+  const verify_Code = async () => {
     if (!code.trim()) {
       setError('请输入验证码');
       return;
     }
-
-    setIsLoading(true);
     setError(null);
-
-    try {
-      const res = await api.post('/api/auth/verify-code',
-        { email: normalizedEmail, code: code.trim() }, {
-        headers: { 'Content-Type': 'application/json' },
-        }
-      );
-
-      if (!res.data) {
-        setError('验证码不正确或已过期');
+    verifyCodeTransition(async () => {
+      const res = await verifyCode(normalizedEmail(), code.trim());
+      if (res) {
+        setError(res.message || '验证码验证失败，请检查后重试');
         return;
       }
-
       // 验证码正确，进入密码设置步骤
       setStep('password');
-    } catch {
-      setError('验证失败，请重试');
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   const setPasswordAndComplete = async () => {
+    setError(null);
     if (!password) {
       setError('请输入密码');
       return;
@@ -110,34 +100,19 @@ export default function MemberRegister() {
       setError('两次输入的密码不一致');
       return;
     }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
+    setPasswordTransition(async () => {
       // 设置密码
-      const res = await api.post('/api/auth/set-password',{ email: normalizedEmail, password }, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!res.data) {
-        setError('密码设置失败');
+      const res = await set_password(normalizedEmail(), password);
+      if (res) {
+        toast.error(res.message || '注册失败，请重试');
         return;
       }
-
       // 密码设置成功，显示提示并延迟跳转
       toast.success('密码设置成功！');
-
-      // 延迟2秒后跳转到登录页
       setTimeout(() => {
         navigate('/member-auth?success=password_set');
       }, 2000);
-
-    } catch {
-      setError('注册失败，请重试');
-    } finally {
-      setIsLoading(false);
-    }
+    })
   };
 
   return (
@@ -145,6 +120,11 @@ export default function MemberRegister() {
       <div className="w-full max-w-md">
         <Card className="shadow-sm border border-slate-200">
           <CardHeader className="space-y-3">
+            <Link to="/member-auth" className="flex items-center">
+              <span className="text-sm text-black hover:underline mr-2">
+                ← 返回
+              </span>
+            </Link>
             <div className="flex items-center justify-center">
               <div className="text-3xl font-semibold tracking-tight">
                 <span className="text-blue-600">I</span>
@@ -205,9 +185,17 @@ export default function MemberRegister() {
                   type="button"
                   className="w-full"
                   onClick={() => void sendCode()}
-                  disabled={!emailValid || !agreedToPrivacy || isLoading}
+                  disabled={!emailValid || !agreedToPrivacy || isSending}
                 >
-                  {isLoading ? '发送中...' : '发送验证码'}
+                  {isSending ? (
+                    "发送中..."
+                  ) : isCounting ? (
+                    `${timeLeft} 秒后重发`
+                  ) : sent ? (
+                    "重新发送"
+                  ) : (
+                    "发送验证码"
+                  )}
                 </Button>
               </>
             )}
@@ -242,10 +230,10 @@ export default function MemberRegister() {
                   <Button
                     type="button"
                     className="flex-1"
-                    onClick={() => void verifyCode()}
-                    disabled={!code.trim() || isLoading}
+                    onClick={() => void verify_Code()}
+                    disabled={!code.trim() || isVerifying}
                   >
-                    {isLoading ? '验证中...' : '验证'}
+                    {isVerifying ? '验证中...' : '验证'}
                   </Button>
                 </div>
               </>
@@ -299,14 +287,14 @@ export default function MemberRegister() {
                     type="button"
                     className="flex-1"
                     onClick={() => void setPasswordAndComplete()}
-                    disabled={!password || !confirmPassword || isLoading}
+                    disabled={!password || !confirmPassword || isSettingPassword}
                   >
-                    {isLoading ? '注册中...' : '完成注册'}
+                    {isSettingPassword ? '注册中...' : '完成注册'}
                   </Button>
                 </div>
 
                 {/* 注册成功提示 */}
-                {isLoading && (
+                {isSettingPassword && (
                   <div className="text-center text-sm text-muted-foreground mt-2">
                     注册成功，即将跳转到登录页面...
                   </div>
@@ -340,51 +328,57 @@ export default function MemberRegister() {
       </div>
 
       {/* 隐私协议弹窗 */}
-      {showPrivacy && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={() => setShowPrivacy(false)}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[70vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6 border-b flex items-center justify-between">
-              <h2 className="text-lg font-semibold">隐私协议</h2>
-              <button onClick={() => setShowPrivacy(false)} className="text-muted-foreground hover:text-foreground text-xl">×</button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6 text-sm text-muted-foreground space-y-4 leading-relaxed">
-              <p>最后更新日期：2025年</p>
-              <p>欢迎使用 Imperial Photography（以下简称“本平台”）。在注册前，请仔细阅读本隐私协议。</p>
-              <div>
-                <p className="font-medium text-foreground mb-1">1. 收集的信息</p>
-                <p>我们仅收集您的邮箱地址、个人名称、个人简介及您主动上传的照片作品。</p>
-              </div>
-              <div>
-                <p className="font-medium text-foreground mb-1">2. 信息用途</p>
-                <p>您的信息仅用于身份验证、展示作品及提供平台服务，不会向第三方出售或共享您的个人信息。</p>
-              </div>
-              <div>
-                <p className="font-medium text-foreground mb-1">3. 作品权利</p>
-                <p>您上传的照片作品的着作权归您所有。本平台仅展示您的作品，不会将其用于商业目的。</p>
-              </div>
-              <div>
-                <p className="font-medium text-foreground mb-1">4. 数据安全</p>
-                <p>我们采用合理的安全措施保护您的个人信息，包括加密存储和传输。</p>
-              </div>
-              <div>
-                <p className="font-medium text-foreground mb-1">5. 联系我们</p>
-                <p>如您对本协议有任何疑问，请通过平台内的联系方式与我们取得联系。</p>
-              </div>
-            </div>
-            <div className="p-4 border-t">
-              <Button className="w-full" onClick={() => { setAgreedToPrivacy(true); setShowPrivacy(false); }}>
-                我已阅读并同意
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {showPrivacy && <PrivacyDiv setShowPrivacy={setShowPrivacy} setAgreedToPrivacy={setAgreedToPrivacy} />}
     </div>
   );
+}
+
+
+const PrivacyDiv = ({setShowPrivacy,setAgreedToPrivacy}:
+{setShowPrivacy:(show:boolean)=>void,setAgreedToPrivacy:(agreed:boolean)=>void}) => {
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={() => setShowPrivacy(false)}
+    >
+      <div
+        className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[70vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 border-b flex items-center justify-between">
+          <h2 className="text-lg font-semibold">隐私协议</h2>
+          <button onClick={() => setShowPrivacy(false)} className="text-muted-foreground hover:text-foreground text-xl">×</button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6 text-sm text-muted-foreground space-y-4 leading-relaxed">
+          <p>最后更新日期：2025年</p>
+          <p>欢迎使用 Imperial Photography（以下简称“本平台”）。在注册前，请仔细阅读本隐私协议。</p>
+          <div>
+            <p className="font-medium text-foreground mb-1">1. 收集的信息</p>
+            <p>我们仅收集您的邮箱地址、个人名称、个人简介及您主动上传的照片作品。</p>
+          </div>
+          <div>
+            <p className="font-medium text-foreground mb-1">2. 信息用途</p>
+            <p>您的信息仅用于身份验证、展示作品及提供平台服务，不会向第三方出售或共享您的个人信息。</p>
+          </div>
+          <div>
+            <p className="font-medium text-foreground mb-1">3. 作品权利</p>
+            <p>您上传的照片作品的着作权归您所有。本平台仅展示您的作品，不会将其用于商业目的。</p>
+          </div>
+          <div>
+            <p className="font-medium text-foreground mb-1">4. 数据安全</p>
+            <p>我们采用合理的安全措施保护您的个人信息，包括加密存储和传输。</p>
+          </div>
+          <div>
+            <p className="font-medium text-foreground mb-1">5. 联系我们</p>
+            <p>如您对本协议有任何疑问，请通过平台内的联系方式与我们取得联系。</p>
+          </div>
+        </div>
+        <div className="p-4 border-t">
+          <Button className="w-full" onClick={() => { setAgreedToPrivacy(true); setShowPrivacy(false); }}>
+            我已阅读并同意
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
 }

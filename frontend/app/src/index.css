@@ -60,9 +60,6 @@
   }
 }
 
-*{
-  transition: all 0.3s ease;
-}
 html {
   scrollbar-gutter: stable;
   overflow-y: overlay; /* 这是一个非标准但有效的属性，让滚动条浮在内容上 */
@@ -91,4 +88,17 @@ html {
   ::-webkit-scrollbar-thumb:hover {
     background-color: rgba(0, 0, 0, 0.3); /* 鼠标悬停时加深 */
   }
+}
+/* 隐藏 Edge 浏览器的密码眼睛 */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+/* 隐藏 Chrome 和 Safari 部分版本的默认修饰 (如果出现) */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
 }

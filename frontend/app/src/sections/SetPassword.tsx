@@ -1,61 +1,38 @@
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Eye, EyeOff } from 'lucide-react';
-import api from '@/utils/axios';
+import { useFunction } from '@/context/function';
+import toast from 'react-hot-toast';
 
 export default function SetPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const email = searchParams.get('email') || '';
 
+  const { set_password } = useFunction();
+  const [isPending, startTransition] = useTransition();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    if (!email) {
-      setError('无效的请求');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('密码长度至少6位');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('两次输入的密码不一致');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const res = await api.post('/api/auth/set-password',{ email, password }, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (!res.data) {
-        throw new Error('设置密码失败');
-      }
-
-      // 密码设置成功，跳转到登录页面
+    if (!email) { setError('无效的请求'); return; }
+    if (password.length < 6) { setError('密码长度至少6位'); return; }
+    if (password !== confirmPassword) { setError('两次输入的密码不一致'); return; }
+    startTransition(async () => {
+      const err = await set_password(email, password);
+      if (err) { toast.error(err.message); return; }
+      toast.success('密码设置成功');
       navigate('/member-auth?success=password_set');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '设置密码失败');
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -78,6 +55,7 @@ export default function SetPassword() {
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
+                    name="password"
                     placeholder="请输入密码（至少6位）"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -100,6 +78,7 @@ export default function SetPassword() {
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="请再次输入密码"
+                    name='password'
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -118,8 +97,8 @@ export default function SetPassword() {
                 <p className="text-sm text-destructive">{error}</p>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? '设置中...' : '设置密码'}
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? '设置中...' : '设置密码'}
               </Button>
             </form>
           </CardContent>
