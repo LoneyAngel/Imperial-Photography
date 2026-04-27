@@ -1,0 +1,14 @@
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.upload-animate {
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.dropzone-active {
+  border-color: hsl(var(--primary));
+  background-color: hsla(var(--primary), 0.05);
+  transform: scale(1.01);
+}

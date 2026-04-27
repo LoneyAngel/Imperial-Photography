@@ -1,31 +1,50 @@
-/* 1. 主容器样式 */
+/*  主容器样式 */
 .my-masonry-grid {
   display: flex;
   margin-left: -20px; /* 抵消列的左边距 */
   width: auto;
 }
 
-/* 2. 列容器样式 */
+/*  列容器样式 */
 .my-masonry-grid_column {
   padding-left: 30px; /* 设置列间距 */
   background-clip: padding-box;
 }
 
-/* 3. 单个照片项样式 */
+/* 单个照片项样式 */
 .photo-item {
   background: #fff;
   overflow: hidden;
   margin-bottom: 30px; /* 设置行间距 */
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.3s ease;
+  /* transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);*/
+  animation: fadeIn 0.6s ease-out forwards;
+  cursor:zoom-in;
 }
-
-.photo-item:hover {
-  transform: translateY(-5px);
+.photo-item img {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 使用贝塞尔曲线更丝滑 */
+}
+.photo-item:hover img {
+  transform: scale(1.05); /* 悬停时图片轻微放大 */
 }
 
 .photo-item img {
   width: 100%;       /* 关键：宽度撑满列 */
   height: auto;      /* 关键：高度自适应 */
   display: block;
+}
+
+/* 渐入效果 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* 单个照片项样式 */
+.photo-item2 {
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  animation: fadeIn 0.6s ease-out forwards;
 }
