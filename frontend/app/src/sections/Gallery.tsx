@@ -119,7 +119,11 @@ export default function Gallery() {
                     {/* 作者 */}
                     <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate(`/member/${selectedPhoto.ownerMemberId}`)}>
                       <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold">
-                        {selectedPhoto.ownerName?.charAt(0) || 'U'}
+                        <img
+                          src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${selectedPhoto?.ownerMemberId ||selectedPhoto?.ownerName ||'user'}`}
+                          alt={selectedPhoto?.ownerName}
+                          className="transition-transform duration-300 hover:[transform:rotate(360deg)]"
+                        />
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Artist</p>

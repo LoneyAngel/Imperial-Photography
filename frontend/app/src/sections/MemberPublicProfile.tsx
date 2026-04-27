@@ -44,7 +44,11 @@ export default function MemberPublicProfile() {
       {/* 作者信息 */}
       <div className="mb-8 flex items-center gap-4">
         <div className="h-14 w-14 rounded-full bg-slate-200 flex items-center justify-center text-xl font-bold text-slate-500">
-          {data?.member.name?.charAt(0) ?? '?'}
+          <img
+            src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${id ||'user'}`}
+            alt={id}
+            className="transition-transform duration-300 hover:[transform:rotate(360deg)]"
+          />
         </div>
         <div>
           <p className="text-xl font-semibold">{data?.member.name ?? '加载中...'}</p>

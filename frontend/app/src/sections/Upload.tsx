@@ -127,6 +127,7 @@ export default function Upload() {
                   <div className="h-1.5 bg-primary w-full" />
                   <CardHeader className="space-y-1 pb-8 text-center">
                     <CardTitle className="text-xl tracking-tight">发布作品，让更多人看到你的创意</CardTitle>
+                    <p className='text-gray-400 text-sm font-light'>在个人资料页面可以修改你的作者名字哦</p>
                   </CardHeader>
                   <CardContent className="px-8 pb-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
