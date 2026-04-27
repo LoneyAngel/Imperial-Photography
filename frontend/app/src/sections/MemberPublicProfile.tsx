@@ -1,13 +1,11 @@
-import { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Photo } from '@/types';
 import { useQuery } from '@tanstack/react-query';
-import { X, Share2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import Pagination from '@/components/ui/pagination';
 import api from '@/utils/axios';
-import { copyToClipboard, buildUrl } from '@/utils/utils';
 
 interface MemberPhotosResult {
   member: { name: string; bio?: string };
@@ -28,13 +26,8 @@ async function fetchMemberPhotos(memberId: string, page: number): Promise<Member
 
 export default function MemberPublicProfile() {
   const { id } = useParams<{ id: string }>();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const currentPage = parseInt(searchParams.get('page') || '1', 10);
-  const currentPhotoId = searchParams.get('photo') || null;
-
-  const [page, setPage] = useState(currentPage);
+  const [page, setPage] = useState(1);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-  const [hasSelectedOnce, setHasSelectedOnce] = useState(false);
 
   const { data } = useQuery({
     queryKey: ['member-photos', id, page],
@@ -45,59 +38,6 @@ export default function MemberPublicProfile() {
 
   const photos = data?.list ?? [];
   const totalPages = Math.ceil((data?.total ?? 0) / (data?.pageSize ?? 30));
-
-  // 从URL中初始化选中的照片 - 只执行一次
-  useEffect(() => {
-    if (currentPhotoId && photos.length > 0 && !selectedPhoto && !hasSelectedOnce) {
-      const photo = photos.find((p) => p.id === currentPhotoId);
-      if (photo) {
-        setSelectedPhoto(photo);
-        setHasSelectedOnce(true);
-      }
-    }
-  }, [currentPhotoId, photos, selectedPhoto, hasSelectedOnce]);
-
-  // 更新URL - 只有当值与URL当前值不同时才更新
-  useEffect(() => {
-    if (!id) return;
-
-    const newPhotoId = selectedPhoto?.id || undefined;
-    const newPage = page > 1 ? page : undefined;
-
-    // 检查是否真的需要更新URL
-    const urlPage = searchParams.get('page');
-    const urlPhotoId = searchParams.get('photo') || undefined;
-
-    const urlPageNum = urlPage ? parseInt(urlPage, 10) : undefined;
-
-    if (
-      newPage === urlPageNum &&
-      newPhotoId === urlPhotoId
-    ) {
-      return; // URL已经是正确状态
-    }
-
-    const params: Record<string, string> = {};
-    if (newPage) params.page = String(newPage);
-    if (newPhotoId) params.photo = newPhotoId;
-
-    setSearchParams(params, { replace: true });
-  }, [id, page, selectedPhoto?.id, searchParams]);
-
-  const handleSharePhoto = (photo: Photo) => {
-    if (!id) return;
-    const url = buildUrl(`/member/${id}`, {
-      page: page > 1 ? page : undefined,
-      photo: photo.id,
-    });
-    copyToClipboard(url, '作品链接已复制');
-  };
-
-  const handleShareProfile = () => {
-    if (!id) return;
-    const url = buildUrl(`/member/${id}`, {});
-    copyToClipboard(url, '个人主页链接已复制');
-  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -110,22 +50,13 @@ export default function MemberPublicProfile() {
             className="transition-transform duration-300 hover:[transform:rotate(360deg)]"
           />
         </div>
-        <div className="flex-1">
+        <div>
           <p className="text-xl font-semibold">{data?.member.name ?? '加载中...'}</p>
           {data?.member.bio && (
             <p className="text-sm text-muted-foreground mt-1 max-w-md">{data.member.bio}</p>
           )}
           <p className="text-xs text-muted-foreground mt-1">共 {data?.total ?? 0} 件作品</p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleShareProfile}
-          className="flex items-center gap-2"
-        >
-          <Share2 className="h-4 w-4" />
-          分享
-        </Button>
       </div>
 
       {photos.length === 0 ? (
@@ -183,15 +114,6 @@ export default function MemberPublicProfile() {
                       {selectedPhoto.description || '这个作者很懒，什么都没有留下...'}
                     </p>
                   </div>
-                </div>
-                <div className="p-6 bg-slate-50/50 border-t border-slate-100">
-                  <Button
-                    className="w-full bg-slate-900 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
-                    onClick={() => handleSharePhoto(selectedPhoto)}
-                  >
-                    <Share2 className="h-4 w-4" />
-                    分享作品
-                  </Button>
                 </div>
               </div>
             </div>
