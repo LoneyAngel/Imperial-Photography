@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { X } from 'lucide-react';
+import { X, Share2 } from 'lucide-react';
 import { useState, useEffect, Suspense } from 'react';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useUser } from '@/context/user';
@@ -12,6 +12,7 @@ import Pagination from '@/components/ui/pagination';
 import { useDeferredValue} from "react"
 import "@/styles/PhotoGrid.css"
 import { Link } from 'react-router-dom';
+import { copyToClipboard, buildUrl } from '@/utils/utils';
 
 
 export default function MemberProfile() {
@@ -114,6 +115,12 @@ export default function MemberProfile() {
     }
   };
 
+  const handleShareProfile = () => {
+    if (!user) return;
+    const url = buildUrl(`/member/${user.id}`, {});
+    copyToClipboard(url, '个人主页链接已复制');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid gap-8 md:grid-cols-3">
@@ -169,6 +176,14 @@ export default function MemberProfile() {
                   </div>
                   <Button className="w-full" variant="outline" onClick={() => setEditing(true)}>
                     编辑
+                  </Button>
+                  <Button
+                    className="w-full flex items-center justify-center gap-2"
+                    variant="outline"
+                    onClick={handleShareProfile}
+                  >
+                    <Share2 className="h-4 w-4" />
+                    分享主页
                   </Button>
                 </div>
               )}
