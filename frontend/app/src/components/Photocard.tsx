@@ -23,7 +23,6 @@ const PhotoGrid = ({ photos, setSelectedPhoto }: { photos: Photo[]; setSelectedP
       />
     </div>
   ));
-
   return (
     <MasonryComponent
       breakpointCols={breakpointColumnsObj}

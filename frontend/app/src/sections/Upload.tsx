@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload as UploadIcon, ArrowLeft } from 'lucide-react';
+import { Upload as UploadIcon, ArrowLeft, CheckCircle2, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +12,8 @@ import { queryClient } from '@/App';
 import { compressImage, isFileOversized, formatFileSize } from '@/utils/imageCompress';
 import { useNavigate } from 'react-router-dom';
 import {IMAGE_MAX_SIZE_MB} from "@/config/file"
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Upload() {
   const { user } = useUser();
@@ -23,6 +25,7 @@ export default function Upload() {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploadedPhoto, setUploadedPhoto] = useState<{ url: string; title: string; description: string; authorName: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragActive, setIsDragActive] = useState(false);
   const navigate = useNavigate();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,124 +111,140 @@ export default function Upload() {
       </div>
     );
   }
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto">
-        {!uploadedPhoto ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>上传作品</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">作品名字</Label>
-                  <Input
-                    id="title"
-                    placeholder="为您的作品起个名字"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
-                </div>
+<div className="min-h-screen bg-slate-50/30 py-12 px-4">
+      <ErrorBoundary>
+        <div className="max-w-3xl mx-auto">
+          <AnimatePresence mode="wait">
+            {!uploadedPhoto ? (
+              <motion.div
+                key="upload-form"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
+                <Card className="border-none shadow-2xl shadow-slate-200/50">
+                  <div className="h-1.5 bg-primary w-full" />
+                  <CardHeader className="space-y-1 pb-8 text-center">
+                    <CardTitle className="text-xl tracking-tight">发布作品，让更多人看到你的创意</CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-8 pb-8">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="grid gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="title" className="text-xs font-bold uppercase text-slate-500">作品标题</Label>
+                          <Input 
+                            id="title" 
+                            placeholder="给作品起个好听的名字..." 
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="bg-slate-50/50 border-slate-200 focus:bg-white transition-all h-11"
+                          />
+                        </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">作品简介</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="写点关于作品的故事、拍摄地点或想表达的内容..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                  />
-                </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="description" className="text-xs font-bold uppercase text-slate-500">作品描述 (可选)</Label>
+                          <Textarea 
+                            id="description" 
+                            placeholder="分享作品背后的故事..." 
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={3}
+                            className="bg-slate-50/50 border-slate-200 focus:bg-white transition-all resize-none"
+                          />
+                        </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="file">图片文件 *</Label>
-                  <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
-                    <input
-                      id="file"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      required
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase text-slate-500">上传图片 *</Label>
+                          <div 
+                            className={`
+                              relative border-2 border-dashed rounded-xl transition-all duration-200
+                              ${preview ? 'p-2' : 'p-10'}
+                              ${isDragActive ? 'border-primary bg-primary/5' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300'}
+                            `}
+                            onDragOver={(e) => { e.preventDefault(); setIsDragActive(true); }}
+                            onDragLeave={() => setIsDragActive(false)}
+                            onDrop={() => setIsDragActive(false)}
+                          >
+                            {!preview ? (
+                              <label htmlFor="file" className="cursor-pointer flex flex-col items-center group">
+                                <div className="p-4 bg-white rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform">
+                                  <UploadIcon className="h-6 w-6 text-primary" />
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">点击或拖拽图片到此处</span>
+                                <span className="text-xs text-slate-400 mt-1">支持高质量 JPG, PNG, GIF</span>
+                                <input id="file" type="file" accept="image/*" onChange={handleFileChange} className="hidden" required />
+                              </label>
+                            ) : (
+                              <div className="relative rounded-lg overflow-hidden group">
+                                <img src={preview} alt="预览" className="w-full max-h-[400px] object-cover rounded-lg" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Button 
+                                    type="button" 
+                                    // variant="destructive" 
+                                    size="sm" 
+                                    onClick={() => setPreview(null)}
+                                    className="gap-2"
+                                  >
+                                    <X className="h-4 w-4" /> 移除并重选
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button type="submit" className="w-full h-12 text-base shadow-lg shadow-primary/20 active:scale-[0.98] transition-all" disabled={isUploading || !preview}>
+                        {isUploading ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> 正在同步至云端...</>
+                        ) : '立即发布作品'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="success-card"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="space-y-6"
+              >
+                <Card className="border-none shadow-2xl overflow-hidden bg-white">
+                  <div className="relative aspect-[16/10] bg-slate-100">
+                    <img 
+                      src={uploadedPhoto.url} 
+                      className="w-full h-full object-contain" 
+                      alt="Uploaded" 
                     />
-                    <label htmlFor="file" className="cursor-pointer block">
-                      <UploadIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        点击选择或拖拽图片到此处
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        支持 JPG、PNG、GIF 等格式
-                      </p>
-                    </label>
-                  </div>
-                  {preview && (
-                    <div className="mt-4">
-                      <img src={preview} alt="预览" className="max-h-64 mx-auto rounded-lg shadow" />
+                    <div className="absolute top-4 right-4">
+                      <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <span className="text-xs font-bold text-slate-700">发布成功</span>
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                <Button type="submit" className="w-full" disabled={isUploading}>
-                  {isUploading ? '上传中...' : '上传图片'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>上传成功</CardTitle>
-                <Button variant="outline" size="sm" onClick={resetToUploadForm}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  继续上传
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="text-center">
-                  <img
-                    src={uploadedPhoto.url}
-                    alt={uploadedPhoto.title}
-                    className="max-h-96 mx-auto rounded-lg shadow-lg object-contain"
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">{uploadedPhoto.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      作者: {uploadedPhoto.authorName}
+                  </div>
+                  <CardContent className="p-8 text-center">
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2">{uploadedPhoto.title}</h2>
+                    <p className="text-slate-500 text-sm mb-8 leading-relaxed max-w-md mx-auto">
+                      {uploadedPhoto.description || "你的作品成功发布，审核通过后可以查看。"}
                     </p>
-                  </div>
-
-                  {uploadedPhoto.description && (
-                    <div>
-                      <h4 className="font-medium mb-2">作品介绍</h4>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {uploadedPhoto.description}
-                      </p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <Button onClick={() => navigate('/gallery')} className="px-8 h-11">
+                        去画廊查看
+                      </Button>
+                      <Button variant="outline" onClick={resetToUploadForm} className="px-8 h-11 gap-2">
+                        <ArrowLeft className="h-4 w-4" /> 再传一张
+                      </Button>
                     </div>
-                  )}
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <Button className="flex-1" onClick={() => navigate('/gallery')}>
-                    查看所有作品
-                  </Button>
-                  <Button variant="outline" className="flex-1" onClick={resetToUploadForm}>
-                    上传新作品
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </ErrorBoundary>
     </div>
   );
 }

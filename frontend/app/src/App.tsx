@@ -11,7 +11,7 @@ import ForgotPassword from './sections/ForgotPassword';
 import ResetPassword from './sections/ResetPassword';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { UserProvider } from './context/user';
-import { TokenProvider, useToken } from './context/token';
+import { TokenProvider} from './context/token';
 import { FunctionProvider } from './context/function';
 import Notice from './sections/Notice';
 import MemberPublicProfile from './sections/MemberPublicProfile';
@@ -20,11 +20,12 @@ import { Toaster } from 'react-hot-toast';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AchievementPage from './sections/Postcard';
 
 export const queryClient = new QueryClient();
 
 function AppContent() {
-  const { isLoading } = useToken();
+  // const { isLoading } = useToken();
   const [navbarClicked, setNavbarClicked] = useState(localStorage.getItem("navbarClicked") === "true");
   useEffect (() => {
     if (!navbarClicked) {
@@ -36,17 +37,17 @@ function AppContent() {
     }
   }, [])
 
-  // 初始化加载时显示加载指示器
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-sm text-gray-500">加载中...</p>
-        </div>
-      </div>
-    );
-  }
+  // // 初始化加载时显示加载指示器
+  // if (isLoading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-slate-50">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+  //         <p className="mt-2 text-sm text-gray-500">加载中...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   function handleClick(){
     localStorage.setItem("navbarClicked","true")
@@ -91,6 +92,7 @@ function AppContent() {
             <Route path="/notice" element={<Notice />} />
             <Route path="/member/:id" element={<MemberPublicProfile />} />
             <Route path="*" element={<Navigate to="/gallery" replace />} />
+            <Route path="/card" element={<AchievementPage/>} />
           </Routes>
         </main>
         <footer className="border-t py-6 mt-auto">

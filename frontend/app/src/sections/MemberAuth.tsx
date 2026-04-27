@@ -9,6 +9,7 @@ import { useFunction } from '@/context/function';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { useCountdown } from '@/hooks/count';
+
 export default function MemberAuth() {
   const [searchParams] = useSearchParams();
   // 检查是否有 success 参数，并根据其值显示相应的消息,可能是 "password_set" 或 "password_reset"

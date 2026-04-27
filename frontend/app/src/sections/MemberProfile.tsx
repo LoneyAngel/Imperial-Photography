@@ -10,6 +10,8 @@ import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
 import Pagination from '@/components/ui/pagination';
 import { useDeferredValue} from "react"
+import "@/styles/PhotoGrid.css"
+import { Link } from 'react-router-dom';
 
 
 export default function MemberProfile() {
@@ -120,7 +122,7 @@ export default function MemberProfile() {
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-sm font-medium">
-                  {(name || user.email).slice(0, 1).toUpperCase()}
+                  <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.id ||user.email.split('@')[0] ||'user'}`} alt="" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm text-muted-foreground">邮箱</p>
@@ -170,6 +172,9 @@ export default function MemberProfile() {
                   </Button>
                 </div>
               )}
+              <div className='flex items-center justify-center w-full mt-3'>
+                <Link to="/card" className='w-full p-2 rounded-md text-center border hover:bg-gray-200'>证书</Link>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -340,7 +345,7 @@ function Photos({ user, setSelectedPhoto }: { user: User | null; setSelectedPhot
     <div className={isStale ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((p: Photo) => (
-          <Card key={p.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card key={p.id} className="cursor-pointer hover:shadow-lg transition-shadow photo-item2">
             <CardContent className="pt-4">
               <img
                 src={p.url}
