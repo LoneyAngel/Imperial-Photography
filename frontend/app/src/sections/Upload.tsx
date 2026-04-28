@@ -8,12 +8,12 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
 import toast from 'react-hot-toast';
-import { queryClient } from '@/App';
 import { compressImage, isFileOversized, formatFileSize } from '@/utils/imageCompress';
 import { useNavigate } from 'react-router-dom';
 import {IMAGE_MAX_SIZE_MB} from "@/config/file"
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function Upload() {
   const { user } = useUser();
@@ -27,6 +27,7 @@ export default function Upload() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];

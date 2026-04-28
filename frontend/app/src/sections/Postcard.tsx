@@ -3,7 +3,6 @@ import { Download, Award, Calendar, CheckCircle2, QrCode, Loader2 } from 'lucide
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import ErrorBoundary from '@/components/ErrorBoundary';
-// 假设你安装了 html-to-image 库用于保存图片
 import { toPng } from 'html-to-image';
 import { motion} from 'framer-motion';
 import { useUser } from '@/context/user';
@@ -49,7 +48,7 @@ export default function AchievementPage() {
       <ErrorBoundary>
         <div className="max-w-4xl mx-auto space-y-12">
           
-          {/* 1. 用户概览区域 - 现代、极简 */}
+          {/* 用户概览区域 - 现代、极简 */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -75,7 +74,7 @@ export default function AchievementPage() {
             </div>
           </motion.div>
 
-          {/* 2. 荣誉证书区域 */}
+          {/*  荣誉证书区域 */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -189,8 +188,3 @@ export default function AchievementPage() {
     </div>
   );
 }
-
-// 补充一个无限慢速旋转的 CSS 类，用于印章装饰
-// .animate-spin-slow {
-//   animation: spin 10s linear infinite;
-// }

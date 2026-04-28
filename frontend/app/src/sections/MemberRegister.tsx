@@ -9,7 +9,6 @@ import toast from 'react-hot-toast';
 import { useFunction } from '@/context/function';
 import { useCountdown } from '@/hooks/count';
 
-
 export default function MemberRegister() {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -26,7 +25,7 @@ export default function MemberRegister() {
   const [isVerifying, verifyCodeTransition] = useTransition();
   const [isSettingPassword, setPasswordTransition] = useTransition();
   const { timeLeft, start, isCounting } = useCountdown(60);
-  const { sendRegisterCode, verifyCode,set_password} = useFunction();
+  const { sendRegisterCode, verifyCode, set_password } = useFunction();
   const normalizedEmail = () => email.trim().toLowerCase();
   const emailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail());
 
@@ -40,13 +39,13 @@ export default function MemberRegister() {
     setAgreedToPrivacy(false);
     setSent(false);
   };
+
   useEffect(() => {
     if (user) {
-      // 如果用户已登录，直接送回首页
-      // 使用 replace: true 是为了防止用户点击浏览器返回键又回到登录页，形成死循环
       navigate('/', { replace: true });
     }
   }, [user]);
+
   const sendCode = async () => {
     setError(null);
     if (!agreedToPrivacy) {
@@ -77,11 +76,7 @@ export default function MemberRegister() {
     setError(null);
     verifyCodeTransition(async () => {
       const res = await verifyCode(normalizedEmail(), code.trim());
-      if (res) {
-        setError(res.message || '验证码验证失败，请检查后重试');
-        return;
-      }
-      // 验证码正确，进入密码设置步骤
+      if (res) {setError(res.message || '验证码验证失败，请检查后重试');return;}
       setStep('password');
     });
   };
@@ -101,18 +96,11 @@ export default function MemberRegister() {
       return;
     }
     setPasswordTransition(async () => {
-      // 设置密码
       const res = await set_password(normalizedEmail(), password);
-      if (res) {
-        toast.error(res.message || '注册失败，请重试');
-        return;
-      }
-      // 密码设置成功，显示提示并延迟跳转
+      if (res) {toast.error(res.message || '注册失败，请重试');return;}
       toast.success('密码设置成功！');
-      setTimeout(() => {
-        navigate('/member-auth?success=password_set');
-      }, 2000);
-    })
+      setTimeout(() => {navigate('/member-auth?success=password_set');}, 2000);
+    });
   };
 
   return (
@@ -121,9 +109,7 @@ export default function MemberRegister() {
         <Card className="shadow-sm border border-slate-200">
           <CardHeader className="space-y-3">
             <Link to="/member-auth" className="flex items-center">
-              <span className="text-sm text-black hover:underline mr-2">
-                ← 返回
-              </span>
+              <span className="text-sm text-black hover:underline mr-2">← 返回</span>
             </Link>
             <div className="flex items-center justify-center">
               <div className="text-3xl font-semibold tracking-tight">
@@ -139,9 +125,7 @@ export default function MemberRegister() {
             </div>
             <div className="text-center space-y-1">
               <CardTitle>会员注册</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                创建您的会员账户
-              </p>
+              <p className="text-sm text-muted-foreground">创建您的会员账户</p>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -158,7 +142,6 @@ export default function MemberRegister() {
                   />
                 </div>
 
-                {/* 隐私协议勾选 */}
                 <div className="flex items-start gap-2">
                   <input
                     id="privacy"
@@ -188,13 +171,13 @@ export default function MemberRegister() {
                   disabled={!emailValid || !agreedToPrivacy || isSending}
                 >
                   {isSending ? (
-                    "发送中..."
+                    '发送中...'
                   ) : isCounting ? (
                     `${timeLeft} 秒后重发`
                   ) : sent ? (
-                    "重新发送"
+                    '重新发送'
                   ) : (
-                    "发送验证码"
+                    '发送验证码'
                   )}
                 </Button>
               </>
@@ -203,17 +186,14 @@ export default function MemberRegister() {
             {step === 'code' && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="registerCode">验证码</Label>
-                  <Input
+                  <Label htmlFor="registerCode">验证码</Label>                    <Input
                     id="registerCode"
                     inputMode="numeric"
                     placeholder="6位数字"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    验证码已发送，请查收
-                  </p>
+                  <p className="text-xs text-muted-foreground">验证码已发送，请查收</p>
                 </div>
 
                 {error && <p className="text-sm text-destructive">{error}</p>}
@@ -244,9 +224,7 @@ export default function MemberRegister() {
                 <div className="space-y-4">
                   <div className="text-center">
                     <h3 className="text-lg font-medium">设置密码</h3>
-                    <p className="text-sm text-muted-foreground">
-                      验证码验证成功，请设置您的密码
-                    </p>
+                    <p className="text-sm text-muted-foreground">验证码验证成功，请设置您的密码</p>
                   </div>
 
                   <div className="space-y-2">
@@ -293,7 +271,6 @@ export default function MemberRegister() {
                   </Button>
                 </div>
 
-                {/* 注册成功提示 */}
                 {isSettingPassword && (
                   <div className="text-center text-sm text-muted-foreground mt-2">
                     注册成功，即将跳转到登录页面...
@@ -316,9 +293,7 @@ export default function MemberRegister() {
               <button
                 type="button"
                 className="text-sm text-gray-500 underline decoration-gray-500 decoration-1 underline-offset-4 decoration-dashed hover:decoration-gray-700 hover:text-gray-800"
-                onClick={() => {
-                  reset();
-                }}
+                onClick={() => reset()}
               >
                 重新开始
               </button>
@@ -327,15 +302,23 @@ export default function MemberRegister() {
         </Card>
       </div>
 
-      {/* 隐私协议弹窗 */}
-      {showPrivacy && <PrivacyDiv setShowPrivacy={setShowPrivacy} setAgreedToPrivacy={setAgreedToPrivacy} />}
+      {showPrivacy && (
+        <PrivacyDiv
+          setShowPrivacy={setShowPrivacy}
+          setAgreedToPrivacy={setAgreedToPrivacy}
+        />
+      )}
     </div>
   );
 }
 
-
-const PrivacyDiv = ({setShowPrivacy,setAgreedToPrivacy}:
-{setShowPrivacy:(show:boolean)=>void,setAgreedToPrivacy:(agreed:boolean)=>void}) => {
+const PrivacyDiv = ({
+  setShowPrivacy,
+  setAgreedToPrivacy,
+}: {
+  setShowPrivacy: (show: boolean) => void;
+  setAgreedToPrivacy: (agreed: boolean) => void;
+}) => {
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
@@ -347,7 +330,12 @@ const PrivacyDiv = ({setShowPrivacy,setAgreedToPrivacy}:
       >
         <div className="p-6 border-b flex items-center justify-between">
           <h2 className="text-lg font-semibold">隐私协议</h2>
-          <button onClick={() => setShowPrivacy(false)} className="text-muted-foreground hover:text-foreground text-xl">×</button>
+          <button
+            onClick={() => setShowPrivacy(false)}
+            className="text-muted-foreground hover:text-foreground text-xl"
+          >
+            ×
+          </button>
         </div>
         <div className="flex-1 overflow-y-auto p-6 text-sm text-muted-foreground space-y-4 leading-relaxed">
           <p>最后更新日期：2025年</p>
@@ -362,7 +350,7 @@ const PrivacyDiv = ({setShowPrivacy,setAgreedToPrivacy}:
           </div>
           <div>
             <p className="font-medium text-foreground mb-1">3. 作品权利</p>
-            <p>您上传的照片作品的着作权归您所有。本平台仅展示您的作品，不会将其用于商业目的。</p>
+            <p>您上传的照片作品的著作权归您所有。本平台仅展示您的作品，不会将其用于商业目的。</p>
           </div>
           <div>
             <p className="font-medium text-foreground mb-1">4. 数据安全</p>
@@ -374,11 +362,17 @@ const PrivacyDiv = ({setShowPrivacy,setAgreedToPrivacy}:
           </div>
         </div>
         <div className="p-4 border-t">
-          <Button className="w-full" onClick={() => { setAgreedToPrivacy(true); setShowPrivacy(false); }}>
+          <Button
+            className="w-full"
+            onClick={() => {
+              setAgreedToPrivacy(true);
+              setShowPrivacy(false);
+            }}
+          >
             我已阅读并同意
           </Button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

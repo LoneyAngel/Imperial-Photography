@@ -1,91 +1,78 @@
 import { queryClient } from '@/App';
-import { createContext, ReactNode, use,useState, useEffect } from 'react';
+import { createContext, ReactNode, use, useState, useEffect } from 'react';
 import api, { TOKEN_REFRESHED_EVENT, setMemoryToken } from '@/utils/axios';
 import toast from 'react-hot-toast';
 
-// 定义类型
 interface TokenContextType {
-    auth_token: string | null;
-    isLoading: boolean; // 初始化加载状态
-    setAuthToken: React.Dispatch<React.SetStateAction<string | null>>;
-    login: (authToken: string) => void;
-    logout: () => Promise<void>;
+  auth_token: string | null;
+  isLoading: boolean;
+  setAuthToken: React.Dispatch<React.SetStateAction<string | null>>;
+  login: (authToken: string) => void;
+  logout: () => Promise<void>;
 }
 
 const TokenContext = createContext<TokenContextType | null>(null);
 
 export const TokenProvider = ({ children }: { children: ReactNode }) => {
-    const [auth_token, setAuthToken] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+  const [auth_token, setAuthToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-    // 应用初始化时用 refreshToken 获取 authToken
-    // refreshToken 在 HttpOnly Cookie 中，页面刷新后仍可用
-    useEffect(() => {
-        const initAuth = async () => {
-            try {
-                const res = await api.post('/auth/refresh');
-                if (res.data?.data?.authToken) {
-                    setAuthToken(res.data.data.authToken);
-                    setMemoryToken(res.data.data.authToken);
-                }
-            } catch {
-                // refresh 失败，用户未登录或 cookie 已过期
-                setMemoryToken(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        void initAuth();
-    }, []);
-
-    // 监听 axios 拦截器的 token 刷新事件
-    useEffect(() => {
-        const handleTokenRefresh = (e: CustomEvent<{ authToken: string }>) => {
-            setAuthToken(e.detail.authToken);
-            setMemoryToken(e.detail.authToken);
-        };
-        window.addEventListener(TOKEN_REFRESHED_EVENT, handleTokenRefresh as EventListener);
-        return () => {
-            window.removeEventListener(TOKEN_REFRESHED_EVENT, handleTokenRefresh as EventListener);
-        };
-    }, []);
-
-    const logout = async () => {
-        try {
-            // 1. 先通知后端销毁 Cookie (此时还带着 Token)
-            await api.post('/auth/logout');
-        } catch (err) {
-            console.error('Logout API failed', err);
-        } finally {
-            // 2. 无论后端接口是否成功，前端必须强制清理
-            setAuthToken(null);
-            setMemoryToken(null);
-            queryClient.clear();
-            toast.success('已安全退出');
-            window.location.href = '/';
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const res = await api.post('/auth/refresh');
+        if (res.data?.data?.authToken) {
+          setAuthToken(res.data.data.authToken);
+          setMemoryToken(res.data.data.authToken);
         }
+      } catch {
+        setMemoryToken(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
+    void initAuth();
+  }, []);
 
-    const login = (authToken: string) => {
-        setAuthToken(authToken);
-        setMemoryToken(authToken);
+  useEffect(() => {
+    const handleTokenRefresh = (e: CustomEvent<{ authToken: string }>) => {
+      setAuthToken(e.detail.authToken);
+      setMemoryToken(e.detail.authToken);
     };
-
-    const value = {
-        auth_token, isLoading, setAuthToken, login, logout
+    window.addEventListener(TOKEN_REFRESHED_EVENT, handleTokenRefresh as EventListener);
+    return () => {
+      window.removeEventListener(TOKEN_REFRESHED_EVENT, handleTokenRefresh as EventListener);
     };
+  }, []);
 
-    return (
-        <TokenContext value={value}>
-            {children}
-        </TokenContext>
-    );
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.error('Logout API failed', err);
+    } finally {
+      setAuthToken(null);
+      setMemoryToken(null);
+      queryClient.clear();
+      toast.success('已安全退出');
+      window.location.href = '/';
+    }
+  };
+
+  const login = (authToken: string) => {
+    setAuthToken(authToken);
+    setMemoryToken(authToken);
+  };
+
+  const value = { auth_token, isLoading, setAuthToken, login, logout };
+
+  return <TokenContext value={value}>{children}</TokenContext>;
 };
 
 export const useToken = () => {
-    const context = use(TokenContext);
-    if (!context) {
-        throw new Error('useToken must be used within a TokenProvider');
-    }
-    return context;
+  const context = use(TokenContext);
+  if (!context) {
+    throw new Error('useToken must be used within a TokenProvider');
+  }
+  return context;
 };

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './sections/Home';
 import Gallery from './sections/Gallery';
@@ -11,72 +11,28 @@ import ForgotPassword from './sections/ForgotPassword';
 import ResetPassword from './sections/ResetPassword';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { UserProvider } from './context/user';
-import { TokenProvider} from './context/token';
+import { TokenProvider } from './context/token';
 import { FunctionProvider } from './context/function';
 import Notice from './sections/Notice';
 import MemberPublicProfile from './sections/MemberPublicProfile';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
-import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import LittleNavbar from './components/LittleNavbar';
 import AchievementPage from './sections/Postcard';
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+    },
+  },
+});
 
 function AppContent() {
-  // const { isLoading } = useToken();
-  const [navbarClicked, setNavbarClicked] = useState(localStorage.getItem("navbarClicked") === "true");
-  useEffect (() => {
-    if (!navbarClicked) {
-      const timer = setTimeout(() => {
-        localStorage.setItem("navbarClicked", "true");
-        setNavbarClicked(true);
-      }, 10000); // 10秒后自动设置为已点击
-      return () => clearTimeout(timer);
-    }
-  }, [])
-
-  // // 初始化加载时显示加载指示器
-  // if (isLoading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-slate-50">
-  //       <div className="text-center">
-  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-  //         <p className="mt-2 text-sm text-gray-500">加载中...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
-  function handleClick(){
-    localStorage.setItem("navbarClicked","true")
-    setNavbarClicked(true);
-  }
-
-
-
   return (
-    <Router>
+    <BrowserRouter>
       <div className="app-container">
-        <AnimatePresence>
-          {(!navbarClicked) && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="h-[50px] flex items-center justify-center bg-slate-300 relative"
-            >
-              <p className="text-center text-sm underline decoration-sky-500 decoration-2 underline-offset-4 decoration-dashed">
-                Welcome to join us and become our exclusive photographer！
-              </p>
-              <button onClick={handleClick} className="absolute right-4">
-                <X className="h-4 w-4 " />
-              </button>
-            </motion.div>
-          )
-        }
-        </AnimatePresence>
+        <LittleNavbar />
         <Navbar />
         <main className="flex-1">
           <Routes>
@@ -91,8 +47,8 @@ function AppContent() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/notice" element={<Notice />} />
             <Route path="/member/:id" element={<MemberPublicProfile />} />
+            <Route path="/card" element={<AchievementPage />} />
             <Route path="*" element={<Navigate to="/gallery" replace />} />
-            <Route path="/card" element={<AchievementPage/>} />
           </Routes>
         </main>
         <footer className="border-t py-6 mt-auto">
@@ -101,7 +57,7 @@ function AppContent() {
           </div>
         </footer>
       </div>
-    </Router>
+    </BrowserRouter>
   );
 }
 
@@ -112,7 +68,7 @@ function App() {
         <Toaster position="top-center" reverseOrder={false} />
         <TokenProvider>
           <FunctionProvider>
-            <UserProvider queryClient={queryClient}>
+            <UserProvider>
               <AppContent />
             </UserProvider>
           </FunctionProvider>

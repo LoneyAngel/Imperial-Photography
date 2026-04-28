@@ -5,11 +5,8 @@ import img2 from '@/assets/picture/2.jpg';
 
 export default function Home() {
   const navigate = useNavigate();
-  const {user} = useUser();
-  const handleBrowse = () => {
-    if(user) console.log("原地跳转");
-    navigate(user ? '/gallery' : '/register');
-  };
+  const { user } = useUser();
+  const handleClick = () => navigate(user ? '/gallery' : '/register');
   return (
     <div className="flex-1 bg-gradient-to-b from-slate-50 to-background">
       <div className="container flex flex-col items-center py-16">
@@ -25,21 +22,8 @@ export default function Home() {
           </p>
           <div className="mt-8 flex items-center gap-3 justify-center">
             <button
-              onClick={handleBrowse}
-              className="
-                bg-transparent
-                text-black
-                px-4
-                py-3
-                font-serif italic
-                transition-all
-                duration-300
-                hover:bg-gray-100
-                hover:shadow-2xl
-                hover:text-gray-700
-                active:scale-105
-                shadow-md
-              "
+              onClick={handleClick}
+              className="bg-transparent text-black px-4 py-3 font-serif italic transition-all duration-300 hover:bg-gray-100 hover:shadow-2xl hover:text-gray-700 active:scale-105 shadow-md"
             >
               join us
             </button>
@@ -58,19 +42,16 @@ export default function Home() {
               <p className="mt-2 text-sm text-muted-foreground">
                 <span>JimboChan</span>
               </p>
-              
               <p className="mt-2 text-sm text-muted-foreground">
                 <span>有些浪漫是藏在风心里的。坐在杜乐丽花园的摩天轮上，当座舱缓缓升起到最高处，大半个巴黎的屋顶都在脚下。风里带着云朵的味道，秋千旋转出的光影，就像一场永不落幕的流动的盛宴。</span>
               </p>
             </div>
           </div>
           <div className="w-full flex gap-8">
-
             <div className="flex flex-col gap-4 justify-center w-[40%]">
               <p className="mt-2 text-sm text-muted-foreground">
                 <span>CrazyJN</span>
               </p>
-              
               <p className="mt-2 text-sm text-muted-foreground">
                 <span>走入圣母院的那一刻，喧嚣的巴黎街头仿佛被厚重的石墙瞬间隔绝。
 这张照片是我在光影交错的午后偶然捕捉到的。那种美不是夺目，而是一种深沉的静谧。抬头仰望，哥特式的肋架拱顶在上方交汇，像是一双双向上天祈祷的手，把人的视线和心境不由自主地往高处引。</span>
