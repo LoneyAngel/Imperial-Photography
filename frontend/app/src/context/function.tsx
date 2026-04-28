@@ -135,7 +135,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
       const res = await api.post(
         '/auth/request-code',
         { email },
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { 'Content-Type': 'application/json' } },
       );
       if (res.status === 200) return null;
       else return { message: res.data.message || '验证码发送失败，请稍后重试' };
@@ -149,7 +149,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
       const res = await api.post(
         '/auth/request-register-code',
         { email },
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { 'Content-Type': 'application/json' } },
       );
       if (res.status === 200) return null;
       else return { message: res.data.message || '验证码发送失败，请稍后重试' };
@@ -167,7 +167,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
       const res = await api.post(
         '/auth/verify-code',
         { email: normalizedEmail, code: normalizedCode },
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { 'Content-Type': 'application/json' } },
       );
       if (res.status === 200) {
         const { authToken } = res.data.data;
@@ -187,7 +187,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
       const res = await api.post(
         '/auth/login',
         { email: normalizedEmail, password },
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { 'Content-Type': 'application/json' } },
       );
       if (res.status === 200) {
         const { authToken } = res.data.data;
@@ -207,7 +207,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
       const res = await api.post(
         '/auth/set-password',
         { email: normalizedEmail, password },
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { 'Content-Type': 'application/json' } },
       );
       if (res.status === 200) {
         const { authToken } = res.data.data;
@@ -226,7 +226,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
       const res = await api.post(
         '/auth/reset-password',
         { email: normalizedEmail, password },
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { 'Content-Type': 'application/json' } },
       );
       if (res.status === 200) return null;
       return { message: res.data.message || '重置密码失败，请重试' };

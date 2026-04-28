@@ -76,7 +76,10 @@ export default function MemberRegister() {
     setError(null);
     verifyCodeTransition(async () => {
       const res = await verifyCode(normalizedEmail(), code.trim());
-      if (res) {setError(res.message || '验证码验证失败，请检查后重试');return;}
+      if (res) {
+        setError(res.message || '验证码验证失败，请检查后重试');
+        return;
+      }
       setStep('password');
     });
   };
@@ -97,9 +100,14 @@ export default function MemberRegister() {
     }
     setPasswordTransition(async () => {
       const res = await set_password(normalizedEmail(), password);
-      if (res) {toast.error(res.message || '注册失败，请重试');return;}
+      if (res) {
+        toast.error(res.message || '注册失败，请重试');
+        return;
+      }
       toast.success('密码设置成功！');
-      setTimeout(() => {navigate('/member-auth?success=password_set');}, 2000);
+      setTimeout(() => {
+        navigate('/member-auth?success=password_set');
+      }, 2000);
     });
   };
 
@@ -170,15 +178,13 @@ export default function MemberRegister() {
                   onClick={() => void sendCode()}
                   disabled={!emailValid || !agreedToPrivacy || isSending}
                 >
-                  {isSending ? (
-                    '发送中...'
-                  ) : isCounting ? (
-                    `${timeLeft} 秒后重发`
-                  ) : sent ? (
-                    '重新发送'
-                  ) : (
-                    '发送验证码'
-                  )}
+                  {isSending
+                    ? '发送中...'
+                    : isCounting
+                      ? `${timeLeft} 秒后重发`
+                      : sent
+                        ? '重新发送'
+                        : '发送验证码'}
                 </Button>
               </>
             )}
@@ -186,7 +192,8 @@ export default function MemberRegister() {
             {step === 'code' && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="registerCode">验证码</Label>                    <Input
+                  <Label htmlFor="registerCode">验证码</Label>{' '}
+                  <Input
                     id="registerCode"
                     inputMode="numeric"
                     placeholder="6位数字"
@@ -303,10 +310,7 @@ export default function MemberRegister() {
       </div>
 
       {showPrivacy && (
-        <PrivacyDiv
-          setShowPrivacy={setShowPrivacy}
-          setAgreedToPrivacy={setAgreedToPrivacy}
-        />
+        <PrivacyDiv setShowPrivacy={setShowPrivacy} setAgreedToPrivacy={setAgreedToPrivacy} />
       )}
     </div>
   );
@@ -346,7 +350,9 @@ const PrivacyDiv = ({
           </div>
           <div>
             <p className="font-medium text-foreground mb-1">2. 信息用途</p>
-            <p>您的信息仅用于身份验证、展示作品及提供平台服务，不会向第三方出售或共享您的个人信息。</p>
+            <p>
+              您的信息仅用于身份验证、展示作品及提供平台服务，不会向第三方出售或共享您的个人信息。
+            </p>
           </div>
           <div>
             <p className="font-medium text-foreground mb-1">3. 作品权利</p>

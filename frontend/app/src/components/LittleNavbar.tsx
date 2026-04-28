@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 export default function LittleNavbar() {
   const [navbarClicked, setNavbarClicked] = useState(
-    localStorage.getItem('navbarClicked') === 'true'
+    localStorage.getItem('navbarClicked') === 'true',
   );
 
   useEffect(() => {

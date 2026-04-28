@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFunction } from '@/context/function';
 import toast from 'react-hot-toast';
-import {useCountdown} from '@/hooks/count';
+import { useCountdown } from '@/hooks/count';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -23,12 +23,18 @@ export default function ForgotPassword() {
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
 
   const sendCode = () => {
-    if (!emailValid) { setError('请输入有效的邮箱地址'); return; }
+    if (!emailValid) {
+      setError('请输入有效的邮箱地址');
+      return;
+    }
     startSendTransition(async () => {
       setError(null);
       setCode('');
       const err = await sendAuthCode(normalizedEmail);
-      if (err) { toast.error(err.message); return; }
+      if (err) {
+        toast.error(err.message);
+        return;
+      }
       start();
       setSent(true);
       toast.success('验证码已发送，请查收');
@@ -36,13 +42,25 @@ export default function ForgotPassword() {
   };
 
   const verifyAndReset = () => {
-    if (!emailValid) { setError('请输入有效的邮箱地址'); return; }
-    if (!sent) { setError('请先发送验证码'); return; }
-    if (code.trim().length !== 6) { setError('请输入6位验证码'); return; }
+    if (!emailValid) {
+      setError('请输入有效的邮箱地址');
+      return;
+    }
+    if (!sent) {
+      setError('请先发送验证码');
+      return;
+    }
+    if (code.trim().length !== 6) {
+      setError('请输入6位验证码');
+      return;
+    }
     startVerifyTransition(async () => {
       setError(null);
       const err = await verifyCode(normalizedEmail, code);
-      if (err) { toast.error(err.message); return; }
+      if (err) {
+        toast.error(err.message);
+        return;
+      }
       toast.success('验证码验证成功，即将跳转重置密码页面');
     });
     const timer = setTimeout(() => {
@@ -85,9 +103,7 @@ export default function ForgotPassword() {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">
-                  验证码已发送至邮箱，请查收
-                </p>
+                <p className="text-xs text-muted-foreground">验证码已发送至邮箱，请查收</p>
               </div>
             )}
 
@@ -101,15 +117,13 @@ export default function ForgotPassword() {
                 onClick={() => sendCode()}
                 disabled={!emailValid || sending || isCounting}
               >
-                {sending ? (
-                  "发送中..."
-                ) : isCounting ? (
-                  `${timeLeft} 秒后重发`
-                ) : sent ? (
-                  "重新发送"
-                ) : (
-                  "发送验证码"
-                )}
+                {sending
+                  ? '发送中...'
+                  : isCounting
+                    ? `${timeLeft} 秒后重发`
+                    : sent
+                      ? '重新发送'
+                      : '发送验证码'}
               </Button>
               <Button
                 type="button"

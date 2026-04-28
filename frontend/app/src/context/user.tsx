@@ -17,7 +17,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const { auth_token } = useToken();
   const { fetchMemberProfile } = useFunction();
 
-  const { data: user, isLoading, error, refetch } = useQuery({
+  const {
+    data: user,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ['userMe', auth_token],
     queryFn: fetchMemberProfile,
     staleTime: Infinity,

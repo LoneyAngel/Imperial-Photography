@@ -22,7 +22,7 @@ export const getMemoryToken = () => memoryAuthToken;
 const api = axios.create({
   timeout: 10000,
   withCredentials: true, // 自动发送和接收 Cookie（refreshToken）
-  baseURL: '/api'
+  baseURL: '/api',
 });
 
 // --- 1. 请求拦截器：从内存变量获取 Token ---
@@ -35,7 +35,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // --- 2. 响应拦截器：处理 401 和自动刷新 ---
@@ -72,7 +72,7 @@ api.interceptors.response.use(
       // Cookie 彻底没了或过期了
       // 必须直接报错，不要再尝试重试
       console.warn('Refresh token is invalid, redirecting to login');
-      return Promise.reject(error); 
+      return Promise.reject(error);
     }
 
     // 如果返回 401，尝试刷新 Token
@@ -92,15 +92,18 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        axios.post('/api/auth/refresh', {}, { withCredentials: true })
+        axios
+          .post('/api/auth/refresh', {}, { withCredentials: true })
           .then(({ data }) => {
             console.log('Token refreshed successfully');
             const { authToken } = data.data;
             setMemoryToken(authToken);
             originalRequest.headers.Authorization = `Bearer ${authToken}`;
-            window.dispatchEvent(new CustomEvent(TOKEN_REFRESHED_EVENT, {
-              detail: { authToken }
-            }));
+            window.dispatchEvent(
+              new CustomEvent(TOKEN_REFRESHED_EVENT, {
+                detail: { authToken },
+              }),
+            );
             processQueue(null, authToken);
             resolve(api(originalRequest));
           })
@@ -118,8 +121,7 @@ api.interceptors.response.use(
 
     const errorMessage = response?.data?.error || `API Error ${response?.status || 'Unknown'}`;
     return Promise.reject(new Error(errorMessage));
-  }
+  },
 );
-
 
 export default api;
