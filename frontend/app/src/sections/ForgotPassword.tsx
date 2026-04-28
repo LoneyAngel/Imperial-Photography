@@ -1,4 +1,4 @@
-import { useState, useMemo, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useFunction } from '@/context/function';
 import toast from 'react-hot-toast';
 import {useCountdown} from '@/hooks/count';
+
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const { sendAuthCode, verifyCode } = useFunction();
@@ -18,8 +19,8 @@ export default function ForgotPassword() {
   const [verifying, startVerifyTransition] = useTransition();
   const { timeLeft, start, isCounting } = useCountdown(60);
 
-  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
-  const emailValid = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail), [normalizedEmail]);
+  const normalizedEmail = email.trim().toLowerCase();
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
 
   const sendCode = () => {
     if (!emailValid) { setError('请输入有效的邮箱地址'); return; }
