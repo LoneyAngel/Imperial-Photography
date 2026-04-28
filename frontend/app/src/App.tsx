@@ -18,7 +18,7 @@ import MemberPublicProfile from './sections/MemberPublicProfile';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 import LittleNavbar from './components/LittleNavbar';
-import AchievementPage from './sections/Postcard';
+import AchievementPage from './sections/Honors';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
