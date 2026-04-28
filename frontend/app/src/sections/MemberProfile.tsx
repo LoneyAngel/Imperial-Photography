@@ -9,11 +9,10 @@ import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-q
 import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
 import Pagination from '@/components/ui/pagination';
-import { useDeferredValue} from "react"
-import "@/styles/PhotoGrid.css"
+import { useDeferredValue } from 'react';
+import '@/styles/PhotoGrid.css';
 import { Link } from 'react-router-dom';
 import { copyToClipboard, buildUrl } from '@/utils/utils';
-
 
 export default function MemberProfile() {
   const { updateMemberProfile, updatePhoto, deletePhoto } = useFunction();
@@ -53,8 +52,7 @@ export default function MemberProfile() {
 
   // 用户信息修改
   const profileMutation = useMutation({
-    mutationFn: ({ name, bio }: { name: string; bio: string }) =>
-      updateMemberProfile(name, bio),
+    mutationFn: ({ name, bio }: { name: string; bio: string }) => updateMemberProfile(name, bio),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userMe'] });
     },
@@ -62,8 +60,15 @@ export default function MemberProfile() {
 
   // 照片修改
   const updatePhotoMutation = useMutation({
-    mutationFn: ({ id, title, description }: { id: string; title?: string; description?: string }) =>
-      updatePhoto(id, title, description),
+    mutationFn: ({
+      id,
+      title,
+      description,
+    }: {
+      id: string;
+      title?: string;
+      description?: string;
+    }) => updatePhoto(id, title, description),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['photos', 'owner'] });
       setEditingPhoto(null);
@@ -129,7 +134,10 @@ export default function MemberProfile() {
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-sm font-medium">
-                  <img src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.id ||user.email.split('@')[0] ||'user'}`} alt="" />
+                  <img
+                    src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.id || user.email.split('@')[0] || 'user'}`}
+                    alt=""
+                  />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm text-muted-foreground">邮箱</p>
@@ -172,7 +180,9 @@ export default function MemberProfile() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">个人简介</p>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{bio || '—'}</p>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
+                      {bio || '—'}
+                    </p>
                   </div>
                   <Button className="w-full" variant="outline" onClick={() => setEditing(true)}>
                     编辑
@@ -187,8 +197,13 @@ export default function MemberProfile() {
                   </Button>
                 </div>
               )}
-              <div className='flex items-center justify-center w-full mt-3'>
-                <Link to="/card" className='w-full p-2 rounded-md text-center border hover:bg-gray-200'>证书</Link>
+              <div className="flex items-center justify-center w-full mt-3">
+                <Link
+                  to="/card"
+                  className="w-full p-2 rounded-md text-center border hover:bg-gray-200"
+                >
+                  证书
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -198,7 +213,13 @@ export default function MemberProfile() {
             <h2 className="text-xl font-semibold">我的作品</h2>
           </div>
           {/* 这部分需要添加照片加载管理 */}
-          <Suspense fallback={<div className="text-center py-16"><p className="text-muted-foreground">正在加载作品...</p></div>}>
+          <Suspense
+            fallback={
+              <div className="text-center py-16">
+                <p className="text-muted-foreground">正在加载作品...</p>
+              </div>
+            }
+          >
             <Photos user={user} setSelectedPhoto={setSelectedPhoto} />
           </Suspense>
         </div>
@@ -210,7 +231,10 @@ export default function MemberProfile() {
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedPhoto(null)}
         >
-          <div className="bg-background shadow-xl w-full max-w-6xl h-[80vh] overflow-hidden border border-slate-200" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="bg-background shadow-xl w-full max-w-6xl h-[80vh] overflow-hidden border border-slate-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex h-full">
               {/* 左侧图片 */}
               <div className="flex-1 bg-slate-100 flex items-center justify-center p-6 relative">
@@ -235,13 +259,17 @@ export default function MemberProfile() {
 
                 <div className="flex-1 overflow-y-auto p-8 space-y-8">
                   <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Title</p>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                      Title
+                    </p>
                     <p className="text-xl font-light text-slate-800 leading-tight">
                       {selectedPhoto.title || 'Untitled Work'}
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Description</p>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                      Description
+                    </p>
                     <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap italic">
                       {selectedPhoto.description || '这个作者很懒，什么都没有留下...'}
                     </p>
@@ -328,11 +356,16 @@ export default function MemberProfile() {
   );
 }
 
-
-function Photos({ user, setSelectedPhoto }: { user: User | null; setSelectedPhoto: (p: Photo | null) => void }) {
+function Photos({
+  user,
+  setSelectedPhoto,
+}: {
+  user: User | null;
+  setSelectedPhoto: (p: Photo | null) => void;
+}) {
   const { fetchOwnerPhotos } = useFunction();
   const [page, setPage] = useState(1);
-  
+
   // 使用 deferredPage，让分页请求在后台静默进行，不阻塞当前 UI
   const deferredPage = useDeferredValue(page);
 
@@ -349,15 +382,15 @@ function Photos({ user, setSelectedPhoto }: { user: User | null; setSelectedPhot
   const isStale = page !== deferredPage;
 
   if (list.length === 0) {
-    return (
-      <div className="text-sm text-muted-foreground border rounded-lg p-6">
-        暂无作品
-      </div>
-    );
+    return <div className="text-sm text-muted-foreground border rounded-lg p-6">暂无作品</div>;
   }
 
   return (
-    <div className={isStale ? "opacity-50 pointer-events-none transition-opacity" : "transition-opacity"}>
+    <div
+      className={
+        isStale ? 'opacity-50 pointer-events-none transition-opacity' : 'transition-opacity'
+      }
+    >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((p: Photo) => (
           <Card key={p.id} className="cursor-pointer hover:shadow-lg transition-shadow photo-item2">
@@ -373,12 +406,8 @@ function Photos({ user, setSelectedPhoto }: { user: User | null; setSelectedPhot
           </Card>
         ))}
       </div>
-      
-      <Pagination 
-        page={page} 
-        totalPages={totalPages} 
-        onPageChange={setPage} 
-      />
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }

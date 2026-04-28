@@ -81,9 +81,15 @@ export default function Gallery() {
             </p>
           )}
         </div>
-        <div className={`transition-opacity duration-300 ${isStale ? 'opacity-50' : 'opacity-100'}`}>
-          <Suspense fallback={<PhotoGridSkeleton/>}>
-          <PhotoListContainer searchQuery={deferredQuery} page={page} setSelectedPhoto={setSelectedPhoto}/>
+        <div
+          className={`transition-opacity duration-300 ${isStale ? 'opacity-50' : 'opacity-100'}`}
+        >
+          <Suspense fallback={<PhotoGridSkeleton />}>
+            <PhotoListContainer
+              searchQuery={deferredQuery}
+              page={page}
+              setSelectedPhoto={setSelectedPhoto}
+            />
           </Suspense>
         </div>
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
@@ -93,7 +99,10 @@ export default function Gallery() {
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40 p-4"
             onClick={() => setSelectedPhoto(null)}
           >
-            <div className="bg-background shadow-xl w-full max-w-6xl h-[80vh] overflow-hidden border border-slate-200" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="bg-background shadow-xl w-full max-w-6xl h-[80vh] overflow-hidden border border-slate-200"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex h-full">
                 {/* 左侧：图片展示区 */}
                 <div className="flex-1 bg-slate-100 flex items-center justify-center p-6 relative">
@@ -117,23 +126,32 @@ export default function Gallery() {
                   {/* 内容区 */}
                   <div className="flex-1 overflow-y-auto p-8 space-y-8">
                     {/* 作者 */}
-                    <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate(`/member/${selectedPhoto.ownerMemberId}`)}>
+                    <div
+                      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => navigate(`/member/${selectedPhoto.ownerMemberId}`)}
+                    >
                       <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold">
                         <img
-                          src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${selectedPhoto?.ownerMemberId ||selectedPhoto?.ownerName ||'user'}`}
+                          src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${selectedPhoto?.ownerMemberId || selectedPhoto?.ownerName || 'user'}`}
                           alt={selectedPhoto?.ownerName}
                           className="transition-transform duration-300 hover:[transform:rotate(360deg)]"
                         />
                       </div>
                       <div>
-                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Artist</p>
-                        <p className="text-sm font-semibold text-slate-900">{selectedPhoto.ownerName || '匿名用户'}</p>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                          Artist
+                        </p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {selectedPhoto.ownerName || '匿名用户'}
+                        </p>
                       </div>
                     </div>
 
                     {/* 标题 */}
                     <div className="space-y-2">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Title</p>
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                        Title
+                      </p>
                       <p className="text-xl font-light text-slate-800 leading-tight">
                         {selectedPhoto.title || 'Untitled Work'}
                       </p>
@@ -141,7 +159,9 @@ export default function Gallery() {
 
                     {/* 介绍 */}
                     <div className="space-y-2">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Description</p>
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                        Description
+                      </p>
                       <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap italic">
                         {selectedPhoto.description || '这个作者很懒，什么都没有留下...'}
                       </p>
@@ -166,7 +186,7 @@ export default function Gallery() {
 
 function PhotoListContainer({ searchQuery, page, setSelectedPhoto }: any) {
   const { fetchPhotos } = useFunction();
-  
+
   // useSuspenseQuery 写在这里，只会挂起这个组件
   const { data } = useSuspenseQuery({
     queryKey: ['photos', searchQuery, page],
@@ -174,7 +194,7 @@ function PhotoListContainer({ searchQuery, page, setSelectedPhoto }: any) {
   });
 
   const photos = data?.list ?? [];
-  
+
   if (photos.length === 0) {
     return <div className="text-center py-16 text-muted-foreground">未找到匹配作品</div>;
   }

@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { Bell, ChevronRight } from "lucide-react";
-import { useFunction } from "@/context/function";
-import { Notice } from "@/types";
-import Circle from "@/components/ui/circle";
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { Bell, ChevronRight } from 'lucide-react';
+import { useFunction } from '@/context/function';
+import { Notice } from '@/types';
+import Circle from '@/components/ui/circle';
 
 export default function NoticePage() {
   const { fetchNotices } = useFunction();
@@ -32,25 +32,26 @@ export default function NoticePage() {
         {/* 左侧通知列表 */}
         <div className="w-[320px] h-[500px] overflow-y-auto flex flex-col gap-2 border rounded-lg p-2 bg-muted/30">
           {noticeData?.length === 0 ? (
-            <div className="text-sm text-muted-foreground p-3 text-center">
-              暂无通知
-            </div>
+            <div className="text-sm text-muted-foreground p-3 text-center">暂无通知</div>
           ) : (
             noticeData?.map((notice) => (
               <div
                 key={notice.id}
                 className={`p-3 rounded-lg cursor-pointer transition-all duration-200 flex items-center gap-2 group
-                  ${selectedNotice?.id === notice.id
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'bg-background hover:bg-accent'
+                  ${
+                    selectedNotice?.id === notice.id
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : 'bg-background hover:bg-accent'
                   }
                 `}
                 onClick={() => setSelectedNotice(notice)}
               >
                 <p className="font-medium text-sm truncate flex-1">{notice.title}</p>
-                <ChevronRight className={`h-4 w-4 shrink-0 transition-opacity
+                <ChevronRight
+                  className={`h-4 w-4 shrink-0 transition-opacity
                   ${selectedNotice?.id === notice.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}
-                `} />
+                `}
+                />
               </div>
             ))
           )}
@@ -62,7 +63,11 @@ export default function NoticePage() {
             <Circle notice={selectedNotice} />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              {noticeData?.length ? <Circle notice={noticeData[0] as Notice} /> : "请选择一条通知查看详情"}
+              {noticeData?.length ? (
+                <Circle notice={noticeData[0] as Notice} />
+              ) : (
+                '请选择一条通知查看详情'
+              )}
             </div>
           )}
         </div>

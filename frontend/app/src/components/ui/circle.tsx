@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { Bell, Clock, User } from "lucide-react";
-import { Notice } from "@/types";
+import { useQuery } from '@tanstack/react-query';
+import { Bell, Clock, User } from 'lucide-react';
+import { Notice } from '@/types';
 
 interface CircleProps {
   notice: Notice;
@@ -11,11 +11,11 @@ async function fetchNoticeContent(contentUrl: string): Promise<string> {
     // 通知内容是公开的，直接使用 fetch 获取
     const res = await fetch(contentUrl);
     if (!res.ok) {
-      return "无法加载通知内容";
+      return '无法加载通知内容';
     }
     return await res.text();
   } catch {
-    return "无法加载通知内容";
+    return '无法加载通知内容';
   }
 }
 
@@ -44,7 +44,7 @@ export default function Circle({ notice }: CircleProps) {
 
         <div className="flex-1 overflow-auto">
           <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-            {content || "暂无内容"}
+            {content || '暂无内容'}
           </p>
         </div>
 

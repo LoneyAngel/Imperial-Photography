@@ -10,7 +10,7 @@ import { useFunction } from '@/context/function';
 import toast from 'react-hot-toast';
 import { compressImage, isFileOversized, formatFileSize } from '@/utils/imageCompress';
 import { useNavigate } from 'react-router-dom';
-import {IMAGE_MAX_SIZE_MB} from "@/config/file"
+import { IMAGE_MAX_SIZE_MB } from '@/config/file';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
@@ -23,7 +23,12 @@ export default function Upload() {
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [uploadedPhoto, setUploadedPhoto] = useState<{ url: string; title: string; description: string; authorName: string } | null>(null);
+  const [uploadedPhoto, setUploadedPhoto] = useState<{
+    url: string;
+    title: string;
+    description: string;
+    authorName: string;
+  } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const navigate = useNavigate();
@@ -46,7 +51,9 @@ export default function Upload() {
         };
         reader.readAsDataURL(result.file);
 
-        console.log(`压缩完成：${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`);
+        console.log(
+          `压缩完成：${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`,
+        );
       } catch {
         console.error('压缩失败，请选择更小的图片');
         setFile(null);
@@ -75,7 +82,7 @@ export default function Upload() {
           url: preview || '',
           title: title.trim() || '未命名作品',
           description: description.trim() || '',
-          authorName: user?.name || '匿名用户'
+          authorName: user?.name || '匿名用户',
         });
         // 刷新照片列表缓存
         queryClient.invalidateQueries({ queryKey: ['photos'] });
@@ -105,15 +112,13 @@ export default function Upload() {
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">需要登录</h1>
           <p className="text-muted-foreground">请先登录后才能上传作品</p>
-          <Button onClick={() => navigate('/member-auth')}>
-            去登录
-          </Button>
+          <Button onClick={() => navigate('/member-auth')}>去登录</Button>
         </div>
       </div>
     );
   }
   return (
-<div className="min-h-screen bg-slate-50/30 py-12 px-4">
+    <div className="min-h-screen bg-slate-50/30 py-12 px-4">
       <ErrorBoundary>
         <div className="max-w-3xl mx-auto">
           <AnimatePresence mode="wait">
@@ -127,17 +132,26 @@ export default function Upload() {
                 <Card className="border-none shadow-2xl shadow-slate-200/50">
                   <div className="h-1.5 bg-primary w-full" />
                   <CardHeader className="space-y-1 pb-8 text-center">
-                    <CardTitle className="text-xl tracking-tight">发布作品，让更多人看到你的创意</CardTitle>
-                    <p className='text-gray-400 text-sm font-light'>在个人资料页面可以修改你的作者名字哦</p>
+                    <CardTitle className="text-xl tracking-tight">
+                      发布作品，让更多人看到你的创意
+                    </CardTitle>
+                    <p className="text-gray-400 text-sm font-light">
+                      在个人资料页面可以修改你的作者名字哦
+                    </p>
                   </CardHeader>
                   <CardContent className="px-8 pb-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
                       <div className="grid gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="title" className="text-xs font-bold uppercase text-slate-500">作品标题</Label>
-                          <Input 
-                            id="title" 
-                            placeholder="给作品起个好听的名字..." 
+                          <Label
+                            htmlFor="title"
+                            className="text-xs font-bold uppercase text-slate-500"
+                          >
+                            作品标题
+                          </Label>
+                          <Input
+                            id="title"
+                            placeholder="给作品起个好听的名字..."
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             className="bg-slate-50/50 border-slate-200 focus:bg-white transition-all h-11"
@@ -145,10 +159,15 @@ export default function Upload() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="description" className="text-xs font-bold uppercase text-slate-500">作品描述 (可选)</Label>
-                          <Textarea 
-                            id="description" 
-                            placeholder="分享作品背后的故事..." 
+                          <Label
+                            htmlFor="description"
+                            className="text-xs font-bold uppercase text-slate-500"
+                          >
+                            作品描述 (可选)
+                          </Label>
+                          <Textarea
+                            id="description"
+                            placeholder="分享作品背后的故事..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={3}
@@ -157,34 +176,57 @@ export default function Upload() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label className="text-xs font-bold uppercase text-slate-500">上传图片 *</Label>
-                          <div 
+                          <Label className="text-xs font-bold uppercase text-slate-500">
+                            上传图片 *
+                          </Label>
+                          <div
                             className={`
                               relative border-2 border-dashed rounded-xl transition-all duration-200
                               ${preview ? 'p-2' : 'p-10'}
                               ${isDragActive ? 'border-primary bg-primary/5' : 'border-slate-200 bg-slate-50/50 hover:border-slate-300'}
                             `}
-                            onDragOver={(e) => { e.preventDefault(); setIsDragActive(true); }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              setIsDragActive(true);
+                            }}
                             onDragLeave={() => setIsDragActive(false)}
                             onDrop={() => setIsDragActive(false)}
                           >
                             {!preview ? (
-                              <label htmlFor="file" className="cursor-pointer flex flex-col items-center group">
+                              <label
+                                htmlFor="file"
+                                className="cursor-pointer flex flex-col items-center group"
+                              >
                                 <div className="p-4 bg-white rounded-full shadow-sm mb-4 group-hover:scale-110 transition-transform">
                                   <UploadIcon className="h-6 w-6 text-primary" />
                                 </div>
-                                <span className="text-sm font-medium text-slate-600">点击或拖拽图片到此处</span>
-                                <span className="text-xs text-slate-400 mt-1">支持高质量 JPG, PNG, GIF</span>
-                                <input id="file" type="file" accept="image/*" onChange={handleFileChange} className="hidden" required />
+                                <span className="text-sm font-medium text-slate-600">
+                                  点击或拖拽图片到此处
+                                </span>
+                                <span className="text-xs text-slate-400 mt-1">
+                                  支持高质量 JPG, PNG, GIF
+                                </span>
+                                <input
+                                  id="file"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleFileChange}
+                                  className="hidden"
+                                  required
+                                />
                               </label>
                             ) : (
                               <div className="relative rounded-lg overflow-hidden group">
-                                <img src={preview} alt="预览" className="w-full max-h-[400px] object-cover rounded-lg" />
+                                <img
+                                  src={preview}
+                                  alt="预览"
+                                  className="w-full max-h-[400px] object-cover rounded-lg"
+                                />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <Button 
-                                    type="button" 
-                                    // variant="destructive" 
-                                    size="sm" 
+                                  <Button
+                                    type="button"
+                                    // variant="destructive"
+                                    size="sm"
                                     onClick={() => setPreview(null)}
                                     className="gap-2"
                                   >
@@ -197,10 +239,18 @@ export default function Upload() {
                         </div>
                       </div>
 
-                      <Button type="submit" className="w-full h-12 text-base shadow-lg shadow-primary/20 active:scale-[0.98] transition-all" disabled={isUploading || !preview}>
+                      <Button
+                        type="submit"
+                        className="w-full h-12 text-base shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
+                        disabled={isUploading || !preview}
+                      >
                         {isUploading ? (
-                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> 正在同步至云端...</>
-                        ) : '立即发布作品'}
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 正在同步至云端...
+                          </>
+                        ) : (
+                          '立即发布作品'
+                        )}
                       </Button>
                     </form>
                   </CardContent>
@@ -215,10 +265,10 @@ export default function Upload() {
               >
                 <Card className="border-none shadow-2xl overflow-hidden bg-white">
                   <div className="relative aspect-[16/10] bg-slate-100">
-                    <img 
-                      src={uploadedPhoto.url} 
-                      className="w-full h-full object-contain" 
-                      alt="Uploaded" 
+                    <img
+                      src={uploadedPhoto.url}
+                      className="w-full h-full object-contain"
+                      alt="Uploaded"
                     />
                     <div className="absolute top-4 right-4">
                       <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
@@ -228,15 +278,21 @@ export default function Upload() {
                     </div>
                   </div>
                   <CardContent className="p-8 text-center">
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2">{uploadedPhoto.title}</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                      {uploadedPhoto.title}
+                    </h2>
                     <p className="text-slate-500 text-sm mb-8 leading-relaxed max-w-md mx-auto">
-                      {uploadedPhoto.description || "你的作品成功发布，审核通过后可以查看。"}
+                      {uploadedPhoto.description || '你的作品成功发布，审核通过后可以查看。'}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                       <Button onClick={() => navigate('/gallery')} className="px-8 h-11">
                         去画廊查看
                       </Button>
-                      <Button variant="outline" onClick={resetToUploadForm} className="px-8 h-11 gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={resetToUploadForm}
+                        className="px-8 h-11 gap-2"
+                      >
                         <ArrowLeft className="h-4 w-4" /> 再传一张
                       </Button>
                     </div>

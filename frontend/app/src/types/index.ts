@@ -40,4 +40,10 @@ export interface Member {
   updatedAt: Date;
 }
 
-export type ViewMode = 'home' | 'gallery' | 'upload' | 'register' | 'member-auth' | 'member-profile';
+export type ViewMode =
+  | 'home'
+  | 'gallery'
+  | 'upload'
+  | 'register'
+  | 'member-auth'
+  | 'member-profile';

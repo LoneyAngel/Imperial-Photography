@@ -30,7 +30,10 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
 
       {pages.map((p, idx) =>
         p === '...' ? (
-          <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-muted-foreground text-sm">
+          <span
+            key={`ellipsis-${idx}`}
+            className="w-8 h-8 flex items-center justify-center text-muted-foreground text-sm"
+          >
             ...
           </span>
         ) : (
@@ -44,7 +47,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
           >
             {p}
           </button>
-        )
+        ),
       )}
 
       <button

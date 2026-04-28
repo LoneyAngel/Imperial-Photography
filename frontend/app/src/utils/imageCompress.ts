@@ -4,9 +4,9 @@
  */
 
 interface CompressOptions {
-  maxSizeMB: number;      // 最大文件大小（MB）
-  maxWidthOrHeight?: number;  // 最大宽高（像素）
-  quality?: number;       // 初始质量（0-1）
+  maxSizeMB: number; // 最大文件大小（MB）
+  maxWidthOrHeight?: number; // 最大宽高（像素）
+  quality?: number; // 初始质量（0-1）
 }
 
 interface CompressResult {
@@ -22,10 +22,7 @@ interface CompressResult {
  * @param options 压缩选项
  * @returns 压缩结果
  */
-export async function compressImage(
-  file: File,
-  options: CompressOptions
-): Promise<CompressResult> {
+export async function compressImage(file: File, options: CompressOptions): Promise<CompressResult> {
   const { maxSizeMB, maxWidthOrHeight = 4096, quality = 0.9 } = options;
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
@@ -104,7 +101,7 @@ export async function compressImage(
             });
           },
           'image/jpeg',
-          currentQuality
+          currentQuality,
         );
       };
 

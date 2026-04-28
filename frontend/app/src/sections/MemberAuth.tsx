@@ -21,9 +21,7 @@ export default function MemberAuth() {
         <Card className="shadow-sm border border-slate-200">
           <CardHeader className="space-y-3">
             <Link to="/" className="flex items-center">
-              <span className="text-sm text-black hover:underline mr-2">
-                ← 返回
-              </span>
+              <span className="text-sm text-black hover:underline mr-2">← 返回</span>
             </Link>
             <div className="flex items-center justify-center">
               <div className="text-3xl font-semibold tracking-tight">
@@ -74,7 +72,7 @@ export default function MemberAuth() {
 
 // 验证码登录表单
 function CodeLoginForm() {
-  const { verifyCode,sendAuthCode } = useFunction();
+  const { verifyCode, sendAuthCode } = useFunction();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
@@ -104,7 +102,7 @@ function CodeLoginForm() {
     startAuthCodeTransition(async () => {
       setError(null);
       const res = await sendAuthCode(normalizedEmail);
-      if(res){
+      if (res) {
         toast.error(res.message);
         return;
       }
@@ -131,17 +129,16 @@ function CodeLoginForm() {
     startVerifyTransition(async () => {
       const res = await verifyCode(normalizedEmail, code.trim());
       if (res) {
-        toast.error(res.message||'登录失败，请检查验证码后重试');
+        toast.error(res.message || '登录失败，请检查验证码后重试');
         return;
       }
       toast.success('登录成功');
-    })
+    });
     reset();
     timer = setTimeout(() => {
       navigate('/');
-     }, 2000);
+    }, 2000);
   };
-
 
   return (
     <form className="space-y-4">
@@ -149,13 +146,13 @@ function CodeLoginForm() {
         <Label htmlFor="memberEmail">邮箱</Label>
         <Input
           id="email"
-          name='email'
+          name="email"
           type="email"
           placeholder="name@example.com"
           value={email}
           onChange={(e) => {
-            setEmail(e.target.value)
-            if(error) setError(null);
+            setEmail(e.target.value);
+            if (error) setError(null);
           }}
           required
         />
@@ -164,7 +161,7 @@ function CodeLoginForm() {
         <Label htmlFor="authCode">验证码</Label>
         <Input
           id="authCode"
-          name='code'
+          name="code"
           type="text"
           placeholder="请发送验证码"
           maxLength={6}
@@ -172,7 +169,7 @@ function CodeLoginForm() {
           disabled={!sent} // 没发送前禁止输入，防止用户盲填
           onChange={(e) => {
             setCode(e.target.value);
-            if(error) setError(null);
+            if (error) setError(null);
           }}
           className="tracking-[0.5em] font-mono text-center" // 艺术感：等宽字体+间距，方便输入数字
         />
@@ -185,17 +182,15 @@ function CodeLoginForm() {
           variant="outline"
           className="flex-1"
           onClick={() => void send()}
-          disabled={isCode||!emailValid()||isCounting}
+          disabled={isCode || !emailValid() || isCounting}
         >
-          {isCode ? (
-            "发送中..."
-          ) : isCounting ? (
-            `${timeLeft} 秒后重发`
-          ) : sent ? (
-            "重新发送"
-          ) : (
-            "发送验证码"
-          )}
+          {isCode
+            ? '发送中...'
+            : isCounting
+              ? `${timeLeft} 秒后重发`
+              : sent
+                ? '重新发送'
+                : '发送验证码'}
         </Button>
         <Button
           type="button"
@@ -207,10 +202,8 @@ function CodeLoginForm() {
         </Button>
       </div>
 
-      <Link to="/register" className='block w-full text-center text-[12px] text-gray-500 '>
-        <span className='border-b-[1px] hover:border-gray-500'>
-          没有账号？注册
-        </span>
+      <Link to="/register" className="block w-full text-center text-[12px] text-gray-500 ">
+        <span className="border-b-[1px] hover:border-gray-500">没有账号？注册</span>
       </Link>
     </form>
   );
@@ -222,11 +215,11 @@ function PasswordLoginForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const {loginMemberWithPassword} = useFunction();
+  const { loginMemberWithPassword } = useFunction();
   const [isLogining, loginTransition] = useTransition();
   const navigate = useNavigate();
   let timer: NodeJS.Timeout;
-  const handleLogin = async (e:any) => {
+  const handleLogin = async (e: any) => {
     e.preventDefault();
     setError(null);
 
@@ -237,7 +230,7 @@ function PasswordLoginForm() {
     loginTransition(async () => {
       const a = await loginMemberWithPassword(email.trim().toLowerCase(), password);
       if (a) {
-        toast.error(a.message||'登录失败，请检查邮箱和密码后重试');
+        toast.error(a.message || '登录失败，请检查邮箱和密码后重试');
         return;
       } else {
         toast.success('登录成功');
@@ -256,11 +249,11 @@ function PasswordLoginForm() {
           id="loginEmail"
           type="email"
           placeholder="name@example.com"
-          name='email'
+          name="email"
           value={email}
           onChange={(e) => {
-            setEmail(e.target.value)
-            if(error) setError(null);
+            setEmail(e.target.value);
+            if (error) setError(null);
           }}
           required
         />
@@ -274,12 +267,12 @@ function PasswordLoginForm() {
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             placeholder="请输入密码"
-            name='password'
-            className='pr-10'
+            name="password"
+            className="pr-10"
             value={password}
             onChange={(e) => {
-              setPassword(e.target.value)
-              if(error) setError(null);
+              setPassword(e.target.value);
+              if (error) setError(null);
             }}
             required
           />
@@ -307,16 +300,10 @@ function PasswordLoginForm() {
       </Button>
 
       <Link to="/forgot-password" className="block w-full text-center text-[12px] text-gray-500">
-        <span
-          className="border-b-[1px] hover:border-gray-500"
-        >
-          忘记密码？
-        </span>
+        <span className="border-b-[1px] hover:border-gray-500">忘记密码？</span>
       </Link>
-      <Link to="/register" className='block w-full text-center text-[12px] text-gray-500 '>
-        <span className='border-b-[1px] hover:border-gray-500'>
-          没有账号？注册
-        </span>
+      <Link to="/register" className="block w-full text-center text-[12px] text-gray-500 ">
+        <span className="border-b-[1px] hover:border-gray-500">没有账号？注册</span>
       </Link>
     </form>
   );

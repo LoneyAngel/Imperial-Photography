@@ -24,12 +24,24 @@ export default function SetPassword() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!email) { setError('邮箱为空'); return; }
-    if (password.length < 6) { setError('密码长度至少6位'); return; }
-    if (password !== confirmPassword) { setError('两次输入的密码不一致'); return; }
+    if (!email) {
+      setError('邮箱为空');
+      return;
+    }
+    if (password.length < 6) {
+      setError('密码长度至少6位');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('两次输入的密码不一致');
+      return;
+    }
     startTransition(async () => {
       const err = await set_password(email, password);
-      if (err) { toast.error(err.message); return; }
+      if (err) {
+        toast.error(err.message);
+        return;
+      }
       toast.success('设置成功');
       navigate('/member-auth?success=password_set');
     });
@@ -42,9 +54,7 @@ export default function SetPassword() {
           <CardHeader className="space-y-3">
             <div className="text-center space-y-1">
               <CardTitle>设置密码</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                为邮箱 {email} 设置登录密码
-              </p>
+              <p className="text-sm text-muted-foreground">为邮箱 {email} 设置登录密码</p>
             </div>
           </CardHeader>
           <CardContent>
@@ -78,7 +88,7 @@ export default function SetPassword() {
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="请再次输入密码"
-                    name='password'
+                    name="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
@@ -88,14 +98,16 @@ export default function SetPassword() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
 
-              {error && (
-                <p className="text-sm text-destructive">{error}</p>
-              )}
+              {error && <p className="text-sm text-destructive">{error}</p>}
 
               <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending ? '设置中...' : '设置密码'}

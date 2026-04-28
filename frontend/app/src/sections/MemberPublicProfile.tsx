@@ -15,7 +15,10 @@ interface MemberPhotosResult {
   pageSize: number;
 }
 
-async function fetchMemberPhotos(memberId: string, page: number): Promise<MemberPhotosResult | null> {
+async function fetchMemberPhotos(
+  memberId: string,
+  page: number,
+): Promise<MemberPhotosResult | null> {
   try {
     const res = await api.get(`/photos/member/${memberId}?page=${page}`);
     return res.data.data as MemberPhotosResult;
@@ -45,7 +48,7 @@ export default function MemberPublicProfile() {
       <div className="mb-8 flex items-center gap-4">
         <div className="h-14 w-14 rounded-full bg-slate-200 flex items-center justify-center text-xl font-bold text-slate-500">
           <img
-            src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${id ||'user'}`}
+            src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${id || 'user'}`}
             alt={id}
             className="transition-transform duration-300 hover:[transform:rotate(360deg)]"
           />
@@ -65,7 +68,11 @@ export default function MemberPublicProfile() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {photos.map((p) => (
-              <Card key={p.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setSelectedPhoto(p)}>
+              <Card
+                key={p.id}
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => setSelectedPhoto(p)}
+              >
                 <CardContent className="pt-4">
                   <img
                     src={p.url}
@@ -87,7 +94,10 @@ export default function MemberPublicProfile() {
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedPhoto(null)}
         >
-          <div className="bg-background shadow-xl w-full max-w-6xl h-[80vh] overflow-hidden border border-slate-200" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="bg-background shadow-xl w-full max-w-6xl h-[80vh] overflow-hidden border border-slate-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex h-full">
               <div className="flex-1 bg-slate-100 flex items-center justify-center p-6">
                 <img
@@ -99,17 +109,26 @@ export default function MemberPublicProfile() {
               <div className="w-[350px] md:w-[400px] bg-white flex flex-col border-l border-slate-100">
                 <div className="p-6 flex items-center justify-between border-b border-slate-50">
                   <h2 className="text-base font-bold text-slate-800">详细信息</h2>
-                  <button onClick={() => setSelectedPhoto(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-600">
+                  <button
+                    onClick={() => setSelectedPhoto(null)}
+                    className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-600"
+                  >
                     <X className="h-5 w-5" />
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-8 space-y-8">
                   <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Title</p>
-                    <p className="text-xl font-light text-slate-800 leading-tight">{selectedPhoto.title || 'Untitled Work'}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                      Title
+                    </p>
+                    <p className="text-xl font-light text-slate-800 leading-tight">
+                      {selectedPhoto.title || 'Untitled Work'}
+                    </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Description</p>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                      Description
+                    </p>
                     <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap italic">
                       {selectedPhoto.description || '这个作者很懒，什么都没有留下...'}
                     </p>
