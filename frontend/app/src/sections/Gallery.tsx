@@ -2,13 +2,13 @@ import { Suspense, useDeferredValue, useEffect, useState } from 'react';
 import { Photo } from '@/types';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { useFunction } from '@/context/function';
-import { Input } from '@/components/ui/input';
-import { Search, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import PhotoGrid from '@/components/Photocard';
 import Pagination from '@/components/ui/pagination';
 import { useNavigate } from 'react-router-dom';
 import PhotoGridSkeleton from '@/components/skeletons/PhotoGridSkeleton';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import Search from '@/components/Search';
 
 export default function Gallery() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
@@ -22,7 +22,6 @@ export default function Gallery() {
   const { data } = useQuery({
     queryKey: ['photos', searchQuery, page],
     queryFn: async () => fetchPhotos(searchQuery, page),
-    staleTime: 1000 * 60 * 5,
   });
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / (data?.pageSize ?? 30));
@@ -55,32 +54,13 @@ export default function Gallery() {
     <ErrorBoundary>
       <div className="container mx-auto px-4 py-8">
         {/* 搜索栏 */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="搜索作品名或作者..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10 pr-10"
-            />
-            {searchInput && (
-              <button
-                type="button"
-                onClick={clearSearch}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          {searchQuery && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              搜索 "{searchQuery}" 的结果：{total} 个作品
-            </p>
-          )}
-        </div>
+        <Search
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+          searchQuery={searchQuery}
+          total={total}
+          clearSearch={clearSearch}
+        />
         <div
           className={`transition-opacity duration-300 ${isStale ? 'opacity-50' : 'opacity-100'}`}
         >
@@ -122,7 +102,6 @@ export default function Gallery() {
                       <X className="h-5 w-5" />
                     </button>
                   </div>
-
                   {/* 内容区 */}
                   <div className="flex-1 overflow-y-auto p-8 space-y-8">
                     {/* 作者 */}
@@ -186,8 +165,6 @@ export default function Gallery() {
 
 function PhotoListContainer({ searchQuery, page, setSelectedPhoto }: any) {
   const { fetchPhotos } = useFunction();
-
-  // useSuspenseQuery 写在这里，只会挂起这个组件
   const { data } = useSuspenseQuery({
     queryKey: ['photos', searchQuery, page],
     queryFn: async () => fetchPhotos(searchQuery, page),

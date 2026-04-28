@@ -72,13 +72,13 @@ export default function MemberAuth() {
 
 // 验证码登录表单
 function CodeLoginForm() {
+  const navigate = useNavigate();
   const { verifyCode, sendAuthCode } = useFunction();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const normalizedEmail = email.trim().toLowerCase();
-  const navigate = useNavigate();
   const emailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
   const [isCode, startAuthCodeTransition] = useTransition();
   const [isVerify, startVerifyTransition] = useTransition();
