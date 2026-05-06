@@ -8,7 +8,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
-import Pagination from '@/components/ui/pagination';
+import Pagination from '@/components/pagination';
 import { useDeferredValue } from 'react';
 import '@/styles/PhotoGrid.css';
 import { Link } from 'react-router-dom';

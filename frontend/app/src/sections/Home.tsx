@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/context/user';
-import img1 from '@/assets/picture/1.jpg';
-import img2 from '@/assets/picture/2.jpg';
+import img1 from '@/assets/image/1.jpg';
+import img2 from '@/assets/image/2.jpg';
 
 export default function Home() {
   const navigate = useNavigate();

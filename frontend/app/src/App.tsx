@@ -19,6 +19,10 @@ import ErrorBoundary from './components/error-boundary';
 import { Toaster } from 'react-hot-toast';
 import LittleNavbar from './components/little-navbar';
 import AchievementPage from './sections/Honors';
+import { ThemeProvider } from './context/theme';
+import Setting from './sections/Setting';
+import { useEffect } from 'react';
+import { useTheme } from 'next-themes';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +33,24 @@ export const queryClient = new QueryClient({
 });
 
 function AppContent() {
+  const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    // 检查是否是'自动模式'或初次访问
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme === 'system' || !savedTheme) {
+      const hour = new Date().getHours();
+      // 你设置的逻辑：10点后或6点前为深色
+      const targetTheme = hour >= 19 || hour <= 6 ? 'dark' : 'light';
+
+      // 关键优化：只有在主题不符合预期时才 setTheme
+      // 避免每次组件渲染都去触发 setTheme
+      if (theme !== targetTheme) {
+        setTheme(targetTheme);
+      }
+    }
+  }, [theme, setTheme]); // 加上依赖项，保证规范
   return (
     <BrowserRouter>
       <div className="app-container">
@@ -48,6 +70,7 @@ function AppContent() {
             <Route path="/notice" element={<Notice />} />
             <Route path="/member/:id" element={<MemberPublicProfile />} />
             <Route path="/card" element={<AchievementPage />} />
+            <Route path="/setting" element={<Setting />} />
             <Route path="*" element={<Navigate to="/gallery" replace />} />
           </Routes>
         </main>
@@ -69,7 +92,9 @@ function App() {
         <TokenProvider>
           <FunctionProvider>
             <UserProvider>
-              <AppContent />
+              <ThemeProvider>
+                <AppContent />
+              </ThemeProvider>
             </UserProvider>
           </FunctionProvider>
         </TokenProvider>
