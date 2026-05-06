@@ -3,12 +3,12 @@ import { Photo } from '@/types';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { useFunction } from '@/context/function';
 import { X } from 'lucide-react';
-import PhotoGrid from '@/components/Photocard';
+import PhotoGrid from '@/components/photocard';
 import Pagination from '@/components/ui/pagination';
 import { useNavigate } from 'react-router-dom';
 import PhotoGridSkeleton from '@/components/skeletons/PhotoGridSkeleton';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import Search from '@/components/Search';
+import ErrorBoundary from '@/components/error-boundary';
+import Search from '@/components/search';
 
 export default function Gallery() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);

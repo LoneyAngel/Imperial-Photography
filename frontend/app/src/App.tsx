@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import Navbar from './components/navbar';
 import Home from './sections/Home';
 import Gallery from './sections/Gallery';
 import Upload from './sections/Upload';
@@ -15,9 +15,9 @@ import { TokenProvider } from './context/token';
 import { FunctionProvider } from './context/function';
 import Notice from './sections/Notice';
 import MemberPublicProfile from './sections/MemberPublicProfile';
-import ErrorBoundary from './components/ErrorBoundary';
+import ErrorBoundary from './components/error-boundary';
 import { Toaster } from 'react-hot-toast';
-import LittleNavbar from './components/LittleNavbar';
+import LittleNavbar from './components/little-navbar';
 import AchievementPage from './sections/Honors';
 
 export const queryClient = new QueryClient({

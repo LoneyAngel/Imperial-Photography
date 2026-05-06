@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 import { compressImage, isFileOversized, formatFileSize } from '@/utils/imageCompress';
 import { useNavigate } from 'react-router-dom';
 import { IMAGE_MAX_SIZE_MB } from '@/config/file';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/error-boundary';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 
