@@ -34,7 +34,7 @@ export default function Navbar() {
               version="1.1"
               xmlns="http://www.w3.org/2000/svg"
               p-id="11632"
-              fill='currentColor'
+              fill="currentColor"
               stroke="currentColor"
             >
               <path
@@ -116,7 +116,7 @@ export default function Navbar() {
                       version="1.1"
                       xmlns="http://www.w3.org/2000/svg"
                       p-id="18977"
-                      fill='currentColor'
+                      fill="currentColor"
                       stroke="currentColor"
                     >
                       <path
@@ -135,7 +135,7 @@ export default function Navbar() {
                       version="1.1"
                       xmlns="http://www.w3.org/2000/svg"
                       p-id="22268"
-                      fill='currentColor'
+                      fill="currentColor"
                       stroke="currentColor"
                     >
                       <path
@@ -154,7 +154,7 @@ export default function Navbar() {
                       version="1.1"
                       xmlns="http://www.w3.org/2000/svg"
                       p-id="20356"
-                      fill='currentColor'
+                      fill="currentColor"
                       stroke="currentColor"
                     >
                       <path
@@ -177,7 +177,7 @@ export default function Navbar() {
                       version="1.1"
                       xmlns="http://www.w3.org/2000/svg"
                       p-id="12632"
-                      fill='currentColor'
+                      fill="currentColor"
                       stroke="currentColor"
                     >
                       <path

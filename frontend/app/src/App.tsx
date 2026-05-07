@@ -21,8 +21,8 @@ import LittleNavbar from './components/little-navbar';
 import AchievementPage from './sections/Honors';
 import { ThemeProvider } from './context/theme';
 import Setting from './sections/Setting';
-import { useEffect } from 'react';
-import { useTheme } from 'next-themes';
+// import { useEffect } from 'react';
+// import { useTheme } from 'next-themes';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,18 +33,20 @@ export const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const { setTheme } = useTheme();
+  // const { setTheme } = useTheme();
 
-  useEffect(() => {
-    // 仅在初次访问且没有保存的主题时，根据时间自动设置
-    const savedTheme = localStorage.getItem('theme');
+  // 根据时间实现主题变更
+  // useEffect(() => {
+  //   // 仅在初次访问且没有保存的主题时，根据时间自动设置
+  //   const savedTheme = localStorage.getItem('theme');
 
-    if (!savedTheme) {
-      const hour = new Date().getHours();
-      const targetTheme = hour >= 19 || hour <= 6 ? 'dark' : 'light';
-      setTheme(targetTheme);
-    }
-  }, [setTheme]);
+  //   if (!savedTheme) {
+  //     const hour = new Date().getHours();
+  //     const targetTheme = hour >= 19 || hour <= 6 ? 'dark' : 'light';
+  //     setTheme(targetTheme);
+  //   }
+  // }, [setTheme]);
+
   return (
     <BrowserRouter>
       <div className="app-container">
