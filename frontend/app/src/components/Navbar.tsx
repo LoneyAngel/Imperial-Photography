@@ -98,6 +98,8 @@ export default function Navbar() {
                     src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.id || user.email.split('@')[0] || 'user'}`}
                     alt={user.name}
                     className="transition-transform duration-300 hover:[transform:rotate(360deg)]"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </Button>
               </DropdownMenuTrigger>

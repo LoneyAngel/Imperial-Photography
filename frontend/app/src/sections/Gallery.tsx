@@ -90,6 +90,8 @@ export default function Gallery() {
                     src={selectedPhoto.url}
                     alt={selectedPhoto.title}
                     className="max-h-full max-w-full object-contain shadow-2xl"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="w-[350px] md:w-[400px] bg-white flex flex-col border-l border-slate-100">
@@ -114,6 +116,8 @@ export default function Gallery() {
                           src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${selectedPhoto?.ownerMemberId || selectedPhoto?.ownerName || 'user'}`}
                           alt={selectedPhoto?.ownerName}
                           className="transition-transform duration-300 hover:[transform:rotate(360deg)]"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                       <div>

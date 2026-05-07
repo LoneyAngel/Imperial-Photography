@@ -23,7 +23,8 @@ const PhotoGrid = ({
     <div key={photo.id} className="photo-item" onClick={() => setSelectedPhoto(photo)}>
       <img
         alt={photo.title}
-        loading="lazy" // 开启懒加载
+        loading="lazy"
+        decoding="async"
         src={photo.url}
       />
     </div>

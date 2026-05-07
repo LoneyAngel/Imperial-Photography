@@ -32,12 +32,12 @@ export default function Home() {
         </div>
 
         <div className="mt-20 flex flex-col gap-6 items-center w-[50%]">
-          <div className="w-full flex gap-8">
-            <div className="flex flex-col gap-2">
+          <div className="w-full flex">
+            <div className="flex flex-col gap-2 items-start">
               <div className="mt-2 text-sm text-muted-foreground text-start px-2">
                 <h2 className="font-bold">白色的几何与蔚蓝的留白</h2>
               </div>
-              <img src={img1} alt="home-1" className="object-cover h-[400px]" />
+              <img src={img1} alt="home-1" className="object-contain object-left h-[400px] aspect-square" decoding="sync"/>
             </div>
             <div className="flex flex-col gap-4 justify-center w-[40%]">
               <p className="mt-2 text-sm text-muted-foreground">
@@ -66,7 +66,7 @@ export default function Home() {
               <div className="mt-2 text-sm text-muted-foreground text-end px-2">
                 <h2 className="font-bold">巴黎</h2>
               </div>
-              <img src={img2} alt="home-2" className="object-cover h-[400px]" />
+              <img src={img2} alt="home-2" className="object-cover h-[400px] aspect-square" decoding="sync"/>
             </div>
           </div>
         </div>

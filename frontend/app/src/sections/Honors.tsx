@@ -60,6 +60,8 @@ export default function AchievementPage() {
                 src={avatarUrl}
                 alt={user?.name}
                 className="w-full h-full rounded-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
               <div className="absolute -bottom-1 -right-1 bg-green-500 p-1.5 rounded-full ring-2 ring-white">
                 <CheckCircle2 className="w-4 h-4 text-white" />
@@ -169,6 +171,8 @@ export default function AchievementPage() {
                         src={avatarUrl}
                         alt="Seal"
                         className="w-full h-full rounded-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     {/* 印章上的文字圈 (可选，增加高级感) */}

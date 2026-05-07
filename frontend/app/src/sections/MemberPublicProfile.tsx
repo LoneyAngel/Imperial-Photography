@@ -51,6 +51,8 @@ export default function MemberPublicProfile() {
             src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${id || 'user'}`}
             alt={id}
             className="transition-transform duration-300 hover:[transform:rotate(360deg)]"
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <div>
@@ -78,6 +80,8 @@ export default function MemberPublicProfile() {
                     src={p.url}
                     alt={p.title || '未命名作品'}
                     className="w-full h-40 object-cover mb-3"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <p className="text-sm font-medium truncate">{p.title || '未命名作品'}</p>
                 </CardContent>
@@ -104,6 +108,8 @@ export default function MemberPublicProfile() {
                   src={selectedPhoto.url}
                   alt={selectedPhoto.title}
                   className="max-h-full max-w-full object-contain shadow-2xl"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="w-[350px] md:w-[400px] bg-white flex flex-col border-l border-slate-100">

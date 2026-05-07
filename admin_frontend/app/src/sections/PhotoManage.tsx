@@ -110,6 +110,8 @@ export default function PhotoManage() {
                   src={photo.url}
                   alt={photo.title}
                   className="w-full h-48 object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <CardContent className="p-4">
                   <h3 className="font-medium truncate">{photo.title || '无标题'}</h3>

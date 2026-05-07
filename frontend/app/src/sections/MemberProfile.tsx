@@ -137,6 +137,8 @@ export default function MemberProfile() {
                   <img
                     src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.id || user.email.split('@')[0] || 'user'}`}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="min-w-0">
@@ -242,6 +244,8 @@ export default function MemberProfile() {
                   src={selectedPhoto.url}
                   alt={selectedPhoto.title}
                   className="max-h-full max-w-full object-contain shadow-2xl rounded-sm"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
 
@@ -315,6 +319,8 @@ export default function MemberProfile() {
                 src={editingPhoto.url}
                 alt={editingPhoto.title || '未命名作品'}
                 className="w-full h-48 object-cover rounded-md"
+                loading="lazy"
+                decoding="async"
               />
             </div>
             <form onSubmit={handleUpdatePhoto} className="space-y-4">
@@ -397,7 +403,8 @@ function Photos({
             <CardContent className="pt-4">
               <img
                 src={p.url}
-                loading="lazy" // 懒加载
+                loading="lazy"
+                decoding="async"
                 alt={p.title || '未命名作品'}
                 className="w-full h-40 object-cover rounded-md"
                 onClick={() => setSelectedPhoto(p)}

@@ -221,6 +221,8 @@ export default function Upload() {
                                   src={preview}
                                   alt="预览"
                                   className="w-full max-h-[400px] object-cover rounded-lg"
+                                  loading="lazy"
+                                  decoding="async"
                                 />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                   <Button
@@ -269,6 +271,8 @@ export default function Upload() {
                       src={uploadedPhoto.url}
                       className="w-full h-full object-contain"
                       alt="Uploaded"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute top-4 right-4">
                       <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
