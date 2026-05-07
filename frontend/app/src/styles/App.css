@@ -5,19 +5,13 @@
   transition: all 0.3s ease;
 }
 
-/* navbar的Link按钮样式 */
-.nav-link {
-  transition: opacity 0.2s ease;
-}
-
-.nav-link:hover {
-  opacity: 0.7;
-}
-
-
 .nav-link-underline {
   position: relative;
   text-decoration: none;
+}
+
+.nav-link-underline-selected{
+  font-weight: 500;
 }
 
 .nav-link-underline::after {
@@ -25,16 +19,21 @@
   position: absolute;
   width: 100%;
   height: 2px; /* 下划线高度 */
-  bottom: 0;
+  bottom: -2px;
   left: 0;
   background-color: currentColor; /* 使用当前文本颜色 */
   
-  /* 核心动画设置 */
-  transform: scaleX(0);         /* 初始宽度为 0 */
-  transform-origin: bottom left; /* 动画起点在左侧 */
+  /* 动画 */
+  transform: scaleX(0); /* 初始宽度为 0 */
+  transform-origin: left; /* 动画起点在左侧 */
   transition: transform 0.3s ease-out; /* 动画过渡效果 */
 }
 
 .nav-link-underline:hover::after {
+  transform-origin: right; /* 动画起点在右侧 */
   transform: scaleX(1); /* 悬浮时宽度变为 100% */
+}
+
+.nav-link-underline-selected::after {
+  transform: scaleX(1); /* 选中时宽度变为 100% */
 }

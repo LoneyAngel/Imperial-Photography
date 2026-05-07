@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './components/navbar';
+import Navbar from './components/Navbar';
 import Home from './sections/Home';
 import Gallery from './sections/Gallery';
 import Upload from './sections/Upload';
@@ -33,24 +33,18 @@ export const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
-    // 检查是否是'自动模式'或初次访问
+    // 仅在初次访问且没有保存的主题时，根据时间自动设置
     const savedTheme = localStorage.getItem('theme');
 
-    if (savedTheme === 'system' || !savedTheme) {
+    if (!savedTheme) {
       const hour = new Date().getHours();
-      // 你设置的逻辑：10点后或6点前为深色
       const targetTheme = hour >= 19 || hour <= 6 ? 'dark' : 'light';
-
-      // 关键优化：只有在主题不符合预期时才 setTheme
-      // 避免每次组件渲染都去触发 setTheme
-      if (theme !== targetTheme) {
-        setTheme(targetTheme);
-      }
+      setTheme(targetTheme);
     }
-  }, [theme, setTheme]); // 加上依赖项，保证规范
+  }, [setTheme]);
   return (
     <BrowserRouter>
       <div className="app-container">

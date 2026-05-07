@@ -29,7 +29,7 @@ export default function LittleNavbar() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-          className="h-[50px] flex items-center justify-center bg-slate-300 relative"
+          className="h-[50px] flex items-center justify-center bg-slate-300 dark:bg-slate-700 relative"
         >
           <p className="text-center text-sm underline decoration-sky-500 decoration-2 underline-offset-4 decoration-dashed">
             Welcome to join us and become our exclusive photographer！

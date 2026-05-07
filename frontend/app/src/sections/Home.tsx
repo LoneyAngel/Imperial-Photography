@@ -8,7 +8,8 @@ export default function Home() {
   const { user } = useUser();
   const handleClick = () => navigate(user ? '/gallery' : '/register');
   return (
-    <div className="flex-1 bg-gradient-to-b from-slate-50 to-background">
+    <div className="flex-1 ">
+      {/* bg-gradient-to-b from-slate-50 to-background 渐变背景 */}
       <div className="container flex flex-col items-center py-16">
         <div className="w-full max-w-4xl mx-auto text-center px-4 mt-6">
           <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-tight">

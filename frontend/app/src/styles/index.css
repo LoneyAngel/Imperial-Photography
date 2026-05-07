@@ -5,55 +5,55 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --background: 255 255 255; /* #ffffff */
+    --foreground: 10 10 10; /* #0a0a0a */
+    --card: 255 255 255; /* #ffffff */
+    --card-foreground: 10 10 10; /* #0a0a0a */
+    --popover: 255 255 255; /* #ffffff */
+    --popover-foreground: 10 10 10; /* #0a0a0a */
+
+    --primary: 23 23 23; /* #171717 */
+    --primary-foreground: 250 250 250; /* #fafafa */
+    --secondary: 245 245 245; /* #f5f5f5 */
+    --secondary-foreground: 23 23 23; /* #171717 */
+    --muted: 245 245 245; /* #f5f5f5 */
+    --muted-foreground: 115 115 115; /* #737373 */
+    --accent: 245 245 245; /* #f5f5f5 */
+    --accent-foreground: 23 23 23; /* #171717 */
+    --destructive: 239 68 68; /* #ef4444 */
+    --destructive-foreground: 250 250 250; /* #fafafa */
+    
+    --border: 229 229 229; /* #e5e5e5 */
+    --input: 229 229 229; /* #e5e5e5 */
+    --ring: 10 10 10; /* #0a0a0a */
+
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --background: 10 10 10; /* #0a0a0a */
+    --foreground: 250 250 250; /* #fafafa */
+    --card: 10 10 10; /* #0a0a0a */
+    --card-foreground: 250 250 250; /* #fafafa */
+    --popover: 10 10 10; /* #0a0a0a */
+    --popover-foreground: 250 250 250; /* #fafafa */
+    --primary: 250 250 250; /* #fafafa */
+    --primary-foreground: 10 10 10; /* #0a0a0a */
+    --secondary: 38 38 38; /* #262626 */
+    --secondary-foreground: 250 250 250; /* #fafafa */
+    --muted: 38 38 38; /* #262626 */
+    --muted-foreground: 163 163 163; /* #a3a3a3 */
+    --accent: 38 38 38; /* #262626 */
+    --accent-foreground: 250 250 250; /* #fafafa */
+    --destructive: 85 28 28; /* #551c1c */
+    --destructive-foreground: 250 250 250; /* #fafafa */
+    --border: 38 38 38; /* #262626 */
+    --input: 38 38 38; /* #262626 */
+    --ring: 212 212 212; /* #d4d4d4 */
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
     @apply bg-background text-foreground;
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Noto Sans SC",
