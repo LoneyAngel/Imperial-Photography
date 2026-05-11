@@ -1,4 +1,4 @@
-import { queryClient } from '@/App';
+import { queryClient } from '@/utils/client';
 import { createContext, ReactNode, use, useState, useEffect } from 'react';
 import api, { TOKEN_REFRESHED_EVENT, setMemoryToken } from '@/utils/axios';
 import toast from 'react-hot-toast';

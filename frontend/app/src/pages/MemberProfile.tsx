@@ -19,8 +19,8 @@ export default function MemberProfile() {
   const { user } = useUser();
   const queryClient = useQueryClient();
 
-  const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
+  const [name, setName] = useState(user?.name ?? '');
+  const [bio, setBio] = useState(user?.bio ?? '');
   const [editing, setEditing] = useState(false);
 
   // 照片查看/编辑状态
@@ -28,14 +28,6 @@ export default function MemberProfile() {
   const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
   const [photoTitle, setPhotoTitle] = useState('');
   const [photoDescription, setPhotoDescription] = useState('');
-
-  // 当user数据更新时，同步更新本地状态
-  useEffect(() => {
-    if (user) {
-      setName(user.name ?? '');
-      setBio(user.bio ?? '');
-    }
-  }, [user]);
 
   // ESC 关闭弹窗
   useEffect(() => {

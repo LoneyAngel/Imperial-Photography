@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { cn } from '@/utils/utils';
 
+// 这里采用可扩展性的写法
+// 如果不需要扩展可以直接使用类型别名的方法
+// export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(

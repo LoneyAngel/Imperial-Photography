@@ -23,7 +23,7 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     setError(null);
     if (!token || !email) {

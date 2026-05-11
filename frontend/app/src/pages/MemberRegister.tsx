@@ -1,4 +1,4 @@
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +28,7 @@ export default function MemberRegister() {
   const { sendRegisterCode, verifyCode, set_password } = useFunction();
   const normalizedEmail = () => email.trim().toLowerCase();
   const emailValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail());
+  const timerRef = useRef<number | null>(null);
 
   const reset = () => {
     setEmail('');
@@ -41,10 +42,18 @@ export default function MemberRegister() {
   };
 
   useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (user) {
       navigate('/', { replace: true });
     }
-  }, [user]);
+  }, [user, navigate]);
 
   const sendCode = async () => {
     setError(null);
@@ -105,7 +114,10 @@ export default function MemberRegister() {
         return;
       }
       toast.success('密码设置成功！');
-      setTimeout(() => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      timerRef.current = window.setTimeout(() => {
         navigate('/member-auth?success=password_set');
       }, 2000);
     });
@@ -175,8 +187,8 @@ export default function MemberRegister() {
                 <Button
                   type="button"
                   className="w-full"
-                  onClick={() => void sendCode()}
-                  disabled={!emailValid || !agreedToPrivacy || isSending}
+                  onClick={sendCode}
+                  disabled={!emailValid() || !agreedToPrivacy || isSending}
                 >
                   {isSending
                     ? '发送中...'

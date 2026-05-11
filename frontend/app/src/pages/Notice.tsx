@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Bell, ChevronRight } from 'lucide-react';
 import { useFunction } from '@/context/function';
 import { Notice } from '@/types';
@@ -15,11 +15,7 @@ export default function NoticePage() {
     staleTime: 1000 * 60 * 5, // 5分钟缓存
   });
 
-  useEffect(() => {
-    if (noticeData && noticeData.length > 0) {
-      setSelectedNotice(noticeData[0]);
-    }
-  }, [noticeData]);
+  const activeNotice = selectedNotice ?? noticeData?.[0] ?? null;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -39,7 +35,7 @@ export default function NoticePage() {
                 key={notice.id}
                 className={`p-3 rounded-lg cursor-pointer transition-all duration-200 flex items-center gap-2 group
                   ${
-                    selectedNotice?.id === notice.id
+                    (selectedNotice?.id ?? activeNotice?.id === notice.id)
                       ? 'bg-primary text-primary-foreground shadow-md'
                       : 'bg-background hover:bg-accent'
                   }

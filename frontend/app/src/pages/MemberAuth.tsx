@@ -1,4 +1,4 @@
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -83,7 +83,15 @@ function CodeLoginForm() {
   const [isCode, startAuthCodeTransition] = useTransition();
   const [isVerify, startVerifyTransition] = useTransition();
   const { timeLeft, start, isCounting } = useCountdown(60);
-  let timer: NodeJS.Timeout;
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   const reset = () => {
     setEmail('');
@@ -135,7 +143,10 @@ function CodeLoginForm() {
       toast.success('登录成功');
     });
     reset();
-    timer = setTimeout(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = window.setTimeout(() => {
       navigate('/');
     }, 2000);
   };
@@ -195,7 +206,7 @@ function CodeLoginForm() {
         <Button
           type="button"
           className="flex-1"
-          onClick={() => void verifyCodeAndLogin()}
+          onClick={verifyCodeAndLogin}
           disabled={!sent || !code.trim() || isVerify}
         >
           {isVerify ? '登录中...' : '登录'}
@@ -218,8 +229,17 @@ function PasswordLoginForm() {
   const { loginMemberWithPassword } = useFunction();
   const [isLogining, loginTransition] = useTransition();
   const navigate = useNavigate();
-  let timer: NodeJS.Timeout;
-  const handleLogin = async (e: any) => {
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -236,7 +256,10 @@ function PasswordLoginForm() {
         toast.success('登录成功');
       }
     });
-    timer = setTimeout(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = window.setTimeout(() => {
       navigate('/');
     }, 2000); // 2秒后跳转
   };

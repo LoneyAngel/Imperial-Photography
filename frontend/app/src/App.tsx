@@ -9,7 +9,7 @@ import MemberProfile from './pages/MemberProfile';
 import SetPassword from './pages/SetPassword';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { UserProvider } from './context/user';
 import { TokenProvider } from './context/token';
 import { FunctionProvider } from './context/function';
@@ -22,16 +22,9 @@ import AchievementPage from './pages/Honors';
 import { ThemeProvider } from './context/theme';
 import Setting from './pages/Setting';
 import { ArrowRight } from 'lucide-react';
+import { queryClient } from './utils/client';
 // import { useEffect } from 'react';
 // import { useTheme } from 'next-themes';
-
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,
-    },
-  },
-});
 
 function AppContent() {
   // const { setTheme } = useTheme();

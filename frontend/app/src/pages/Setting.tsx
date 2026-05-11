@@ -2,8 +2,5 @@
 // 例如：是否暴露email给公众，以及ui风格，
 
 export default function Setting() {
-  return (
-    <div className="p-2 h-full">
-    </div>
-  );
+  return <div className="p-2 h-full"></div>;
 }

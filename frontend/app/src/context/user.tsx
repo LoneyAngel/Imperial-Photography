@@ -8,7 +8,7 @@ interface UserContextType {
   user: User | null | undefined;
   isLoading: boolean;
   error: Error | null;
-  refresh: (options?: RefetchOptions) => Promise<QueryObserverResult<any, Error>>;
+  refresh: (options?: RefetchOptions) => Promise<QueryObserverResult<User | null, Error>>;
 }
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -22,7 +22,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     error,
     refetch,
-  } = useQuery({
+  } = useQuery<User | null, Error>({
     queryKey: ['userMe', auth_token],
     queryFn: fetchMemberProfile,
     staleTime: Infinity,

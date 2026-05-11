@@ -7,6 +7,15 @@ export const TOKEN_REFRESHED_EVENT = 'tokenRefreshed';
 // 模块级变量存储 authToken（不在 localStorage，防止 XSS 窃取）
 let memoryAuthToken: string | null = null;
 
+let isRefreshing = false;
+
+interface QueuedRequest {
+  resolve: (token: string | null) => void;
+  reject: (error: unknown) => void;
+}
+
+let failedQueue: QueuedRequest[] = [];
+
 // 设置 authToken
 export const setMemoryToken = (token: string | null) => {
   memoryAuthToken = token;
@@ -39,11 +48,8 @@ api.interceptors.request.use(
 );
 
 // --- 2. 响应拦截器：处理 401 和自动刷新 ---
-let isRefreshing = false;
-let failedQueue: any[] = [];
-
 // 处理刷新队列：成功时重试请求，失败时拒绝
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error);
     else prom.resolve(token);
