@@ -22,10 +22,10 @@ export default function Navbar() {
 
   return (
     <nav className="px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30">
-      <div className="flex justify-between h-16">
+      <div className="flex justify-between items-center h-16">
         <Link
           to="/"
-          className="text-lg font-semibold text-foreground flex items-center px-3 py-1.5 transition-all duration-300 rounded-md hover:shadow-lg dark:hover:bg-gray-800"
+          className="text-lg font-semibold text-foreground inline-flex items-center px-3 py-1.5 transition-all duration-300 rounded-md hover:shadow-lg dark:hover:bg-gray-800"
         >
           <svg
             className="h-4 w-4 mr-2 shrink-0"
@@ -97,7 +97,7 @@ export default function Navbar() {
                   <img
                     src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.id || user.email.split('@')[0] || 'user'}`}
                     alt={user.name}
-                    className="transition-transform duration-300 hover:[transform:rotate(360deg)]"
+                    className="transition-transform duration-300 hover:[transform:rotate(360deg)] will-change-transform"
                     loading="lazy"
                     decoding="async"
                   />

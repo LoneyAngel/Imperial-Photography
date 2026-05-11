@@ -52,7 +52,7 @@ src/
 ├── context/          # React Context
 │   ├── token.tsx    # Token 和角色状态管理
 │   └── function.tsx # API 函数
-├── sections/         # 页面模块
+├── pages/         # 页面模块
 │   ├── AdminLogin.tsx
 │   ├── UserManage.tsx
 │   ├── PhotoManage.tsx

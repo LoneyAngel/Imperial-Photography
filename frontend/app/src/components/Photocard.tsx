@@ -21,12 +21,7 @@ const PhotoGrid = ({
 }) => {
   const items = photos.map((photo) => (
     <div key={photo.id} className="photo-item" onClick={() => setSelectedPhoto(photo)}>
-      <img
-        alt={photo.title}
-        loading="lazy"
-        decoding="async"
-        src={photo.url}
-      />
+      <img alt={photo.title} loading="lazy" decoding="async" src={photo.url} />
     </div>
   ));
   return (

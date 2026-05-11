@@ -1,26 +1,27 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Home from './sections/Home';
-import Gallery from './sections/Gallery';
-import Upload from './sections/Upload';
-import MemberAuth from './sections/MemberAuth';
-import MemberRegister from './sections/MemberRegister';
-import MemberProfile from './sections/MemberProfile';
-import SetPassword from './sections/SetPassword';
-import ForgotPassword from './sections/ForgotPassword';
-import ResetPassword from './sections/ResetPassword';
+import Navbar from './components/navbar';
+import Home from './pages/Home';
+import Gallery from './pages/Gallery';
+import Upload from './pages/Upload';
+import MemberAuth from './pages/MemberAuth';
+import MemberRegister from './pages/MemberRegister';
+import MemberProfile from './pages/MemberProfile';
+import SetPassword from './pages/SetPassword';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { UserProvider } from './context/user';
 import { TokenProvider } from './context/token';
 import { FunctionProvider } from './context/function';
-import Notice from './sections/Notice';
-import MemberPublicProfile from './sections/MemberPublicProfile';
+import Notice from './pages/Notice';
+import MemberPublicProfile from './pages/MemberPublicProfile';
 import ErrorBoundary from './components/error-boundary';
 import { Toaster } from 'react-hot-toast';
 import LittleNavbar from './components/little-navbar';
-import AchievementPage from './sections/Honors';
+import AchievementPage from './pages/Honors';
 import { ThemeProvider } from './context/theme';
-import Setting from './sections/Setting';
+import Setting from './pages/Setting';
+import { ArrowRight } from 'lucide-react';
 // import { useEffect } from 'react';
 // import { useTheme } from 'next-themes';
 
@@ -71,7 +72,15 @@ function AppContent() {
           </Routes>
         </main>
         <footer className="border-t py-6 mt-auto">
-          <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+          <div className="container flex flex-col justify-center items-center gap-4 text-center text-sm text-muted-foreground">
+            <a
+              href="https://github.com/LoneyAngel"
+              className="text-green-600 hover:scale-105 duration-200 flex items-center"
+              target="_blank"
+            >
+              <span className="font-mono">前往 github 主页 </span>
+              <ArrowRight className="h-4 w-4" />
+            </a>
             <p>Imperial © 2024 - All rights reserved</p>
           </div>
         </footer>

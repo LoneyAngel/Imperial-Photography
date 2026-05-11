@@ -1,11 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { TokenProvider, useToken } from './context/token';
 import { AdminFunctionProvider } from './context/function';
-import AdminLogin from './sections/AdminLogin';
-import UserManage from './sections/UserManage';
-import PhotoManage from './sections/PhotoManage';
-import AdminManage from './sections/AdminManage';
-import NoticeManage from './sections/NoticeManage';
+import AdminLogin from './pages/AdminLogin';
+import UserManage from './pages/UserManage';
+import PhotoManage from './pages/PhotoManage';
+import AdminManage from './pages/AdminManage';
+import NoticeManage from './pages/NoticeManage';
 import AdminNavbar from './components/AdminNavbar';
 import { Toaster } from 'react-hot-toast';
 
