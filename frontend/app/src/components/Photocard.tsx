@@ -3,6 +3,7 @@ import '@/styles/PhotoGrid.css'; // 引入样式文件
 import { Photo } from '@/types';
 
 // 修复 React-Masonry-CSS 的默认导入问题
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MasonryComponent = (Masonry as any).default ? (Masonry as any).default : Masonry;
 
 const breakpointColumnsObj = {

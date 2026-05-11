@@ -39,6 +39,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   return <UserContext value={value}>{children}</UserContext>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useUser = () => {
   const context = use(UserContext);
   if (!context) {

@@ -69,6 +69,7 @@ export const TokenProvider = ({ children }: { children: ReactNode }) => {
   return <TokenContext value={value}>{children}</TokenContext>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useToken = () => {
   const context = use(TokenContext);
   if (!context) {

@@ -167,7 +167,13 @@ export default function Gallery() {
   );
 }
 
-function PhotoListContainer({ searchQuery, page, setSelectedPhoto }: any) {
+interface PhotoListContainerProps {
+  searchQuery: string;
+  page: number;
+  setSelectedPhoto: (photo: Photo | null) => void;
+}
+
+function PhotoListContainer({ searchQuery, page, setSelectedPhoto }: PhotoListContainerProps) {
   const { fetchPhotos } = useFunction();
   const { data } = useSuspenseQuery({
     queryKey: ['photos', searchQuery, page],

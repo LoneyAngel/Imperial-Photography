@@ -256,6 +256,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
   return <FunctionContext value={value}>{children}</FunctionContext>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useFunction = () => {
   const context = use(FunctionContext);
   if (!context) {
