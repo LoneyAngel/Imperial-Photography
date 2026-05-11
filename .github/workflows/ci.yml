@@ -1,32 +1,41 @@
-name: CI
-on: [push, pull_request]
+name: CI-Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
-  frontend:
-    name: Frontend
+  build-and-test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend/app
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
-          cache-dependency-path: './frontend/app/pnpm-lock.yaml'
+          # npm 模式下，直接指定 cache 为 npm
+          cache: 'npm'
+          # 告诉 GitHub 去哪里找 package-lock.json
+          cache-dependency-path: 'frontend/app/package-lock.json'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        # npm ci 相当于 pnpm install --frozen-lockfile
+        # 它专门用于 CI 环境，速度更快且保证版本一致
+        run: npm ci
+        working-directory: frontend/app
 
-      - name: Lint
-        run: pnpm lint
+      - name: Lint Check
+        run: npm run lint
+        working-directory: frontend/app
 
-      - name: Test
-        run: pnpm test
+      - name: Run Tests
+        run: npm run test
+        working-directory: frontend/app
 
       - name: Build Check
-        run: pnpm build
+        run: npm run build
+        working-directory: frontend/app
