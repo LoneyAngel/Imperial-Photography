@@ -10,7 +10,7 @@ node_modules/
 dist/
 
 # Prisma
-.prisma/
+prisma/migrations/
 
 # Uploads
 uploads/
@@ -18,9 +18,9 @@ uploads/
 # Logs
 *.log
 
-# IDE
-.idea/
+# Editor directories and files
+!.vscode/extensions.json
+!.vscode/settings.json
 
-# OS
-.DS_Store
-Thumbs.db
+# AI
+.claude/

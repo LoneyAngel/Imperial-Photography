@@ -1,11 +1,11 @@
 # Imperial Photography
 
-知名摄影师作品展示与管理平台，提供照片上传/管理，浏览作品等功能。
+知名摄影师协会作品展示与管理平台，提供照片上传/管理，浏览作品等功能。
 
 ## 项目结构
 
 ```
-├── backend/           # 后端服务 (Express + Prisma)
+├── backend/           # 后端服务 (Express)
 ├── frontend/          # 用户前端 (React + Vite)
 └── admin_frontend/    # 管理员前端 (React + Vite)
 ```
@@ -15,19 +15,19 @@
 ### 后端
 - **框架**: Express.js
 - **数据库**: PostgreSQL + Prisma ORM
-- **认证**: JWT + HTTP-only Cookie
+- **认证**: JWT + HTTP-only Cookie(refresh Token)
 - **存储**: 阿里云 OSS / 本地存储
 - **邮件**: Nodemailer (验证码发送)
 
 ### 前端
-- **框架**: React 18 + TypeScript
+- **框架**: React 19 + TypeScript
 - **构建工具**: Vite
 - **样式**: Tailwind CSS
 - **状态管理**: React Query + Context API
 - **路由**: React Router DOM
 - **UI组件**: Radix UI
 
-## 功能特性
+## 实现功能
 
 ### 用户端
 - 用户注册/登录 (邮箱验证码 + 密码 + 忘记密码)
@@ -46,8 +46,7 @@
 ## 快速开始
 
 ### 环境要求
-- Node.js >= 18
-- PostgreSQL >= 14
+- Node.js >= 22
 - npm 或 pnpm
 
 ### 后端配置
@@ -61,7 +60,7 @@ npm install
 2. 配置环境变量 (创建 `.env` 文件)
 ```env
 DATABASE_URL="postgresql://用户名:密码@localhost:5432/数据库名"
-PORT=4001
+PORT=4000
 CORS_ORIGIN="http://localhost:5173,http://localhost:5174"
 JWT_SECRET="your-jwt-secret"
 OSS_REGION="your-oss-region"
@@ -69,7 +68,7 @@ OSS_BUCKET="your-oss-bucket"
 OSS_ACCESS_KEY_ID="your-access-key-id"
 OSS_ACCESS_KEY_SECRET="your-access-key-secret"
 SMTP_HOST="smtp.example.com"
-SMTP_PORT=587
+SMTP_PORT=
 SMTP_USER="your-email@example.com"
 SMTP_PASS="your-email-password"
 ```
@@ -110,16 +109,6 @@ npm install
 ```bash
 npm run dev
 ```
-
-## API 路由
-
-| 路径 | 说明 |
-|------|------|
-| `/api/auth` | 认证相关 (注册、登录、验证码) |
-| `/api/photos` | 照片管理 |
-| `/api/members` | 用户信息 |
-| `/api/notice` | 公告系统 |
-| `/api/admin/*` | 管理员专用接口 |
 
 ## 数据库模型
 
