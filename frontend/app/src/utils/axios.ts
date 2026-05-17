@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 
 // 自定义事件：token 刷新成功
 export const TOKEN_REFRESHED_EVENT = 'tokenRefreshed';
+export const REFRESH_API_URL = '/api/auth/refresh';
 
 // 模块级变量存储 authToken（不在 localStorage，防止 XSS 窃取）
 let memoryAuthToken: string | null = null;
@@ -26,6 +27,7 @@ export const setMemoryToken = (token: string | null) => {
   }
 };
 
+// 获取 authToken
 export const getMemoryToken = () => memoryAuthToken;
 
 const api = axios.create({
@@ -34,11 +36,9 @@ const api = axios.create({
   baseURL: '/api',
 });
 
-// --- 1. 请求拦截器：从内存变量获取 Token ---
+// --- 1. 请求拦截器：为请求头附上 Token ---
 api.interceptors.request.use(
   (config) => {
-    // 内存变量已在 setMemoryToken 中同步到 defaults.headers
-    // 这里只需确保没有遗漏
     if (memoryAuthToken && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${memoryAuthToken}`;
     }
@@ -47,8 +47,8 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// --- 2. 响应拦截器：处理 401 和自动刷新 ---
-// 处理刷新队列：成功时重试请求，失败时拒绝
+// --- 2. 响应拦截器 ---
+// 处理失败刷新队列：成功时带上token重试全部请求，失败时全部拒绝
 const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) prom.reject(error);
@@ -57,6 +57,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
+// 拦截响应错误，处理 401 错误并尝试刷新 Token
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -74,10 +75,11 @@ api.interceptors.response.use(
     }
 
     // 如果报错的请求本身就是刷新接口
-    if (response.status === 401 && originalRequest.url.includes('/auth/refresh')) {
-      // Cookie 彻底没了或过期了
-      // 必须直接报错，不要再尝试重试
+    // 说明Cookie 彻底没了或过期了
+    // 尝试一次之后警告，然后跳转登录
+    if (response.status === 401 && originalRequest.url === REFRESH_API_URL) {
       console.warn('Refresh token is invalid, redirecting to login');
+      toast.error('登录已过期，请重新登录');
       return Promise.reject(error);
     }
 
@@ -99,7 +101,7 @@ api.interceptors.response.use(
 
       return new Promise((resolve, reject) => {
         axios
-          .post('/api/auth/refresh', {}, { withCredentials: true })
+          .post(REFRESH_API_URL, {}, { withCredentials: true })
           .then(({ data }) => {
             console.log('Token refreshed successfully');
             const { authToken } = data.data;

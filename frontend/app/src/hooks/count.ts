@@ -1,10 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 export const useCountdown = (initialSeconds = 60) => {
   const [timeLeft, setTimeLeft] = useState(0);
 
-  const start = useCallback(() => {
-    setTimeLeft(initialSeconds);
-  }, [initialSeconds]);
+  const start = () => setTimeLeft(initialSeconds);
 
   useEffect(() => {
     if (timeLeft <= 0) return;

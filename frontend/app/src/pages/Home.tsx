@@ -41,7 +41,6 @@ export default function Home() {
                 src={img1}
                 alt="home-1"
                 className="object-contain object-left h-[400px] aspect-square"
-                decoding="sync"
               />
             </div>
             <div className="flex flex-col gap-4 justify-center w-[40%]">
@@ -71,12 +70,7 @@ export default function Home() {
               <div className="mt-2 text-sm text-muted-foreground text-end px-2">
                 <h2 className="font-bold">巴黎</h2>
               </div>
-              <img
-                src={img2}
-                alt="home-2"
-                className="object-cover h-[400px] aspect-square"
-                decoding="sync"
-              />
+              <img src={img2} alt="home-2" className="object-cover h-[400px] aspect-square" />
             </div>
           </div>
         </div>

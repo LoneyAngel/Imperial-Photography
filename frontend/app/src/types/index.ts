@@ -39,11 +39,3 @@ export interface Member {
   createdAt: Date;
   updatedAt: Date;
 }
-
-export type ViewMode =
-  | 'home'
-  | 'gallery'
-  | 'upload'
-  | 'register'
-  | 'member-auth'
-  | 'member-profile';
