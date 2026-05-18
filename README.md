@@ -25,7 +25,7 @@
 - **样式**: Tailwind CSS
 - **状态管理**: React Query + Context API
 - **路由**: React Router DOM
-- **UI组件**: Radix UI
+- **UI组件**: Shadcn
 
 ## 实现功能
 
