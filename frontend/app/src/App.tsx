@@ -1,28 +1,30 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import Navbar from './components/navbar';
-import Home from './pages/Home';
-import Gallery from './pages/Gallery';
-import Upload from './pages/Upload';
-import MemberAuth from './pages/MemberAuth';
-import MemberRegister from './pages/MemberRegister';
-import MemberProfile from './pages/MemberProfile';
-import SetPassword from './pages/SetPassword';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { UserProvider } from './context/user';
 import { TokenProvider } from './context/token';
 import { FunctionProvider } from './context/function';
-import Notice from './pages/Notice';
-import MemberPublicProfile from './pages/MemberPublicProfile';
 import ErrorBoundary from './components/error-boundary';
 import { Toaster } from 'react-hot-toast';
 import LittleNavbar from './components/little-navbar';
-import AchievementPage from './pages/Honors';
 import { ThemeProvider } from './context/theme';
-import Setting from './pages/Setting';
 import { ArrowRight } from 'lucide-react';
 import { queryClient } from './utils/client';
+
+const Home = lazy(() => import('./pages/Home'));
+const Gallery = lazy(() => import('./pages/Gallery'));
+const Upload = lazy(() => import('./pages/Upload'));
+const MemberAuth = lazy(() => import('./pages/MemberAuth'));
+const MemberRegister = lazy(() => import('./pages/MemberRegister'));
+const MemberProfile = lazy(() => import('./pages/MemberProfile'));
+const SetPassword = lazy(() => import('./pages/SetPassword'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Notice = lazy(() => import('./pages/Notice'));
+const MemberPublicProfile = lazy(() => import('./pages/MemberPublicProfile'));
+const AchievementPage = lazy(() => import('./pages/Honors'));
+const Setting = lazy(() => import('./pages/Setting'));
 // import { useEffect } from 'react';
 // import { useTheme } from 'next-themes';
 
@@ -47,29 +49,32 @@ function AppContent() {
         <LittleNavbar />
         <Navbar />
         <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/register" element={<MemberRegister />} />
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/member-auth" element={<MemberAuth />} />
-            <Route path="/member-profile" element={<MemberProfile />} />
-            <Route path="/set-password" element={<SetPassword />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/notice" element={<Notice />} />
-            <Route path="/member/:id" element={<MemberPublicProfile />} />
-            <Route path="/card" element={<AchievementPage />} />
-            <Route path="/setting" element={<Setting />} />
-            <Route path="*" element={<Navigate to="/gallery" replace />} />
-          </Routes>
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/register" element={<MemberRegister />} />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/member-auth" element={<MemberAuth />} />
+              <Route path="/member-profile" element={<MemberProfile />} />
+              <Route path="/set-password" element={<SetPassword />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/notice" element={<Notice />} />
+              <Route path="/member/:id" element={<MemberPublicProfile />} />
+              <Route path="/card" element={<AchievementPage />} />
+              <Route path="/setting" element={<Setting />} />
+              <Route path="*" element={<Navigate to="/gallery" replace />} />
+            </Routes>
+          </Suspense>
         </main>
         <footer className="border-t py-6 mt-auto">
           <div className="container flex flex-col justify-center items-center gap-4 text-center text-sm text-muted-foreground">
             <a
               href="https://github.com/LoneyAngel"
-              className="text-green-600 hover:scale-105 duration-200 flex items-center"
+              className="text-green-600 hover:scale-105 duration-200 flex items-center dark:text-gray-200"
               target="_blank"
+              rel="noopener noreferrer"
             >
               <span className="font-mono">前往 github 主页 </span>
               <ArrowRight className="h-4 w-4" />
