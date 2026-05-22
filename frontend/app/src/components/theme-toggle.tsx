@@ -29,7 +29,7 @@ export function ThemeToggle() {
       size="icon"
       className="p-0 bg-gray-100 dark:bg-slate-800 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700"
       onClick={handleClick}
-      aria-label={!theme ? "切换主题" : theme === 'dark' ? "切换至亮色模式" : "切换至暗黑模式"}
+      aria-label={!theme ? '切换主题' : theme === 'dark' ? '切换至亮色模式' : '切换至暗黑模式'}
     >
       {getIcon()}
     </Button>

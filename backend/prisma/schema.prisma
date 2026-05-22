@@ -40,8 +40,12 @@ model Photo {
   title         String
   description   String?
   url           String
+  lowQualityUrl String?
+  width         Int?
+  height        Int?
   status        PhotoStatus @default(pending)
   createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now()) @updatedAt
   ownerMemberId String
   member        Member      @relation(fields: [ownerMemberId], references: [id])
 

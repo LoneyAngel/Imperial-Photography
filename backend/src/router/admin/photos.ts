@@ -23,9 +23,13 @@ router.get('/', adminOnly, asyncHandler(async (req, res) => {
     id: p.id,
     title: p.title,
     url: p.url,
+    lowQualityUrl: p.lowQualityUrl ?? undefined,
+    width: p.width ?? undefined,
+    height: p.height ?? undefined,
     status: p.status,
     description: p.description ?? undefined,
     createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
     ownerMemberId: p.ownerMemberId,
   })));
 }));

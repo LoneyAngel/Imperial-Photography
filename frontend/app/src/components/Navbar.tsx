@@ -12,6 +12,7 @@ import {
 import { useUser } from '@/context/user';
 import { useToken } from '@/context/token';
 import { ThemeToggle } from './theme-toggle';
+import { useScrollDirection } from '@/hooks/hidden';
 
 export default function Navbar() {
   const location = useLocation();
@@ -19,13 +20,14 @@ export default function Navbar() {
   const isActive = (path: string) => location.pathname === path;
   const { user } = useUser();
   const { logout } = useToken();
+  const useScroll = useScrollDirection(10);
 
   return (
-    <nav className="px-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30">
-      <div className="flex justify-between items-center h-16">
+    <nav className={`navbar-custom ${useScroll === 'down' ? '-translate-y-full' : ''}`}>
+      <div className="flex justify-between items-center h-12">
         <Link
           to="/"
-          className="text-lg font-semibold text-foreground inline-flex items-center px-3 py-1.5 transition-all duration-300 rounded-md hover:shadow-lg dark:hover:bg-gray-800"
+          className="text-lg font-semibold text-foreground inline-flex items-center px-3 py-1.5 transition-all duration-300 rounded-md dark:hover:bg-gray-800"
         >
           <svg
             className="h-4 w-4 mr-2 shrink-0"
@@ -62,7 +64,7 @@ export default function Navbar() {
               variant="ghost"
               size="sm"
               className={`
-                nav-link nav-link-underline hover:bg-inherit
+                nav-link-underline hover:bg-inherit font-thin
                 ${isActive('/gallery') ? 'nav-link-underline-selected' : ''}
               `}
             >
@@ -76,7 +78,7 @@ export default function Navbar() {
                 variant="ghost"
                 size="sm"
                 className={`
-                  nav-link-underline hover:bg-inherit 
+                  nav-link-underline hover:bg-inherit font-thin
                   ${isActive('/upload') ? 'nav-link-underline-selected' : ''}
                 `}
               >

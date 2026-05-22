@@ -7,7 +7,6 @@ import { TokenProvider } from './context/token';
 import { FunctionProvider } from './context/function';
 import ErrorBoundary from './components/error-boundary';
 import { Toaster } from 'react-hot-toast';
-import LittleNavbar from './components/little-navbar';
 import { ThemeProvider } from './context/theme';
 import { ArrowRight } from 'lucide-react';
 import { queryClient } from './utils/client';
@@ -46,10 +45,13 @@ function AppContent() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        <LittleNavbar />
         <Navbar />
-        <main className="flex-1">
-          <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+        <main className="flex-1 mt-14">
+          <Suspense
+            fallback={
+              <div className="min-h-screen flex items-center justify-center">Loading...</div>
+            }
+          >
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/gallery" element={<Gallery />} />

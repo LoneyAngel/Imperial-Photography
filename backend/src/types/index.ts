@@ -14,8 +14,12 @@ export interface Photo {
   title: string;
   description?: string;
   url: string;
+  lowQualityUrl?: string;
+  width?: number;
+  height?: number;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Date;
+  updatedAt: Date;
   ownerMemberId: string;
 }
 

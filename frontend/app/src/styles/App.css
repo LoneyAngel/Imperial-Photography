@@ -37,3 +37,28 @@
 .nav-link-underline-selected::after {
   transform: scaleX(1); /* 选中时宽度变为 100% */
 }
+
+.navbar-custom {
+  padding-left: 1rem;  /* 16px */
+  padding-right: 1rem; /* 16px */
+  /* border-bottom: 1px solid rgb(var(--border)); */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+
+  transition: transform 300ms ease-in-out;
+  will-change: transform;
+  background-color: rgb(var(--background) / 0.95);
+}
+
+/* supports-[backdrop-filter]:bg-background/60 backdrop-blur */
+/* 特性查询：如果浏览器支持 backdrop-filter，则应用模糊和更透明的背景 */
+@supports (backdrop-filter: blur(0px)) or (-webkit-backdrop-filter: blur(0px)) {
+  .navbar-custom {
+    background-color: rgb(var(--background) / 0.6);
+    backdrop-filter: blur(8px); /* Tailwind 默认的 backdrop-blur 对应 8px */
+    -webkit-backdrop-filter: blur(8px); /* 兼容 Safari */
+  }
+}

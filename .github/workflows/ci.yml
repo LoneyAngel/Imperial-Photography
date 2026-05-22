@@ -18,9 +18,9 @@ jobs:
         with:
           node-version: 24
           # npm 模式下，直接指定 cache 为 npm
-          cache: 'npm'
+          cache: 'pnpm'
           # 告诉 GitHub 去哪里找 package-lock.json
-          cache-dependency-path: 'frontend/app/package-lock.json'
+          cache-dependency-path: 'frontend/app/pnpm-lock.yaml'
 
       - name: Install dependencies
         # npm ci 相当于 pnpm install --frozen-lockfile

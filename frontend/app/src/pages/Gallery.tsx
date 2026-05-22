@@ -1,14 +1,11 @@
 import { Suspense, useDeferredValue, useEffect, useState } from 'react';
 import { Photo } from '@/types';
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { useFunction } from '@/context/function';
 import { X } from 'lucide-react';
-import PhotoGrid from '@/components/photocard';
-import Pagination from '@/components/pagination';
 import { useNavigate } from 'react-router-dom';
 import PhotoGridSkeleton from '@/components/skeletons/PhotoGridSkeleton';
 import ErrorBoundary from '@/components/error-boundary';
 import Search from '@/components/search';
+import InfinitePhotoGrid from '@/components/infinitePhotoGrid';
 
 export default function Gallery() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
@@ -16,21 +13,12 @@ export default function Gallery() {
   const [searchQuery, setSearchQuery] = useState('');
   const deferredQuery = useDeferredValue(searchQuery);
   const isStale = searchQuery !== deferredQuery;
-  const [page, setPage] = useState(1);
-  const { fetchPhotos } = useFunction();
   const navigate = useNavigate();
-  const { data } = useQuery({
-    queryKey: ['photos', searchQuery, page],
-    queryFn: async () => fetchPhotos(searchQuery, page),
-  });
-  const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / (data?.pageSize ?? 30));
 
-  // 搜索防抖，重置到第1页
+  // 搜索防抖
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(searchInput);
-      setPage(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
@@ -47,7 +35,6 @@ export default function Gallery() {
   const clearSearch = () => {
     setSearchInput('');
     setSearchQuery('');
-    setPage(1);
   };
 
   return (
@@ -58,21 +45,16 @@ export default function Gallery() {
           searchInput={searchInput}
           setSearchInput={setSearchInput}
           searchQuery={searchQuery}
-          total={total}
+          total={0} // 无限加载模式暂时不需要总数
           clearSearch={clearSearch}
         />
         <div
           className={`transition-opacity duration-300 ${isStale ? 'opacity-50' : 'opacity-100'}`}
         >
           <Suspense fallback={<PhotoGridSkeleton />}>
-            <PhotoListContainer
-              searchQuery={deferredQuery}
-              page={page}
-              setSelectedPhoto={setSelectedPhoto}
-            />
+            <InfinitePhotoGrid searchQuery={deferredQuery} setSelectedPhoto={setSelectedPhoto} />
           </Suspense>
         </div>
-        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         {/* 显示选中照片 */}
         {selectedPhoto && (
           <div
@@ -165,26 +147,4 @@ export default function Gallery() {
       </div>
     </ErrorBoundary>
   );
-}
-
-interface PhotoListContainerProps {
-  searchQuery: string;
-  page: number;
-  setSelectedPhoto: (photo: Photo | null) => void;
-}
-
-function PhotoListContainer({ searchQuery, page, setSelectedPhoto }: PhotoListContainerProps) {
-  const { fetchPhotos } = useFunction();
-  const { data } = useSuspenseQuery({
-    queryKey: ['photos', searchQuery, page],
-    queryFn: async () => fetchPhotos(searchQuery, page),
-  });
-
-  const photos = data?.list ?? [];
-
-  if (photos.length === 0) {
-    return <div className="text-center py-16 text-muted-foreground">未找到匹配作品</div>;
-  }
-
-  return <PhotoGrid photos={photos} setSelectedPhoto={setSelectedPhoto} />;
 }

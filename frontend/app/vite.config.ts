@@ -11,7 +11,7 @@ export default defineConfig(({ command }) => ({
     // 1. 体积分析工具（打包后生成 report.html）
     visualizer({ open: true, filename: 'bundle-report.html' }),
     // 2. 开启 Gzip 压缩，生成 .gz 文件
-    viteCompression({ threshold: 10240, algorithm: 'gzip', ext: '.gz' })
+    viteCompression({ threshold: 10240, algorithm: 'gzip', ext: '.gz' }),
   ],
   resolve: {
     alias: {
@@ -31,7 +31,7 @@ export default defineConfig(({ command }) => ({
     sourcemap: false,
     // 关闭打包后文件大小计算报告，加快打包速度
     reportCompressedSize: false,
-    
+
     rollupOptions: {
       output: {
         // 优化分包策略
@@ -48,14 +48,16 @@ export default defineConfig(({ command }) => ({
         // 输出目录结构配置
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
-        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
-      }
-    }
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+      },
+    },
   },
   // 生产环境打包时，把 console.log和 console.info 替换为空函数
-  define: command === 'build' ? {
-    'console.log': '(() => {})',
-    'console.info': '(() => {})',
-  } : {},
-})
-);
+  define:
+    command === 'build'
+      ? {
+          'console.log': '(() => {})',
+          'console.info': '(() => {})',
+        }
+      : {},
+}));
