@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import '@/styles/lazy-iamge.css'; // 引入对应的样式
+import '@/styles/lazy-image.css'; // 引入对应的样式
 
 interface LazyImageProps {
   src: string; // 高清原图地址
   placeholder: string; // 低清缩略图地址（可以是极小的图片 URL 或 Base64）
   alt?: string;
   aspectRatio?: number; // 宽高比
+  title: string;
+  ownerName: string | undefined;
 }
 
 const LazyImage: React.FC<LazyImageProps> = ({
@@ -13,6 +15,8 @@ const LazyImage: React.FC<LazyImageProps> = ({
   placeholder,
   alt = '',
   aspectRatio = 16 / 9,
+  title = '',
+  ownerName = '',
 }) => {
   const [isLoaded, setIsLoaded] = useState(false); // 高清图是否加载完成
   const [shouldLoad, setShouldLoad] = useState(false); // 是否进入可视区，开始加载
@@ -47,23 +51,32 @@ const LazyImage: React.FC<LazyImageProps> = ({
       className="lazy-image-container"
       ref={containerRef}
       style={{ aspectRatio: `${aspectRatio}` }} // 声明式防抖，撑开高度
+      tabIndex={0}
     >
-      {/* 当高清图未加载完成，且还不需要隐藏时显示，展示低清图 */}
-      <img
-        src={placeholder}
-        alt={alt}
-        className={`img-thumb ${isLoaded ? 'img-thumb-hidden' : ''}`}
-      />
-
-      {/* 当进入可视区后，才真正往 DOM 里写入 src 开始下载高清图片 */}
-      {shouldLoad && (
+      <div>
+        {/* 当高清图未加载完成，且还不需要隐藏时显示，展示低清图 */}
         <img
-          src={src}
+          src={placeholder}
           alt={alt}
-          className={`img-hd ${isLoaded ? 'is-loaded' : ''}`}
-          onLoad={() => setIsLoaded(true)} // 监听加载完成
+          className={`lazy-image img-thumb ${isLoaded ? 'img-thumb-hidden' : ''}`}
         />
-      )}
+
+        {/* 当进入可视区后，才真正往 DOM 里写入 src 开始下载高清图片 */}
+        {shouldLoad && (
+          <img
+            src={src}
+            alt={alt}
+            className={`lazy-image img-hd ${isLoaded ? 'is-loaded' : ''}`}
+            onLoad={() => setIsLoaded(true)} // 监听加载完成
+          />
+        )}
+      </div>
+      <div className="lazy-image-modal">
+        <footer className="flex items-center w-full flex-col">
+          <div className='text-sm font-sans'>{title}</div>
+          <div className='text-sm font-mono'>{ownerName}</div>
+        </footer>
+      </div>
     </div>
   );
 };

@@ -27,7 +27,7 @@ export default function Search({
           placeholder={placeholder}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="pl-10 pr-10"
+          className="pl-10 pr-10 rounded-2xl bg-gray-100"
         />
         {searchInput && (
           <button

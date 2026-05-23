@@ -114,7 +114,6 @@
 //     </div>
 //   );
 // }
-import { useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Photo } from '@/types';
 import { useFunction } from '@/context/function';
@@ -145,7 +144,7 @@ export default function InfinitePhotoGrid({
   });
 
   // 1. 扁平化数据
-  const photos = useMemo(() => data?.pages.flatMap((page) => page.list) ?? [], [data]);
+  const photos = data?.pages.flatMap((page) => page.list) ?? [];
 
   // 2. 使用 masonic 的无限加载连接器（它代替了你原本的 IntersectionObserver）
   const maybeLoadMore = useInfiniteLoader(
@@ -169,14 +168,16 @@ export default function InfinitePhotoGrid({
     return (
       <div
         className="photo-item"
-        style={{ cursor: 'pointer', marginBottom: '16px' }} // 间距改由样式控制
         onClick={() => setSelectedPhoto(photo)}
+        key={photo.id}
       >
         <LazyImage
           src={photo.url}
           placeholder={placeholder}
           alt={photo.title}
           aspectRatio={aspectRatio}
+          ownerName={photo?.ownerName}
+          title={photo.title}
         />
       </div>
     );
@@ -202,7 +203,7 @@ export default function InfinitePhotoGrid({
       <Masonry
         items={photos}
         columnWidth={300} // 每一列的最小宽度，它会自动根据屏幕宽度计算列数（响应式）
-        columnGutter={16} // 列与列之间的间距
+        columnGutter={24} // 列与列，行与行之间的间距
         render={PhotoCard} // 渲染子项
         onRender={maybeLoadMore} // 绑定滚动监听
       />

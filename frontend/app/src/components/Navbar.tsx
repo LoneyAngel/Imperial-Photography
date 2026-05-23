@@ -24,13 +24,13 @@ export default function Navbar() {
 
   return (
     <nav className={`navbar-custom ${useScroll === 'down' ? '-translate-y-full' : ''}`}>
-      <div className="flex justify-between items-center h-12">
+      <div className="flex justify-between items-center h-14">
         <Link
           to="/"
-          className="text-lg font-semibold text-foreground inline-flex items-center px-3 py-1.5 transition-all duration-300 rounded-md dark:hover:bg-gray-800"
+          className="text-foreground inline-flex items-center gap-4 px-3 py-1.5 transition-all duration-300 rounded-md dark:hover:bg-gray-800"
         >
           <svg
-            className="h-4 w-4 mr-2 shrink-0"
+            className="h-7 w-7 shrink-0"
             viewBox="0 0 1024 1024"
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"
@@ -55,7 +55,7 @@ export default function Navbar() {
               p-id="11636"
             ></path>
           </svg>
-          Imperial
+          <span className="web-title">Imperial</span>
         </Link>
         <div className="flex items-center gap-3">
           <ThemeToggle />

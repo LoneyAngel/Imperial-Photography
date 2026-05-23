@@ -103,3 +103,10 @@ input::-webkit-credentials-auto-fill-button {
   display: none !important;
   pointer-events: none;
 }
+
+
+@font-face {
+  font-family: 'Monoton';
+  src: url("../assets/fonts/Monoton/Monoton-Regular.ttf") format('woff2');
+  font-display: swap;
+}

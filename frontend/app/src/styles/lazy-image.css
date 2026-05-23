@@ -5,7 +5,34 @@
   width: 100%;
 }
 
-.lazy-image-container img {
+.lazy-image-modal{
+  position:absolute;
+  top: 0;
+  left:0;
+  background: rgba(0, 0, 0, 0.2);
+  content: "";
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  transition: all 0.3s ease;
+
+  visibility: hidden;
+  opacity: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  color: aliceblue;
+}
+
+/* 💡 核心魔法：当 container 被鼠标悬浮，或者容器内部（包括子元素）获得焦点时 */
+.lazy-image-container:hover .lazy-image-modal,
+.lazy-image-container:focus-within .lazy-image-modal {
+  opacity: 1;
+  visibility: visible;
+}
+
+
+.lazy-image {
   position: absolute;
   top: 0;
   left: 0;
