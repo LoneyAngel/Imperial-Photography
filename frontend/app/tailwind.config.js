@@ -51,6 +51,9 @@ export default {
           foreground: "rgb(var(--card-foreground) / <alpha-value>)",
         },
       },
+      fontFamily:{
+        monoton: ['Monoton','sans-serif'],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

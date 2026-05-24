@@ -1,13 +1,14 @@
+import { Eye, EyeOff } from 'lucide-react';
 import { useState, useTransition, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFunction } from '@/context/function';
-import toast from 'react-hot-toast';
-import { Eye, EyeOff } from 'lucide-react';
 import { useCountdown } from '@/hooks/count';
 
 export default function MemberAuth() {

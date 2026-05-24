@@ -1,14 +1,15 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
-import Navbar from './components/navbar';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { UserProvider } from './context/user';
-import { TokenProvider } from './context/token';
-import { FunctionProvider } from './context/function';
-import ErrorBoundary from './components/error-boundary';
-import { Toaster } from 'react-hot-toast';
-import { ThemeProvider } from './context/theme';
 import { ArrowRight } from 'lucide-react';
+import { lazy, Suspense } from 'react';
+import { Toaster } from 'react-hot-toast';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import ErrorBoundary from './components/error-boundary';
+import Navbar from './components/navbar';
+import { FunctionProvider } from './context/function';
+import { ThemeProvider } from './context/theme';
+import { TokenProvider } from './context/token';
+import { UserProvider } from './context/user';
 import { queryClient } from './utils/client';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -20,10 +21,10 @@ const MemberProfile = lazy(() => import('./pages/MemberProfile'));
 const SetPassword = lazy(() => import('./pages/SetPassword'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
-const Notice = lazy(() => import('./pages/Notice'));
+const Notification = lazy(() => import('./pages/Notification'));
 const MemberPublicProfile = lazy(() => import('./pages/MemberPublicProfile'));
 const AchievementPage = lazy(() => import('./pages/Honors'));
-const Setting = lazy(() => import('./pages/Setting'));
+const Setting = lazy(() => import('./pages/Settings'));
 // import { useEffect } from 'react';
 // import { useTheme } from 'next-themes';
 
@@ -62,7 +63,7 @@ function AppContent() {
               <Route path="/set-password" element={<SetPassword />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/notice" element={<Notice />} />
+              <Route path="/notification" element={<Notification />} />
               <Route path="/member/:id" element={<MemberPublicProfile />} />
               <Route path="/card" element={<AchievementPage />} />
               <Route path="/setting" element={<Setting />} />

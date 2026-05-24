@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAdminFunction } from '@/context/function';
-import { Photo } from '@/types';
+import type { Photo } from '@/types';
 import toast from 'react-hot-toast';
 
 export default function PhotoManage() {

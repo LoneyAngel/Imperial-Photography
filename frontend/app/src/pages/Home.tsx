@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@/context/user';
+
 import img1 from '@/assets/image/1.jpg';
 import img2 from '@/assets/image/2.jpg';
+import { useUser } from '@/context/user';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -12,13 +13,13 @@ export default function Home() {
       {/* bg-gradient-to-b from-slate-50 to-background 渐变背景 */}
       <div className="container flex flex-col items-center py-16">
         <div className="w-full max-w-4xl mx-auto text-center px-4 mt-6">
-          <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-tight">
+          <h1 className="text-4xl md:text-6xl font-monoton tracking-tight leading-tight">
             Imperial
           </h1>
-          <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed">
+          <p className="mt-4 text-base md:text-lg font-serif text-muted-foreground leading-relaxed">
             一个面向摄影创作者的国际摄影组织
           </p>
-          <p className="mt-3 text-base md:text-lg text-muted-foreground leading-relaxed">
+          <p className="mt-3 text-base md:text-lg font-serif text-muted-foreground leading-relaxed">
             换一个角度，记录这些故事
           </p>
           <div className="mt-8 flex items-center gap-3 justify-center">

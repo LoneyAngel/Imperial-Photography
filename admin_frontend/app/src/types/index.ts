@@ -18,6 +18,7 @@ export interface User {
   email: string;
   name: string;
   bio?: string;
+  createdAt: string;
 }
 
 export interface AuthResponse {

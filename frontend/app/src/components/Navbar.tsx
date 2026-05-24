@@ -1,5 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
 import { Upload, LayoutGrid } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+
+import { ThemeToggle } from './theme-toggle';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -9,9 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { useUser } from '@/context/user';
+
 import { useToken } from '@/context/token';
-import { ThemeToggle } from './theme-toggle';
+import { useUser } from '@/context/user';
 import { useScrollDirection } from '@/hooks/hidden';
 
 export default function Navbar() {
@@ -59,19 +61,6 @@ export default function Navbar() {
         </Link>
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <Link to="/gallery">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`
-                nav-link-underline hover:bg-inherit font-thin
-                ${isActive('/gallery') ? 'nav-link-underline-selected' : ''}
-              `}
-            >
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              浏览作品
-            </Button>
-          </Link>
           {user && (
             <Link to="/upload">
               <Button
@@ -82,11 +71,24 @@ export default function Navbar() {
                   ${isActive('/upload') ? 'nav-link-underline-selected' : ''}
                 `}
               >
-                <Upload className="h-4 w-4 mr-2" />
-                上传作品
+                <Upload className="h-4 w-4" />
               </Button>
             </Link>
           )}
+          <Link to="/gallery">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`
+                nav-link-underline hover:bg-inherit font-thin
+                ${isActive('/gallery') ? 'nav-link-underline-selected' : ''}
+              `}
+            >
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              {/* 浏览作品 */}
+            </Button>
+          </Link>
+
           {user ? (
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
@@ -99,7 +101,7 @@ export default function Navbar() {
                   <img
                     src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${user?.id || user.email.split('@')[0] || 'user'}`}
                     alt={user.name}
-                    className="transition-transform duration-300 hover:[transform:rotate(360deg)] will-change-transform"
+                    // className="transition-transform duration-300 hover:[transform:rotate(360deg)] will-change-transform"
                     loading="lazy"
                     decoding="async"
                   />
@@ -130,7 +132,7 @@ export default function Navbar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/notice" className="flex items-center">
+                  <Link to="/notification" className="flex items-center">
                     <svg
                       className="h-4 w-4 mr-2 shrink-0 transition-transform duration-300 hover:[transform:rotate(360deg)]"
                       viewBox="0 0 1024 1024"

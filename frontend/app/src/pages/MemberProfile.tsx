@@ -1,17 +1,18 @@
-import { Photo, User } from '@/types';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { X, Share2 } from 'lucide-react';
+import { useDeferredValue, useState, useEffect, Suspense } from 'react';
+import { Link } from 'react-router-dom';
+
+import type { Photo, User } from '@/types';
+
+import '@/styles/PhotoGrid.css';
+import Pagination from '@/components/pagination';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent } from '@/components/ui/card';
-import { X, Share2 } from 'lucide-react';
-import { useState, useEffect, Suspense } from 'react';
-import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { useUser } from '@/context/user';
 import { useFunction } from '@/context/function';
-import Pagination from '@/components/pagination';
-import { useDeferredValue } from 'react';
-import '@/styles/PhotoGrid.css';
-import { Link } from 'react-router-dom';
+import { useUser } from '@/context/user';
 import { copyToClipboard, buildUrl } from '@/utils/utils';
 
 export default function MemberProfile() {

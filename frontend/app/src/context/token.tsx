@@ -1,7 +1,8 @@
-import { queryClient } from '@/utils/client';
 import { createContext, ReactNode, use, useState, useEffect } from 'react';
-import api, { TOKEN_REFRESHED_EVENT, setMemoryToken } from '@/utils/axios';
 import toast from 'react-hot-toast';
+
+import api, { TOKEN_REFRESHED_EVENT, setMemoryToken } from '@/utils/axios';
+import { queryClient } from '@/utils/client';
 
 interface TokenContextType {
   auth_token: string | null;

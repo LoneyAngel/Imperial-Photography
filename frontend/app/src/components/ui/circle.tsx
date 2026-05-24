@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Bell, Clock, User } from 'lucide-react';
-import { Notice } from '@/types';
+
+import type { Notice } from '@/types';
 
 interface CircleProps {
   notice: Notice;

@@ -1,4 +1,5 @@
 import { Search as SearchIcon, X } from 'lucide-react';
+
 import { Input } from '@/components/ui/input';
 
 interface SearchProps {
@@ -13,8 +14,8 @@ interface SearchProps {
 export default function Search({
   searchInput,
   setSearchInput,
-  searchQuery,
-  total,
+  // searchQuery,
+  // total,
   clearSearch,
   placeholder = '搜索作品名或作者...',
 }: SearchProps) {
@@ -39,11 +40,11 @@ export default function Search({
           </button>
         )}
       </div>
-      {searchQuery && (
+      {/* {searchQuery && (
         <p className="mt-2 text-sm text-muted-foreground">
           搜索 "{searchQuery}" 的结果：{total} 个作品
         </p>
-      )}
+      )} */}
     </div>
   );
 }

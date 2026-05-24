@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Photo } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { X } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
+
+import type { Photo } from '@/types';
+
 import Pagination from '@/components/pagination';
+import { Card, CardContent } from '@/components/ui/card';
 import api from '@/utils/axios';
 
 interface MemberPhotosResult {

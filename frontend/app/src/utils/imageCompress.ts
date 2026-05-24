@@ -64,13 +64,16 @@ export async function compressImage(file: File, options: CompressOptions): Promi
         reject(new Error('无法创建 Canvas 上下文'));
         return;
       }
+      // 防止透明部分默认黑色
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
 
       // 绘制图片
       ctx.drawImage(img, 0, 0, width, height);
 
       // 逐步降低质量直到满足大小要求
       let currentQuality = quality;
-
+      // 可优化：使用二分法查找
       const tryCompress = () => {
         canvas.toBlob(
           (blob) => {
@@ -106,10 +109,12 @@ export async function compressImage(file: File, options: CompressOptions): Promi
       };
 
       tryCompress();
+      URL.revokeObjectURL(img.src);
     };
 
     img.onerror = () => {
       reject(new Error('图片加载失败'));
+      URL.revokeObjectURL(img.src);
     };
 
     img.src = URL.createObjectURL(file);
@@ -117,14 +122,14 @@ export async function compressImage(file: File, options: CompressOptions): Promi
 }
 
 /**
- * 检查文件大小是否超过限制
+ * 返回文件大小是否超过限制
  */
 export function isFileOversized(file: File, maxSizeMB: number): boolean {
   return file.size > maxSizeMB * 1024 * 1024;
 }
 
 /**
- * 格式化文件大小显示
+ * 文件大小转换
  */
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return bytes + ' B';

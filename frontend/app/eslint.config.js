@@ -5,6 +5,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
+import importX from "eslint-plugin-import-x"
 
 export default tseslint.config(
   // 1. 忽略文件
@@ -36,6 +37,7 @@ export default tseslint.config(
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
       'prettier': prettierPlugin,
+      'import-x': importX,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -45,6 +47,29 @@ export default tseslint.config(
       ],
       'prettier/prettier': 'error',
       '@typescript-eslint/no-explicit-any': 'warn',
+      // 4. 导入项排序核心规则
+      'import-x/order': [
+        'error',
+        {
+          // 严格定义分组顺序
+          groups: [
+            'builtin',   // 1. Node 内置模块
+            'external',  // 2. 第三方库 (react, lodash 等)
+            'internal',  // 3. 项目别名路径 (如 @/components)
+            ['parent', 'sibling'], // 4. 相对路径 (../ 和 ./)
+            'index',     // 5. 当前目录的 index
+            'object',    // 6. 纯对象导入
+            'type',      // 7. TS 类型导入 (import type)
+          ],
+          // 每个分组之间必须换行，保持视觉清晰
+          'newlines-between': 'always',
+          // 分组内部按字母升序排列
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
     },
   },
 

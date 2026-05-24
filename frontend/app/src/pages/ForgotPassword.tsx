@@ -1,11 +1,12 @@
 import { useState, useTransition } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useFunction } from '@/context/function';
-import toast from 'react-hot-toast';
 import { useCountdown } from '@/hooks/count';
 
 export default function ForgotPassword() {

@@ -1,44 +1,52 @@
-import { useState } from 'react';
-import { Upload as UploadIcon, ArrowLeft, CheckCircle2, Loader2, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useUser } from '@/context/user';
-import { useFunction } from '@/context/function';
-import toast from 'react-hot-toast';
-import { compressImage, isFileOversized, formatFileSize } from '@/utils/imageCompress';
-import { useNavigate } from 'react-router-dom';
-import { IMAGE_MAX_SIZE_MB } from '@/config/file';
-import ErrorBoundary from '@/components/error-boundary';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Upload as UploadIcon, ArrowLeft, CheckCircle2, Loader2, X } from 'lucide-react';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
+import ErrorBoundary from '@/components/error-boundary';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { IMAGE_MAX_SIZE_MB } from '@/config/file';
+import { useFunction } from '@/context/function';
+import { useUser } from '@/context/user';
+import { compressImage, isFileOversized, formatFileSize } from '@/utils/imageCompress';
+
+type UploadFormData = {
+  url: string;
+  title: string;
+  description: string;
+  authorName: string;
+};
+
+// 上传图片
+// filesize>=x 压缩 -> 发送到后端 -> 后端同步数据（生成低清图片，上传数据到数据库）
 export default function Upload() {
   const { user } = useUser();
   const { uploadPhoto } = useFunction();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [uploadedPhoto, setUploadedPhoto] = useState<{
-    url: string;
-    title: string;
-    description: string;
-    authorName: string;
-  } | null>(null);
+  const [uploadedPhoto, setUploadedPhoto] = useState<UploadFormData | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
+  // 1. 【核心优化】提取统一的文件处理函数，供 Input 和 Drop 共同复用
+  const processSelectedFile = async (selectedFile: File) => {
+    // 限制只能上传图片类型
+    if (!selectedFile.type.startsWith('image/')) {
+      toast.error('请选择有效的图片文件');
+      return;
+    }
 
-    // 检查是否需要压缩
     if (isFileOversized(selectedFile, IMAGE_MAX_SIZE_MB)) {
       console.log(`图片大于 ${IMAGE_MAX_SIZE_MB}MB，正在压缩...`);
       try {
@@ -55,7 +63,7 @@ export default function Upload() {
           `压缩完成：${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)}`,
         );
       } catch {
-        console.error('压缩失败，请选择更小的图片');
+        toast.error('压缩失败，请选择更小的图片');
         setFile(null);
         setPreview(null);
       }
@@ -69,7 +77,23 @@ export default function Upload() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    await processSelectedFile(selectedFile);
+  };
+
+  // 2. 【核心新增】处理用户拖拽释放文件的逻辑
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragActive(false);
+
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (!droppedFile) return;
+    await processSelectedFile(droppedFile);
+  };
+
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!file) return;
 
@@ -86,7 +110,7 @@ export default function Upload() {
         });
         // 刷新照片列表缓存
         queryClient.invalidateQueries({ queryKey: ['photos'] });
-        queryClient.invalidateQueries({ queryKey: ['photos', 'owner'] });
+        // queryClient.invalidateQueries({ queryKey: ['photos', 'owner'] });
       } else {
         toast.error('上传失败，请重试');
       }
@@ -155,6 +179,7 @@ export default function Upload() {
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             className="bg-slate-50/50 border-slate-200 focus:bg-white transition-all h-11"
+                            required
                           />
                         </div>
 
@@ -190,7 +215,7 @@ export default function Upload() {
                               setIsDragActive(true);
                             }}
                             onDragLeave={() => setIsDragActive(false)}
-                            onDrop={() => setIsDragActive(false)}
+                            onDrop={handleDrop}
                           >
                             {!preview ? (
                               <label
@@ -229,7 +254,10 @@ export default function Upload() {
                                     type="button"
                                     // variant="destructive"
                                     size="sm"
-                                    onClick={() => setPreview(null)}
+                                    onClick={() => {
+                                      setPreview(null);
+                                      setFile(null);
+                                    }}
                                     className="gap-2"
                                   >
                                     <X className="h-4 w-4" /> 移除并重选

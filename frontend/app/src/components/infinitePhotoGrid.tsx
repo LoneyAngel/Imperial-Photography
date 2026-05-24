@@ -1,124 +1,11 @@
-// import { useCallback, useRef } from 'react';
-// import { useInfiniteQuery } from '@tanstack/react-query';
-// import { Photo } from '@/types';
-// import { useFunction } from '@/context/function';
-// import Masonry from 'react-masonry-css';
-// import '@/styles/PhotoGrid.css';
-// import LazyImage from './lazy-picture';
-
-// // 修复 React-Masonry-CSS 的默认导入问题
-// // eslint-disable-next-line @typescript-eslint/no-explicit-any
-// const MasonryComponent = (Masonry as any).default ? (Masonry as any).default : Masonry;
-
-// const breakpointColumnsObj = {
-//   default: 3,
-//   1100: 3,
-//   700: 2,
-//   500: 1,
-// };
-
-// interface InfinitePhotoGridProps {
-//   searchQuery: string;
-//   setSelectedPhoto: (photo: Photo | null) => void;
-// }
-
-// export default function InfinitePhotoGrid({
-//   searchQuery,
-//   setSelectedPhoto,
-// }: InfinitePhotoGridProps) {
-//   const { fetchPhotos } = useFunction();
-//   const observerRef = useRef<IntersectionObserver | null>(null);
-
-//   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
-//     queryKey: ['photos', searchQuery],
-//     queryFn: async ({ pageParam }) => {
-//       return fetchPhotos(searchQuery, pageParam);
-//     },
-//     getNextPageParam: (lastPage) => {
-//       const nextPage = lastPage.page + 1;
-//       return nextPage <= Math.ceil(lastPage.total / lastPage.pageSize) ? nextPage : undefined;
-//     },
-//     initialPageParam: 1,
-//   });
-
-//   const lastItemRef = useCallback(
-//     (node: HTMLDivElement | null) => {
-//       if (isFetchingNextPage) return;
-//       if (observerRef.current) observerRef.current.disconnect();
-//       observerRef.current = new IntersectionObserver((entries) => {
-//         if (entries[0].isIntersecting && hasNextPage) {
-//           fetchNextPage();
-//         }
-//       });
-//       if (node) observerRef.current.observe(node);
-//     },
-//     [isFetchingNextPage, hasNextPage, fetchNextPage],
-//   );
-
-//   // 合并所有页面的数据
-//   const photos = data?.pages.flatMap((page) => page.list) ?? [];
-
-//   if (isLoading) {
-//     return (
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
-//         {Array.from({ length: 9 }).map((_, i) => (
-//           <div key={i} className="bg-muted aspect-[4/3] rounded-lg" />
-//         ))}
-//       </div>
-//     );
-//   }
-
-//   if (photos.length === 0) {
-//     return <div className="text-center py-16 text-muted-foreground">未找到匹配作品</div>;
-//   }
-
-//   const items = photos.map((photo, index) => {
-//     const aspectRatio = photo.width && photo.height ? photo.width / photo.height : 4 / 3;
-//     const placeholder = photo.lowQualityUrl || photo.url;
-//     const isLastItem = index === photos.length - 1;
-
-//     return (
-//       <div
-//         key={photo.id}
-//         ref={isLastItem ? lastItemRef : undefined}
-//         className="photo-item"
-//         onClick={() => setSelectedPhoto(photo)}
-//       >
-//         <LazyImage
-//           src={photo.url}
-//           placeholder={placeholder}
-//           alt={photo.title}
-//           aspectRatio={aspectRatio}
-//         />
-//       </div>
-//     );
-//   });
-
-//   return (
-//     <div>
-//       <MasonryComponent
-//         breakpointCols={breakpointColumnsObj}
-//         className="my-masonry-grid"
-//         columnClassName="my-masonry-grid_column"
-//       >
-//         {items}
-//       </MasonryComponent>
-//       {isFetchingNextPage && (
-//         <div className="text-center py-8 text-xs text-muted-foreground animate-pulse">
-//           正在加载更多作品...
-//         </div>
-//       )}
-//       {!hasNextPage && photos.length > 0 && (
-//         <div className="text-center py-8 text-xs text-muted-foreground">已加载全部作品</div>
-//       )}
-//     </div>
-//   );
-// }
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Photo } from '@/types';
-import { useFunction } from '@/context/function';
 import { Masonry, useInfiniteLoader } from 'masonic'; // 引入虚拟瀑布流
+
 import LazyImage from './lazy-picture';
+
+import type { Photo } from '@/types';
+
+import { useFunction } from '@/context/function';
 
 interface InfinitePhotoGridProps {
   searchQuery: string;
@@ -166,11 +53,7 @@ export default function InfinitePhotoGrid({
     const placeholder = photo.lowQualityUrl || photo.url;
 
     return (
-      <div
-        className="photo-item"
-        onClick={() => setSelectedPhoto(photo)}
-        key={photo.id}
-      >
+      <div onClick={() => setSelectedPhoto(photo)} key={photo.id}>
         <LazyImage
           src={photo.url}
           placeholder={placeholder}

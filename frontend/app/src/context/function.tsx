@@ -1,6 +1,9 @@
 import { createContext, ReactNode, use } from 'react';
-import { Photo, User, Notice } from '@/types';
+
 import { useToken } from './token';
+
+import type { Photo, User, Notice } from '@/types';
+
 import api from '@/utils/axios';
 
 interface PhotosResult {

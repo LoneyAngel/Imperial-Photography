@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import { Bell, ChevronRight } from 'lucide-react';
-import { useFunction } from '@/context/function';
-import { Notice } from '@/types';
+import { useState } from 'react';
+
+import type { Notice } from '@/types';
+
 import Circle from '@/components/ui/circle';
+import { useFunction } from '@/context/function';
 
 export default function NoticePage() {
   const { fetchNotices } = useFunction();

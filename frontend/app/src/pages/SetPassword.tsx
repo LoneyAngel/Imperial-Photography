@@ -1,12 +1,13 @@
+import { Eye, EyeOff } from 'lucide-react';
 import { useState, useTransition } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Eye, EyeOff } from 'lucide-react';
 import { useFunction } from '@/context/function';
-import toast from 'react-hot-toast';
 
 export default function SetPassword() {
   const [searchParams] = useSearchParams();

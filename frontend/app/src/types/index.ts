@@ -21,16 +21,6 @@ export interface User {
   createdAt?: string;
 }
 
-export interface AdminUser {
-  id: string;
-  email: string;
-  name?: string;
-  password?: string;
-  bio?: string;
-  createdAt: string;
-  role?: number;
-}
-
 export interface Notice {
   id: string;
   title: string;

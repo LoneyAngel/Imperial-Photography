@@ -4,14 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAdminFunction } from '@/context/function';
-import { AdminUser } from '@/types';
+import type { User } from '@/types';
 import toast from 'react-hot-toast';
 
 export default function UserManage() {
   const { fetchAllUsers, updateUser, deleteUser } = useAdminFunction();
-  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editName, setEditName] = useState('');
   const [editBio, setEditBio] = useState('');
 
@@ -26,10 +26,10 @@ export default function UserManage() {
     setLoading(false);
   };
 
-  const handleEdit = (user: AdminUser) => {
-    setEditingUser(user);
-    setEditName(user.name || '');
-    setEditBio(user.bio || '');
+  const handleEdit = (User: User) => {
+    setEditingUser(User);
+    setEditName(User.name || '');
+    setEditBio(User.bio || '');
   };
 
   const handleSaveEdit = async () => {
@@ -82,28 +82,28 @@ export default function UserManage() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b hover:bg-gray-50">
-                    <td className="py-2 px-4 text-sm">{user.id.slice(0, 8)}...</td>
-                    <td className="py-2 px-4">{user.email}</td>
-                    <td className="py-2 px-4">{user.name || '-'}</td>
-                    <td className="py-2 px-4 text-sm">{user.bio || '-'}</td>
+                {users.map((User) => (
+                  <tr key={User.id} className="border-b hover:bg-gray-50">
+                    <td className="py-2 px-4 text-sm">{User.id.slice(0, 8)}...</td>
+                    <td className="py-2 px-4">{User.email}</td>
+                    <td className="py-2 px-4">{User.name || '-'}</td>
+                    <td className="py-2 px-4 text-sm">{User.bio || '-'}</td>
                     <td className="py-2 px-4 text-sm">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {new Date(User.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-2 px-4">
                       <Button
                         variant="outline"
                         size="sm"
                         className="mr-2"
-                        onClick={() => handleEdit(user)}
+                        onClick={() => handleEdit(User)}
                       >
                         编辑
                       </Button>
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleDelete(user.id)}
+                        onClick={() => handleDelete(User.id)}
                       >
                         删除
                       </Button>

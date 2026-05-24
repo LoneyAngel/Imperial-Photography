@@ -1,8 +1,10 @@
+import { QueryObserverResult, RefetchOptions, useQuery } from '@tanstack/react-query';
 import { createContext, ReactNode, use } from 'react';
-import { User } from '@/types';
+
 import { useFunction } from './function';
 import { useToken } from './token';
-import { QueryObserverResult, RefetchOptions, useQuery } from '@tanstack/react-query';
+
+import type { User } from '@/types';
 
 interface UserContextType {
   user: User | null | undefined;

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { toPng } from 'html-to-image';
 import { Download, Award, Calendar, CheckCircle2, QrCode, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+
+import ErrorBoundary from '@/components/error-boundary';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import ErrorBoundary from '@/components/error-boundary';
-import { toPng } from 'html-to-image';
-import { motion } from 'framer-motion';
 import { useUser } from '@/context/user';
 
 const mockLatestPhoto = {

@@ -1,5 +1,5 @@
 import { createContext, ReactNode, use, useMemo } from 'react';
-import { AdminUser, Photo } from '@/types';
+import type { User, Photo } from '@/types';
 import api from '@/lib/axios';
 
 interface AdminWithRole {
@@ -20,7 +20,7 @@ interface Notice {
 
 interface AdminFunctionContextType {
   loginAdmin: (email: string, password: string) => Promise<{ authToken: string; roleId: number } | null>;
-  fetchAllUsers: () => Promise<AdminUser[]>;
+  fetchAllUsers: () => Promise<User[]>;
   updateUser: (id: string, data: { name?: string; bio?: string }) => Promise<boolean>;
   deleteUser: (id: string) => Promise<boolean>;
   fetchAllPhotos: (status?: 'pending' | 'approved' | 'rejected') => Promise<Photo[]>;
@@ -51,7 +51,7 @@ export const AdminFunctionProvider = ({ children }: { children: ReactNode }) => 
   const fetchAllUsers = async () => {
     try {
       const res = await api.get('/api/admin/users');
-      return res.data.data as AdminUser[];
+      return res.data.data as User[];
     } catch {
       return [];
     }
