@@ -12,6 +12,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      
+      # 2. 安装 pnpm（必须在 setup-node 之前）
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.23.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -25,17 +31,17 @@ jobs:
       - name: Install dependencies
         # npm ci 相当于 pnpm install --frozen-lockfile
         # 它专门用于 CI 环境，速度更快且保证版本一致
-        run: npm ci
+        run: pnpm ci
         working-directory: frontend/app
 
       - name: Lint Check
-        run: npm run lint
+        run: pnpm run lint
         working-directory: frontend/app
 
       - name: Run Tests
-        run: npm run test
+        run: pnpm run test
         working-directory: frontend/app
 
       - name: Build Check
-        run: npm run build
+        run: pnpm run build
         working-directory: frontend/app
