@@ -2,8 +2,9 @@ import { createContext, ReactNode, use } from 'react';
 
 import { useToken } from './token';
 
-import type { Photo, User, Notice } from '@/types';
+import type { Photo, Notice } from '@/types';
 
+import { PAGE_SIZE } from '@/config/file';
 import api from '@/utils/axios';
 
 interface PhotosResult {
@@ -11,6 +12,12 @@ interface PhotosResult {
   total: number;
   page: number;
   pageSize: number;
+}
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  bio: string;
 }
 
 interface FunctionContextType {
@@ -20,7 +27,7 @@ interface FunctionContextType {
   uploadPhoto: (title: string, description: string, file: File) => Promise<boolean>;
   fetchPhotos: (search?: string, page?: number) => Promise<PhotosResult>;
   fetchOwnerPhotos: (page?: number) => Promise<PhotosResult>;
-  fetchMemberProfile: () => Promise<User | null>;
+  fetchMemberProfile: (id: string) => Promise<UserProfile | null>;
   updatePhoto: (id: string, title?: string, description?: string) => Promise<boolean>;
   deletePhoto: (id: string) => Promise<boolean>;
   fetchNotices: () => Promise<Notice[]>;
@@ -29,15 +36,16 @@ interface FunctionContextType {
   sendRegisterCode: (email: string) => Promise<{ message: string } | null>;
   set_password: (email: string, password: string) => Promise<{ message: string } | null>;
   resetPassword: (email: string, password: string) => Promise<{ message: string } | null>;
+  fetchMemberPhotos: (memberId: string, page: number) => Promise<PhotosResult>;
 }
 
 const FunctionContext = createContext<FunctionContextType | null>(null);
 
 export const FunctionProvider = ({ children }: { children: ReactNode }) => {
   const { login } = useToken();
-
+  // 获取照片列表（分页）
   const fetchPhotos = async (search?: string, page: number = 1) => {
-    const empty: PhotosResult = { list: [], total: 0, page: 1, pageSize: 20 };
+    const empty: PhotosResult = { list: [], total: 0, page: 1, pageSize: PAGE_SIZE };
     try {
       const params = new URLSearchParams();
       if (search?.trim()) params.set('search', search.trim());
@@ -48,9 +56,19 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
       return empty;
     }
   };
-
+  // 获取指定用户的照片（分页）
+  const fetchMemberPhotos = async (memberId: string, page: number) => {
+    const empty: PhotosResult = { list: [], total: 0, page: 1, pageSize: PAGE_SIZE };
+    try {
+      const res = await api.get(`/photos/member/${memberId}?page=${page}`);
+      return (res.data.data as PhotosResult) ?? empty;
+    } catch {
+      return empty;
+    }
+  };
+  // 获取本人的照片列表（分页）
   const fetchOwnerPhotos = async (page: number = 1) => {
-    const empty: PhotosResult = { list: [], total: 0, page: 1, pageSize: 30 };
+    const empty: PhotosResult = { list: [], total: 0, page: 1, pageSize: PAGE_SIZE };
     try {
       const res = await api.get(`/photos/user-photos?page=${page}`);
       return (res.data.data as PhotosResult) ?? empty;
@@ -59,9 +77,9 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const fetchMemberProfile = async () => {
+  const fetchMemberProfile = async (id: string) => {
     try {
-      const res = await api.get(`/members/detail`);
+      const res = await api.get(`/members/detail?id=${id}`);
       return res.data.data;
     } catch {
       return null;
@@ -254,6 +272,7 @@ export const FunctionProvider = ({ children }: { children: ReactNode }) => {
     sendRegisterCode,
     set_password,
     resetPassword,
+    fetchMemberPhotos,
   };
 
   return <FunctionContext value={value}>{children}</FunctionContext>;

@@ -26,7 +26,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     refetch,
   } = useQuery<User | null, Error>({
     queryKey: ['userMe', auth_token],
-    queryFn: fetchMemberProfile,
+    queryFn: () => fetchMemberProfile(''),
     staleTime: Infinity,
     enabled: !!auth_token,
   });

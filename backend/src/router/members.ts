@@ -34,8 +34,9 @@ router.put('/update', asyncHandler(async (req, res) => {
 
 // 获取会员信息
 router.get('/detail', asyncHandler(async (req, res) => {
+  const id = req.query.id as string || req.userId;
   const member = await prisma.member.findUnique({
-    where: { id: req.userId },
+    where: { id: id },
     select: { id: true, email: true, name: true, bio: true },
   });
 

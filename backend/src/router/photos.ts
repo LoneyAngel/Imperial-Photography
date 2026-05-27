@@ -7,6 +7,7 @@ import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth.js';
 import { photoQuerySchema, pageQuerySchema, PhotoSchema } from '../utils/z/photos.js';
 
 const router = Router();
+const PAGE_SIZE = 20;
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -32,8 +33,6 @@ router.get('/', optionalAuthMiddleware, asyncHandler(async (req, res) => {
       { member: { name: { contains: searchTerm, mode: 'insensitive' } } },
     ];
   }
-
-  const PAGE_SIZE = 30;
   const [total, photos] = await Promise.all([
     prisma.photo.count({ where }),
     prisma.photo.findMany({
@@ -76,7 +75,6 @@ router.get('/member/:memberId', asyncHandler(async (req, res) => {
   }
   const query = parsed.data;
 
-  const PAGE_SIZE = 30;
   const where = { ownerMemberId: memberId, status: 'approved' as const };
 
   const [member, total, photos] = await Promise.all([
@@ -243,7 +241,6 @@ router.get('/user-photos', authMiddleware, asyncHandler(async (req, res) => {
   const query = parsed.data;
 
   const userId = req.userId;
-  const PAGE_SIZE = 30;
   const where = { ownerMemberId: userId };
 
   const [total, photos, member] = await Promise.all([

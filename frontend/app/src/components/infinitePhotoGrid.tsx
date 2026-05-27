@@ -5,23 +5,29 @@ import LazyImage from './lazy-picture';
 
 import type { Photo } from '@/types';
 
-import { useFunction } from '@/context/function';
-
 interface InfinitePhotoGridProps {
   searchQuery: string;
   setSelectedPhoto: (photo: Photo | null) => void;
+  fetchFn: (
+    search: string,
+    page: number,
+  ) => Promise<{
+    list: Photo[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }>;
 }
 
 export default function InfinitePhotoGrid({
   searchQuery,
   setSelectedPhoto,
+  fetchFn,
 }: InfinitePhotoGridProps) {
-  const { fetchPhotos } = useFunction();
-
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
     queryKey: ['photos', searchQuery],
     queryFn: async ({ pageParam }) => {
-      return fetchPhotos(searchQuery, pageParam);
+      return fetchFn(searchQuery, pageParam);
     },
     getNextPageParam: (lastPage) => {
       const nextPage = lastPage.page + 1;
