@@ -234,7 +234,10 @@ export default function MemberProfile() {
               {/* 左侧图片 */}
               <div className="flex-1 bg-slate-100 flex items-center justify-center p-6 relative">
                 <img
-                  src={selectedPhoto.url}
+                  src={
+                    selectedPhoto.url +
+                    '?x-oss-process=image/resize,m_lfit,w_1920,h_1920/interlace,1/format,webp'
+                  }
                   alt={selectedPhoto.title}
                   className="max-h-full max-w-full object-contain shadow-2xl rounded-sm"
                   loading="lazy"
@@ -395,7 +398,10 @@ function Photos({
           <Card key={p.id} className="cursor-pointer hover:shadow-lg transition-shadow photo-item2">
             <CardContent className="pt-4">
               <img
-                src={p.url}
+                src={
+                  p.url +
+                  '?x-oss-process=image/resize,m_lfit,w_1000,h_1000/quality,q_85/format,webp'
+                }
                 loading="lazy"
                 decoding="async"
                 alt={p.title || '未命名作品'}

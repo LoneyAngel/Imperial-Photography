@@ -1,7 +1,7 @@
 // Cookie 配置
 const COOKIE_NAME = 'refreshToken';
 const COOKIE_OPTIONS = {
-  httpOnly: true,
+  httpOnly: false,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
   maxAge: 15 * 24 * 60 * 60 * 1000, // 15天

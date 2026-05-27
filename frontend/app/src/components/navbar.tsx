@@ -66,6 +66,7 @@ export default function Navbar() {
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label="上传照片"
                 className={`
                   nav-link-underline hover:bg-inherit font-thin
                   ${isActive('/upload') ? 'nav-link-underline-selected' : ''}
@@ -79,6 +80,7 @@ export default function Navbar() {
             <Button
               variant="ghost"
               size="sm"
+              aria-label="浏览作品"
               className={`
                 nav-link-underline hover:bg-inherit font-thin
                 ${isActive('/gallery') ? 'nav-link-underline-selected' : ''}

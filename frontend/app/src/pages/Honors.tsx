@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { toPng } from 'html-to-image';
 import { Download, Award, Calendar, CheckCircle2, QrCode, Loader2 } from 'lucide-react';
 import { useState } from 'react';
@@ -49,7 +49,7 @@ export default function AchievementPage() {
       <ErrorBoundary>
         <div className="max-w-4xl mx-auto space-y-12">
           {/* 用户概览区域 - 现代、极简 */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -81,10 +81,10 @@ export default function AchievementPage() {
                 <div className="text-slate-400 text-xs">加入时间: 2023.10.01</div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
 
           {/*  荣誉证书区域 */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -199,7 +199,7 @@ export default function AchievementPage() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </m.div>
 
           {/* 3. 其他成就占位 (可选) */}
           <div className="border-t border-slate-100 pt-10 mt-10">

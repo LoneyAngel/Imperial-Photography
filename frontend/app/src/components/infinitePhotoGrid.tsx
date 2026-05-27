@@ -55,8 +55,13 @@ export default function InfinitePhotoGrid({
     return (
       <div onClick={() => setSelectedPhoto(photo)} key={photo.id}>
         <LazyImage
-          src={photo.url}
-          placeholder={placeholder}
+          src={
+            photo.url + '?x-oss-process=image/resize,m_lfit,w_1000,h_1000/interlace,1/format,webp'
+          }
+          placeholder={
+            placeholder +
+            '?x-oss-process=image/resize,m_lfit,w_1000,h_1000/quality,q_85/format,webp'
+          }
           alt={photo.title}
           aspectRatio={aspectRatio}
           ownerName={photo?.ownerName}

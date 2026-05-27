@@ -25,6 +25,12 @@ export default defineConfig(({ command }) => ({
         target: 'http://localhost:4000',
         changeOrigin: true,
       },
+      // 转发所有本地上传的静态资源请求
+      // 部署时换成配置nginx的location
+      '/uploads': {
+        target: 'http://localhost:4000', // 指向你的后端服务端口
+        changeOrigin: true,
+      },
     },
   },
   build: {
@@ -37,19 +43,25 @@ export default defineConfig(({ command }) => ({
       output: {
         // 优化分包策略
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            // 将 React 核心库单独打包，因为它们几乎从不改变，方便浏览器强缓存
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'react-core';
-            }
-            // 剩下的其他第三方依赖打包到 vendor 中
-            return 'vendor';
+          // 1. 把 react, react-dom 相关的核心库聚合到一个名叫 react-vendor 的 chunk 中
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-vendor';
+          }
+
+          // 2. 把体积巨大的整个动画库单独切出来，命名为 motion-vendor
+          if (id.includes('node_modules/framer-motion/')) {
+            return 'motion-vendor';
+          }
+
+          // 3. 把网络请求、状态管理、数据缓存相关的库（如 axios, @tanstack/react-query）聚在一起
+          if (id.includes('node_modules/axios/') || id.includes('node_modules/@tanstack/')) {
+            return 'utils-vendor';
           }
         },
         // 输出目录结构配置
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
-        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
   },

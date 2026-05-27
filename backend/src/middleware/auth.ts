@@ -69,7 +69,7 @@ export const requireOwnership = (resourceType: 'member' | 'photo') => {
       return;
     }
 
-    const resourceId = req.params.id;
+    const resourceId = req.params.id[0];
     const userId = req.user.userId;
 
     // 对于照片资源，需要查询数据库验证所有权

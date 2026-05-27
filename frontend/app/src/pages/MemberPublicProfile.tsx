@@ -79,7 +79,7 @@ export default function MemberPublicProfile() {
               >
                 <CardContent className="pt-4">
                   <img
-                    src={p.url}
+                    src={p.url+'?x-oss-process=image/resize,m_lfit,w_1000,h_1000/quality,q_85/format,webp'}
                     alt={p.title || '未命名作品'}
                     className="w-full h-40 object-cover mb-3"
                     loading="lazy"
@@ -107,7 +107,7 @@ export default function MemberPublicProfile() {
             <div className="flex h-full">
               <div className="flex-1 bg-slate-100 flex items-center justify-center p-6">
                 <img
-                  src={selectedPhoto.url}
+                  src={selectedPhoto.url+'?x-oss-process=image/resize,m_lfit,w_1920,h_1920/interlace,1/format,webp'}
                   alt={selectedPhoto.title}
                   className="max-h-full max-w-full object-contain shadow-2xl"
                   loading="lazy"

@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 
 // 自定义事件：token 刷新成功
 export const TOKEN_REFRESHED_EVENT = 'tokenRefreshed';
-export const REFRESH_API_URL = '/api/auth/refresh';
+export const REFRESH_API_URL = '/auth/refresh';
 
 // 模块级变量存储 authToken（不在 localStorage，防止 XSS 窃取）
 let memoryAuthToken: string | null = null;
@@ -77,7 +77,7 @@ api.interceptors.response.use(
     // 如果报错的请求本身就是刷新接口
     // 说明Cookie 彻底没了或过期了
     // 尝试一次之后警告，然后跳转登录
-    if (response.status === 401 && originalRequest.url === REFRESH_API_URL) {
+    if (response.status === 401 && originalRequest.url === '/auth/refresh') {
       console.warn('Refresh token is invalid, redirecting to login');
       toast.error('登录已过期，请重新登录');
       return Promise.reject(error);
@@ -101,7 +101,7 @@ api.interceptors.response.use(
 
       return new Promise((resolve, reject) => {
         axios
-          .post(REFRESH_API_URL, {}, { withCredentials: true })
+          .post(`/api${REFRESH_API_URL}`, {}, { withCredentials: true })
           .then(({ data }) => {
             console.log('Token refreshed successfully');
             const { authToken } = data.data;

@@ -14,14 +14,36 @@
     </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/crown.svg" />
-    <link rel="preload" as="image" href="./src/assets/image/1.jpg" />
-    <link rel="preload" as="image" href="./src/assets/image/2.jpg" />
-    <link rel="preload" as="image" href="./src/assets/fonts/Monoton/Monoton-Regular.ttf" />
+    <link rel="preload" as="image" href="./src/assets/image/1.webp" />
+    <link rel="preload" as="image" href="./src/assets/image/2.webp" />
+    <link 
+      rel="preload" 
+      as="font" 
+      type="font/ttf" 
+      href="/Monoton-Regular.ttf" 
+      crossorigin="anonymous" 
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Imperial摄影组织</title>
+    <title>Imperial摄影协会</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <style>
+        .first-screen-loading {
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          height: 100vh; font-family: system-ui, sans-serif; background-color: #ffffff;
+        }
+        .react-spinner {
+          width: 48px; height: 48px; border: 4px solid #f3f3f3;
+          border-top: 4px solid #00d8ff; border-radius: 50%;
+          animation: spin 1s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      </style>
+      <div class="first-screen-loading">
+        <div class="react-spinner"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

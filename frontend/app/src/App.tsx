@@ -1,4 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query';
+import { LazyMotion, domAnimation } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -99,7 +100,9 @@ function App() {
           <FunctionProvider>
             <UserProvider>
               <ThemeProvider>
-                <AppContent />
+                <LazyMotion features={domAnimation}>
+                  <AppContent />
+                </LazyMotion>
               </ThemeProvider>
             </UserProvider>
           </FunctionProvider>

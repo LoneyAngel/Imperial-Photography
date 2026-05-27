@@ -1,0 +1,25 @@
+# -------------------------------------------------------------------
+# User-Agent: * 代表以下规则适用于所有搜索引擎爬虫
+# -------------------------------------------------------------------
+User-agent: *
+
+# --- 允许抓取的核心区域 ---
+Allow: /
+Allow: /gallery          # 明确允许抓取你的核心展示页
+Allow: /assets/          # 允许抓取打包后的 CSS/JS（否则可能影响 SEO 渲染评估）
+
+# --- 禁止抓取的敏感区域（根据你之前的组件和路由定制） ---
+Disallow: /admin/        # 禁止抓取后台管理页（如果有）
+Disallow: /member/auth/  # 禁止抓取登录/注册鉴权页面（对应你的 MemberAuth）
+Disallow: /profile/      # 禁止抓取涉及用户隐私的个人中心（对应你的 MemberProfile）
+Disallow: /upload/       # 禁止抓取上传页面（对应你的 Upload）
+Disallow: /api/          # 如果你配置了 /api 反向代理，禁止爬虫直接抓取接口
+
+# --- 针对部分特定流氓爬虫或无用爬虫的限制（可选） ---
+# 比如某些只抓取数据用来搞 AI 训练或恶意扫描的爬虫
+User-agent: AI2Bot
+Disallow: /
+
+# --- 网站地图配置（把下面的域名换成你真实的线上生产环境域名） ---
+# Sitemap 可以极大地加速搜索引擎收录你的 /gallery 等页面
+Sitemap: https://yourdomain.com/sitemap.xml

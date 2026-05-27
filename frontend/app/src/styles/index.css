@@ -107,6 +107,6 @@ input::-webkit-credentials-auto-fill-button {
 
 @font-face {
   font-family: 'Monoton';
-  src: url("../assets/fonts/Monoton/Monoton-Regular.ttf") format('truetype');
+  src: url("/Monoton-Regular.ttf") format('truetype');
   font-display: swap;
 }

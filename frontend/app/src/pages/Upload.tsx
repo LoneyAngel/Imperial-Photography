@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { Upload as UploadIcon, ArrowLeft, CheckCircle2, Loader2, X } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -147,7 +147,7 @@ export default function Upload() {
         <div className="max-w-3xl mx-auto">
           <AnimatePresence mode="wait">
             {!uploadedPhoto ? (
-              <motion.div
+              <m.div
                 key="upload-form"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -285,9 +285,9 @@ export default function Upload() {
                     </form>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </m.div>
             ) : (
-              <motion.div
+              <m.div
                 key="success-card"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -330,7 +330,7 @@ export default function Upload() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>

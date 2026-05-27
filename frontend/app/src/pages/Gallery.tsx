@@ -86,7 +86,10 @@ function PhotoModal({ photo, onClose }: PhotoModalProps) {
           {/* 左侧：图片展示区 */}
           <div className="flex-1 bg-slate-100 flex items-center justify-center p-6 relative">
             <img
-              src={photo.url}
+              src={
+                photo.url +
+                '?x-oss-process=image/resize,m_lfit,w_1920,h_1920/quality,q_85/interlace,1/format,webp'
+              }
               alt={photo.title}
               className="max-h-full max-w-full object-contain shadow-2xl"
               loading="lazy"

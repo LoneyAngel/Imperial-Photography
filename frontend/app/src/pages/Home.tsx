@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
-import img1 from '@/assets/image/1.jpg';
-import img2 from '@/assets/image/2.jpg';
+import img1 from '@/assets/image/1.webp';
+import img2 from '@/assets/image/2.webp';
 import { useUser } from '@/context/user';
 
 export default function Home() {

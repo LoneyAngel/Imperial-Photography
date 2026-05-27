@@ -8,22 +8,37 @@ type PutResult = { url: string, key: string };
 type PutImageResult = PutResult & { width: number, height: number, lowQualityUrl?: string, lowQualityKey?: string };
 const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || '4001'}`;
 
-// 检查是否配置了 OSS 存储
-function hasOssConfig() {
-  return Boolean(
+// ==================== ✨ 优化 1: 单例化 OSS 客户端（解决重复 new 的性能问题） ====================
+let ossClient: OSS | null = null;
+
+function getOssClient(): OSS | null {
+  if (ossClient) return ossClient;
+
+  if (
     (process.env.OSS_REGION || process.env.OSS_ENDPOINT) &&
-      process.env.OSS_ACCESS_KEY_ID &&
-      process.env.OSS_ACCESS_KEY_SECRET &&
-      process.env.OSS_BUCKET
-  );
+    process.env.OSS_ACCESS_KEY_ID &&
+    process.env.OSS_ACCESS_KEY_SECRET &&
+    process.env.OSS_BUCKET
+  ) {
+    const rawRegion = process.env.OSS_REGION;
+    const endpoint = process.env.OSS_ENDPOINT;
+    const region = rawRegion ? normalizeRegion(rawRegion) : undefined;
+
+    ossClient = new OSS({
+      region,
+      endpoint,
+      accessKeyId: process.env.OSS_ACCESS_KEY_ID!,
+      accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET!,
+      bucket: process.env.OSS_BUCKET!,
+    });
+    return ossClient;
+  }
+  return null;
 }
 
 // 标准化 OSS 区域名称
 function normalizeRegion(value: string) {
-  const trimmed = value.trim();
-  const withoutProtocol = trimmed.replace(/^https?:\/\//, '');
-  const withoutSuffix = withoutProtocol.replace(/\.aliyuncs\.com$/i, '');
-  return withoutSuffix;
+  return value.trim().replace(/^https?:\/\//, '').replace(/\.aliyuncs\.com$/i, '');
 }
 
 // 获取 OSS 公共基础 URL
@@ -36,7 +51,6 @@ function getPublicBaseUrl() {
   return `https://${bucket}.${region}.aliyuncs.com`;
 }
 
-// 从 MIME 类型获取文件扩展名
 function extFromMime(mime: string) {
   const lower = mime.toLowerCase();
   if (lower === 'image/jpeg') return 'jpg';
@@ -48,42 +62,31 @@ function extFromMime(mime: string) {
 
 // 上传缓冲区到 OSS 或本地
 export async function uploadBuffer(buffer: Buffer, key: string, mime: string): Promise<PutResult> {
-  // 上传到 OSS
-  if (hasOssConfig()) {
-    const rawRegion = process.env.OSS_REGION;
-    const endpoint = process.env.OSS_ENDPOINT;
-    const region = rawRegion ? normalizeRegion(rawRegion) : undefined;
-    const client = new OSS({
-      region,
-      endpoint,
-      accessKeyId: process.env.OSS_ACCESS_KEY_ID!,
-      accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET!,
-      bucket: process.env.OSS_BUCKET!,
-    });
+  const client = getOssClient();
 
+  if (client) {
+    // 上传到 OSS
     await client.put(key, buffer, {
-      headers: {
-        'Content-Type': mime,
-      },
+      headers: { 'Content-Type': mime },
     });
 
     const baseUrl = getPublicBaseUrl();
     if (!baseUrl) throw new Error('OSS public base url is not configured');
     return { key, url: `${baseUrl}/${key}` };
-  }
+  } else {
+    // ==================== ✨ 优化 2: 使用 path.dirname 安全生成本地目录（修复本地 404 漏洞） ====================
+    const uploadsDir = path.resolve(process.cwd(), 'uploads');
+    // 统一处理 Windows 和 Linux 的路径分隔符
+    const normalizedKey = key.replace(/\\/g, '/'); 
+    const localPath = path.join(uploadsDir, normalizedKey);
+    
+    // 自动获取文件所在目录并创建
+    await fs.mkdir(path.dirname(localPath), { recursive: true });
+    await fs.writeFile(localPath, buffer);
 
-  // 上传到本地文件系统
-  const uploadsDir = path.resolve(process.cwd(), 'uploads');
-  await fs.mkdir(uploadsDir, { recursive: true });
-  const keyParts = key.split('/');
-  let localPath = uploadsDir;
-  for (let i = 0; i < keyParts.length - 1; i++) {
-    localPath = path.join(localPath, keyParts[i]);
-    await fs.mkdir(localPath, { recursive: true });
+    // 修复：返回正确的、包含 key 完整路径的本地 URL
+    return { key, url: `${BASE_URL}/uploads/${normalizedKey}` };
   }
-  localPath = path.join(uploadsDir, keyParts[keyParts.length - 1]);
-  await fs.writeFile(localPath, buffer);
-  return { key, url: `${BASE_URL}/uploads/${keyParts.slice(1).join('/')}` };
 }
 
 // 上传图片到 OSS 或本地文件系统，同时提取尺寸并生成低清图
@@ -94,11 +97,11 @@ export async function putImage(params: {
 }): Promise<PutImageResult> {
   const fileExt = extFromMime(params.mime);
   const random = crypto.randomBytes(12).toString('hex');
-  const key = `photos/${Date.now()}-${random}.${fileExt}`;
+  const key = `photos/high_${Date.now()}-${random}.${fileExt}`;
 
-  // 提取图片信息
-  const image = sharp(params.buffer);
-  const metadata = await image.metadata();
+  // ==================== ✨ 优化 3: 规避 Sharp 状态污染，添加方向修正 ====================
+  // 读取元数据时，同样建议加入 rotate()，确保获取的宽高是旋转正向后的宽高
+  const metadata = await sharp(params.buffer).rotate().metadata();
   const width = metadata.width || 0;
   const height = metadata.height || 0;
 
@@ -108,7 +111,9 @@ export async function putImage(params: {
   // 生成并上传低清图
   let lowQualityResult: PutResult | undefined;
   if (width > 0 && height > 0) {
-    const lowQualityBuffer = await image
+    // ✨ 修复：基于原始 buffer 重新创建独立的 sharp 实例，并追加 .rotate() 修复低清图变横的问题
+    const lowQualityBuffer = await sharp(params.buffer)
+      .rotate() 
       .resize(Math.min(width, 400), Math.min(height, 400), { fit: 'inside', withoutEnlargement: true })
       .jpeg({ quality: 60 })
       .toBuffer();
@@ -133,24 +138,11 @@ export async function putNoticeContent(params: {
 }): Promise<PutResult> {
   const random = crypto.randomBytes(12).toString('hex');
   const key = `notice/${Date.now()}-${random}.txt`;
+  const client = getOssClient();
 
-  // 上传到 OSS
-  if (hasOssConfig()) {
-    const rawRegion = process.env.OSS_REGION;
-    const endpoint = process.env.OSS_ENDPOINT;
-    const region = rawRegion ? normalizeRegion(rawRegion) : undefined;
-    const client = new OSS({
-      region,
-      endpoint,
-      accessKeyId: process.env.OSS_ACCESS_KEY_ID!,
-      accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET!,
-      bucket: process.env.OSS_BUCKET!,
-    });
-
-    await client.put(key, params.content, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-      },
+  if (client) {
+    await client.put(key, Buffer.from(params.content, 'utf-8'), {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });
 
     const baseUrl = getPublicBaseUrl();
@@ -164,43 +156,32 @@ export async function putNoticeContent(params: {
   const fileName = key.replace('notice/', '');
   const localPath = path.join(uploadsDir, fileName);
   await fs.writeFile(localPath, params.content, 'utf-8');
-  return { key: fileName, url: `${BASE_URL}/uploads/notice/${fileName}` };
+  return { key: `notice/${fileName}`, url: `${BASE_URL}/uploads/notice/${fileName}` };
 }
 
 // 删除通知内容文件
 export async function deleteNoticeContent(key: string): Promise<void> {
-  if (hasOssConfig()) {
-    const rawRegion = process.env.OSS_REGION;
-    const endpoint = process.env.OSS_ENDPOINT;
-    const region = rawRegion ? normalizeRegion(rawRegion) : undefined;
-    const client = new OSS({
-      region,
-      endpoint,
-      accessKeyId: process.env.OSS_ACCESS_KEY_ID!,
-      accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET!,
-      bucket: process.env.OSS_BUCKET!,
-    });
+  const client = getOssClient();
+  if (client) {
     await client.delete(key);
     return;
   }
 
   // 从本地文件系统删除
-  const uploadsDir = path.resolve(process.cwd(), 'uploads', 'notice');
-  const localPath = path.join(uploadsDir, key);
-  await fs.unlink(localPath).catch(() => {}); // 忽略文件不存在错误
+  const normalizedKey = key.replace('notice/', '');
+  const localPath = path.resolve(process.cwd(), 'uploads', 'notice', normalizedKey);
+  await fs.unlink(localPath).catch(() => {}); 
 }
 
 // 从 URL 获取图片缓冲区
 export async function getImageBufferFromUrl(url: string): Promise<Buffer | null> {
   try {
-    // 检查是否是本地 URL
     if (url.startsWith(BASE_URL)) {
       const relativePath = url.replace(`${BASE_URL}/uploads/`, '');
       const localPath = path.resolve(process.cwd(), 'uploads', relativePath);
       return await fs.readFile(localPath);
     }
 
-    // 否则尝试下载
     const response = await fetch(url);
     if (!response.ok) return null;
     const arrayBuffer = await response.arrayBuffer();
